@@ -1,15 +1,16 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import './App.css';
+﻿import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/auth';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import HomePage from './pages/Home';
+import RequireAuth from './components/RequireAuth';
 import FrontOfficeLayout from './pages/front_office/FrontOfficeLayout';
 import FrontOfficeDashboardPage from './pages/front_office/FrontOfficeDashboardPage';
 import PatientRegistrationStep1Page from './pages/front_office/PatientRegistrationStep1Page';
 import PatientRegistrationStep2Page from './pages/front_office/PatientRegistrationStep2Page';
 import PatientRegistrationStep3Page from './pages/front_office/PatientRegistrationStep3Page';
 import PatientRegistrationStep4Page from './pages/front_office/PatientRegistrationStep4Page';
+import PatientEhrPage from './pages/front_office/PatientEhrPage';
 import NursePage from './pages/nurse';
 import DoctorPage from './pages/doctor';
 import PharmacistPage from './pages/pharmacist';
@@ -35,12 +36,20 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dev" element={<HomePage />} />
-        <Route path="/front_office" element={<FrontOfficeLayout />}>
+        <Route
+          path="/front_office"
+          element={
+            <RequireAuth>
+              <FrontOfficeLayout />
+            </RequireAuth>
+          }
+        >
           <Route index element={<FrontOfficeDashboardPage />} />
           <Route path="registration/step-1" element={<PatientRegistrationStep1Page />} />
           <Route path="registration/step-2" element={<PatientRegistrationStep2Page />} />
           <Route path="registration/step-3" element={<PatientRegistrationStep3Page />} />
           <Route path="registration/step-4" element={<PatientRegistrationStep4Page />} />
+          <Route path="patient/:patientId" element={<PatientEhrPage />} />
         </Route>
         <Route path="/nurse" element={<NursePage />} />
         <Route path="/doctor" element={<DoctorPage />} />
