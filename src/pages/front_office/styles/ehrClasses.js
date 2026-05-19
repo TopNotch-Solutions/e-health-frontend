@@ -1,7 +1,7 @@
 /** Tailwind class tokens for the EHR interface. */
 
 export const ehr = {
-  page: 'mx-auto max-w-6xl space-y-6 pb-10',
+  page: 'mx-auto w-full max-w-6xl space-y-6',
   backLink:
     'inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-800',
   hero:

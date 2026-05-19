@@ -51,8 +51,22 @@ function App() {
           <Route path="registration/step-4" element={<PatientRegistrationStep4Page />} />
           <Route path="patient/:patientId" element={<PatientEhrPage />} />
         </Route>
-        <Route path="/nurse" element={<NursePage />} />
-        <Route path="/doctor" element={<DoctorPage />} />
+        <Route
+          path="/nurse"
+          element={
+            <RequireAuth>
+              <NursePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/doctor"
+          element={
+            <RequireAuth>
+              <DoctorPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/pharmacist" element={<PharmacistPage />} />
         <Route path="/lab_technician" element={<LabTechnicianPage />} />
         <Route path="/radiologist" element={<RadiologistPage />} />

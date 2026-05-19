@@ -2,9 +2,10 @@
  * Tailwind tokens for the Find patient record (lookup) interface.
  * Aligned with the EHR visual system (teal brand, cards, hero).
  */
+import { fo } from './frontOfficeModuleClasses';
 
 export const lookup = {
-  page: 'mx-auto max-w-6xl space-y-6 pb-10',
+  page: 'mx-auto w-full max-w-6xl space-y-1',
   hero:
     'overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-teal-900 to-teal-800 text-white shadow-lg',
   heroInner: 'p-6 sm:p-8',
@@ -48,14 +49,14 @@ export const lookup = {
   btnPrimary:
     'rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-60',
   btnGhost: 'rounded-lg px-3 py-1.5 text-sm font-semibold text-teal-700 transition hover:bg-teal-50',
-  actionGrid: 'grid gap-4 sm:grid-cols-2',
-  actionCard:
-    'group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-teal-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500/40',
-  actionCardDanger:
-    'group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-rose-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-rose-500/40 disabled:opacity-50',
-  actionIcon: 'mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-xl font-bold',
-  actionIconBrand: 'bg-teal-100 text-teal-800 group-hover:bg-teal-200',
-  actionIconDanger: 'bg-rose-100 text-rose-700 group-hover:bg-rose-200',
+  actionGrid: fo.actionGrid,
+  actionCard: fo.actionCard,
+  actionCardDanger: fo.actionCardEmergency,
+  actionIcon: fo.actionIcon,
+  actionIconBrand: fo.actionIconBrand,
+  actionIconDanger: fo.actionIconDanger,
+  actionTitle: fo.actionTitle,
+  actionText: fo.actionText,
   returningCard:
     'rounded-2xl border-2 border-teal-200 bg-gradient-to-br from-teal-50/80 to-white p-5 shadow-sm',
   returningBadge:
@@ -68,4 +69,14 @@ export const lookup = {
     'flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4',
   hint: 'rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600',
   empty: 'rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center text-sm text-slate-500',
+  emergencyToggle:
+    'flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-rose-200',
+  emergencyToggleOn: 'border-rose-300 bg-rose-50/80 ring-1 ring-rose-200/50',
+  emergencyToggleIcon:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-lg font-bold text-rose-700',
+  emergencyToggleTitle: 'block text-sm font-bold text-slate-900',
+  emergencyToggleHint: 'block text-xs text-slate-500',
+  emergencyToggleSwitch:
+    'relative h-6 w-11 shrink-0 rounded-full bg-slate-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition',
+  emergencyToggleSwitchOn: 'bg-rose-600 after:translate-x-5',
 };

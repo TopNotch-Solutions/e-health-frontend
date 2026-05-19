@@ -1,4 +1,5 @@
 const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
+//const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export function getAccessToken() {
   return localStorage.getItem('accessToken');
@@ -17,6 +18,27 @@ export function clearSession() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+}
+
+let sessionRedirectPending = false;
+
+/**
+ * Send the user to the login page (full navigation so all modules reset).
+ */
+export function redirectToLogin() {
+  const path = window.location.pathname;
+  if (path === '/login' || path === '/') return;
+  if (sessionRedirectPending) return;
+  sessionRedirectPending = true;
+
+  const from = encodeURIComponent(path + window.location.search);
+  window.location.replace(`/login?expired=1&from=${from}`);
+}
+
+/** Clear stored credentials and redirect to login. */
+export function handleSessionExpired() {
+  clearSession();
+  redirectToLogin();
 }
 
 export async function refreshAccessToken() {

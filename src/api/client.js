@@ -1,6 +1,8 @@
-import { clearSession, getAccessToken, refreshAccessToken } from './authSession';
+import { getAccessToken, handleSessionExpired, refreshAccessToken } from './authSession';
+import { disconnectSocket } from './socket';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
+//const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export function getApiBase() {
   return API_BASE;
@@ -33,12 +35,15 @@ export async function apiRequest(path, options = {}, isRetry = false) {
 
   const json = await res.json().catch(() => ({}));
 
-  if (res.status === 401 && !isRetry) {
-    const refreshed = await refreshAccessToken();
-    if (refreshed) {
-      return apiRequest(path, options, true);
+  if (res.status === 401) {
+    if (!isRetry) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        return apiRequest(path, options, true);
+      }
     }
-    clearSession();
+    disconnectSocket();
+    handleSessionExpired();
     const err = new Error('Session expired. Please sign in again.');
     err.status = 401;
     err.requiresLogin = true;
@@ -47,15 +52,11 @@ export async function apiRequest(path, options = {}, isRetry = false) {
 
   if (!res.ok || json.success === false) {
     let message = json.message || `Request failed (${res.status})`;
-    if (res.status === 401) {
-      message = 'Sign in required. Use your hospital account at the login page.';
-    }
     if (res.status === 403) {
       message = json.message || 'You do not have permission for this action.';
     }
     const err = new Error(message);
     err.status = res.status;
-    if (res.status === 401) err.requiresLogin = true;
     throw err;
   }
 

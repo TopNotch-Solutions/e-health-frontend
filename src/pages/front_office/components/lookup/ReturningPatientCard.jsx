@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import IntakeDetailsForm from '../IntakeDetailsForm';
+import EmergencyPatientToggle from '../EmergencyPatientToggle';
 import { useToast } from '../../context/ToastContext';
 import { formatDob, maskId, patientName } from '../../patientUtils';
 import { lookup } from '../../styles/lookupClasses';
@@ -14,6 +15,7 @@ export default function ReturningPatientCard({
   const { showToast } = useToast();
   const [modeOfArrival, setModeOfArrival] = useState('');
   const [accompaniedBy, setAccompaniedBy] = useState('');
+  const [isEmergency, setIsEmergency] = useState(Boolean(patient.is_emergency));
   const busy = checkInLoading && checkInPatientId === patient.id;
 
   async function handleCheckIn() {
@@ -28,6 +30,7 @@ export default function ReturningPatientCard({
     await onCheckIn(patient, {
       mode_of_arrival: modeOfArrival,
       accompanied_by: accompaniedBy,
+      is_emergency: isEmergency,
     });
   }
 
@@ -48,9 +51,6 @@ export default function ReturningPatientCard({
         DOB {formatDob(patient.date_of_birth)}
         {patient.phone ? ` · ${patient.phone}` : ''}
       </p>
-      <p className="mt-3 text-sm text-teal-900">
-        Full profile on file — duplicate registration prevented.
-      </p>
 
       <IntakeDetailsForm
         modeOfArrival={modeOfArrival}
@@ -60,6 +60,15 @@ export default function ReturningPatientCard({
         disabled={checkInLoading}
         classNames={lookup}
       />
+
+      <div className="mt-4">
+        <EmergencyPatientToggle
+          id={`fo-returning-emergency-${patient.id}`}
+          checked={isEmergency}
+          onChange={setIsEmergency}
+          disabled={checkInLoading}
+        />
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button

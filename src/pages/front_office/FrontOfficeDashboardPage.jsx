@@ -87,7 +87,10 @@ export default function FrontOfficeDashboardPage() {
     setCheckInPatientId(patient.id);
     try {
       await createPatientVisit(patient.id, intake);
-      showToast(`${patientName(patient)} checked in and sent to the nurse queue.`, 'success');
+      const msg = intake.is_emergency
+        ? `${patientName(patient)} checked in as emergency and prioritized in the nurse queue.`
+        : `${patientName(patient)} checked in and sent to the nurse queue.`;
+      showToast(msg, 'success');
       resetSearch();
     } catch (err) {
       showToast(err.message || 'Check-in failed', 'error');
@@ -101,7 +104,7 @@ export default function FrontOfficeDashboardPage() {
     setEmergencyLoading(true);
     try {
       await registerEmergencyPatient({ sex: 'other' });
-      showToast('Emergency patient registered and sent to the doctor queue.', 'success');
+      showToast('Emergency patient registered and prioritized at the top of the nurse queue.', 'success');
       resetSearch();
     } catch (err) {
       showToast(err.message || 'Emergency registration failed', 'error');

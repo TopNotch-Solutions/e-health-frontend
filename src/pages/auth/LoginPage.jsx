@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authRoleSlug, homePathForRole } from '../../utils/homePathForRole';
 import AuthPageShell from './components/AuthPageShell';
@@ -35,14 +35,34 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const returnTo = (() => {
+    const params = new URLSearchParams(location.search);
+    const fromQuery = params.get('from');
+    if (fromQuery) {
+      try {
+        return decodeURIComponent(fromQuery);
+      } catch {
+        return fromQuery;
+      }
+    }
+    return location.state?.from;
+  })();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('expired') === '1') {
+      setLoginError('Your session has expired. Please sign in again.');
+    }
+  }, [location.search]);
+
   const now = new Date();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoginError('');
     setSubmitting(true);
-    const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
-
+     const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
+      
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
         method: 'POST',
@@ -56,7 +76,6 @@ export default function LoginPage() {
         localStorage.setItem('accessToken', accessToken);
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
-        const returnTo = location.state?.from;
         const defaultHome = homePathForRole(authRoleSlug(user));
         navigate(returnTo && returnTo.startsWith('/') ? returnTo : defaultHome, { replace: true });
         return;

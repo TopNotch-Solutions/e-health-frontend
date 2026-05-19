@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { clearSession } from '../../../api/authSession';
+import { handleSessionExpired } from '../../../api/authSession';
 import { searchPatients } from '../../../api/patients';
 import { useToast } from '../context/ToastContext';
 import { validateDobSearch, validateNationalId } from '../utils/validation';
@@ -53,7 +53,7 @@ export function usePatientSearch({ onNavigateLogin }) {
       setPhase(list.length === 1 && list[0].profile_complete ? 'returning' : 'results');
     } catch (err) {
       if (err.requiresLogin) {
-        clearSession();
+        handleSessionExpired();
         onNavigateLogin?.();
         return;
       }

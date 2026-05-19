@@ -3,8 +3,18 @@
  * Keeps layout components free of long inline class lists.
  */
 
+/** Shell layout — fixed viewport; only main scrolls (matches nurse module). */
+export const layout = {
+  page: 'flex h-screen max-h-[100dvh] flex-col overflow-hidden bg-slate-50 text-slate-900',
+  main: 'flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6 sm:px-6 lg:px-8',
+  footer:
+    'shrink-0 border-t border-slate-200 bg-white px-4 py-3 text-center text-xs text-slate-500 sm:px-6',
+  footerLink: 'font-semibold text-teal-700 hover:underline',
+};
+
 export const topbar = {
-  root: 'flex w-full items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6',
+  root:
+    'flex w-full shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6',
   brand: 'text-xl font-bold tracking-tight text-slate-900 sm:text-2xl',
   signOut:
     'rounded-lg border-2 border-red-600 bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-red-700 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2',

@@ -18,6 +18,7 @@ const defaultDraft = () => ({
   emergency_contact_name: '',
   emergency_contact_phone: '',
   emergency_contact_relationship: '',
+  is_emergency: false,
 });
 
 const RegistrationContext = createContext(null);
@@ -84,6 +85,7 @@ export function RegistrationProvider({ children }) {
       emergency_contact_name: draft.emergency_contact_name.trim() || null,
       emergency_contact_phone: draft.emergency_contact_phone.trim() || null,
       category: 'known',
+      is_emergency: Boolean(draft.is_emergency),
     };
   }, [draft]);
 
