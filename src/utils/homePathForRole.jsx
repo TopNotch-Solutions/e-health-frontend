@@ -34,6 +34,25 @@ export function authRoleSlug(user) {
   return '';
 }
 
+/** Role required for a module path (longest prefix wins). */
+export function requiredRoleForPath(pathname) {
+  const path = (pathname || '').split('?')[0];
+  const entries = Object.entries(ROLE_HOME_PATHS).sort((a, b) => b[1].length - a[1].length);
+  for (const [role, prefix] of entries) {
+    if (path === prefix || path.startsWith(`${prefix}/`)) {
+      return role;
+    }
+  }
+  return null;
+}
+
+export function isRoleAllowedForPath(pathname, user) {
+  const required = requiredRoleForPath(pathname);
+  if (!required) return true;
+  const slug = authRoleSlug(user).toLowerCase();
+  return slug === required;
+}
+
 export function homePathForRole(roleName) {
   const raw =
     typeof roleName === 'string'

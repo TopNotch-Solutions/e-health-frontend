@@ -1,4 +1,5 @@
 import NurseReadOnlyIntakeCards from './NurseReadOnlyIntakeCards';
+import DoctorLabOrderSection from './DoctorLabOrderSection';
 import { IntakeInput, IntakeTextarea } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 
@@ -17,6 +18,7 @@ export default function DoctorConsultationForm({
   onIcdInputChange,
   onTryAddIcd,
   diagnoses,
+  diagnosisErrors = {},
   onRemoveDiagnosis,
   clinicalNotes,
   onClinicalNotesChange,
@@ -28,6 +30,14 @@ export default function DoctorConsultationForm({
   onRemoveMedLine,
   actionLoading,
   onSendToPharmacy,
+  selectedLabTests,
+  onToggleLabTest,
+  labClinicalNotes,
+  onLabClinicalNotesChange,
+  labEmergency,
+  onLabEmergencyChange,
+  onSendToLab,
+  labError,
   onAdmit,
   onDischarge,
 }) {
@@ -50,33 +60,22 @@ export default function DoctorConsultationForm({
           Diagnosis / clinical impression
         </h3>
         <div className="mt-4 space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <div className="flex min-w-0 flex-1 flex-col justify-end">
-              <IntakeInput
-                id="doc-icd"
-                label="ICD-10 code or diagnosis"
-                required={false}
-                error={null}
-                className={c.input}
-                placeholder="Search ICD-10 codes or common names..."
-                value={icdInput}
-                onChange={(e) => onIcdInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    onTryAddIcd();
-                  }
-                }}
-              />
-            </div>
-            <button
-              type="button"
-              className={`${c.btnSecondary} shrink-0 sm:min-w-[9.5rem]`}
-              onClick={onTryAddIcd}
-            >
-              Add diagnosis
-            </button>
-          </div>
+          <IntakeInput
+            id="doc-icd"
+            label="ICD-10 code or diagnosis"
+            required
+            error={diagnosisErrors.icd}
+            className={c.input}
+            placeholder="e.g. M54.5 or short clinical impression"
+            value={icdInput}
+            onChange={(e) => onIcdInputChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onTryAddIcd();
+              }
+            }}
+          />
           {diagnoses.length > 0 ? (
             <div className={c.tagList}>
               {diagnoses.map((d) => (
@@ -97,8 +96,8 @@ export default function DoctorConsultationForm({
           <IntakeTextarea
             id="doc-clinical-notes"
             label="Clinical notes and treatment plan"
-            required={false}
-            error={null}
+            required
+            error={diagnosisErrors.clinicalNotes}
             className={c.textarea}
             placeholder="Detail the treatment plan, counseling provided, and clinical reasoning..."
             value={clinicalNotes}
@@ -203,6 +202,19 @@ export default function DoctorConsultationForm({
           ) : null}
         </div>
       </section>
+
+      <DoctorLabOrderSection
+        selectedTests={selectedLabTests}
+        onToggleTest={onToggleLabTest}
+        labClinicalNotes={labClinicalNotes}
+        onLabClinicalNotesChange={onLabClinicalNotesChange}
+        labEmergency={labEmergency}
+        onLabEmergencyChange={onLabEmergencyChange}
+        actionLoading={actionLoading}
+        onSendToLab={onSendToLab}
+        labError={labError}
+        prescriptionLineCount={prescriptionLines.length}
+      />
 
       <section className={c.sectionPanel} aria-labelledby="doc-disp-heading">
         <h3 id="doc-disp-heading" className={c.sectionTitle}>

@@ -1,0 +1,95 @@
+import { useCallback, useEffect, useState } from 'react';
+import { getTransportQueue } from '../../../api/transport';
+import { getSocket } from '../../../api/socket';
+
+function mapRow(req) {
+  const p = req?.visit?.patient;
+  const name = p
+    ? [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || 'Patient'
+    : 'Patient';
+  return {
+    id: req.id,
+    status: req.status,
+    priority: req.priority,
+    fromLocation: req.from_location,
+    toLocation: req.to_location,
+    equipmentRequired: req.equipment_required,
+    equipmentNotes: req.equipment_notes,
+    patientName: name,
+    patientNumber: p?.patient_number ?? '',
+    requestedAt: req.requested_at,
+    assignedPorterId: req.assigned_porter,
+    raw: req,
+  };
+}
+
+export function usePorterQueue() {
+  const [queue, setQueue] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [live, setLive] = useState(false);
+
+  const loadQueueHttp = useCallback(async () => {
+    setError('');
+    try {
+      const rows = await getTransportQueue();
+      setQueue((Array.isArray(rows) ? rows : []).map(mapRow));
+      return rows;
+    } catch (err) {
+      setError(err.message || 'Failed to load transport queue');
+      setQueue([]);
+      return [];
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await loadQueueHttp();
+      if (!cancelled) setLoading(false);
+    })();
+
+    const socket = getSocket();
+    if (!socket) {
+      setError((prev) => prev || 'Sign in required for live queue updates.');
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const bump = () => {
+      loadQueueHttp().finally(() => setLoading(false));
+    };
+
+    const onConnect = () => {
+      setLive(true);
+      bump();
+    };
+    const onDisconnect = () => setLive(false);
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('transport:new_request', bump);
+    socket.on('transport:updated', bump);
+    socket.on('transport:completed', bump);
+    socket.on('transport:queue_refresh', bump);
+
+    if (socket.connected) onConnect();
+
+    return () => {
+      cancelled = true;
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('transport:new_request', bump);
+      socket.off('transport:updated', bump);
+      socket.off('transport:completed', bump);
+      socket.off('transport:queue_refresh', bump);
+    };
+  }, [loadQueueHttp]);
+
+  const refresh = useCallback(async () => {
+    await loadQueueHttp();
+  }, [loadQueueHttp]);
+
+  return { queue, loading, error, live, refresh };
+}

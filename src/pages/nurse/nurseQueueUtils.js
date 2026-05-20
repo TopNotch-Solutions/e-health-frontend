@@ -1,3 +1,16 @@
+/** Queue rows shown in nurse / doctor / pharmacy department lists. */
+export const ACTIVE_QUEUE_ENTRY_STATUSES = ['waiting', 'in_progress'];
+
+export const ACTIVE_PRESCRIPTION_QUEUE_STATUSES = ['pending', 'partially_dispensed'];
+
+export function filterActiveQueueEntries(entries) {
+  return (entries || []).filter((e) => ACTIVE_QUEUE_ENTRY_STATUSES.includes(e.status));
+}
+
+export function filterActivePrescriptionQueue(rows) {
+  return (rows || []).filter((rx) => ACTIVE_PRESCRIPTION_QUEUE_STATUSES.includes(rx.status));
+}
+
 /** Map API queue status to nurse UI status. */
 export function uiStatusFromEntry(entry) {
   if (entry.status === 'in_progress') return 'in_progress';

@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { authRoleSlug, homePathForRole } from '../../utils/homePathForRole';
+import { authRoleSlug, homePathForRole, isRoleAllowedForPath } from '../../utils/homePathForRole';
 import AuthPageShell from './components/AuthPageShell';
 import { auth } from './styles/authClasses';
 
@@ -53,6 +53,9 @@ export default function LoginPage() {
     if (params.get('expired') === '1') {
       setLoginError('Your session has expired. Please sign in again.');
     }
+    if (params.get('forbidden') === '1') {
+      setLoginError('You do not have access to that page. Sign in with the correct role.');
+    }
   }, [location.search]);
 
   const now = new Date();
@@ -77,7 +80,13 @@ export default function LoginPage() {
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
         const defaultHome = homePathForRole(authRoleSlug(user));
-        navigate(returnTo && returnTo.startsWith('/') ? returnTo : defaultHome, { replace: true });
+        const forbidden = new URLSearchParams(location.search).get('forbidden') === '1';
+        const useReturnTo =
+          !forbidden &&
+          returnTo &&
+          returnTo.startsWith('/') &&
+          isRoleAllowedForPath(returnTo, user);
+        navigate(useReturnTo ? returnTo : defaultHome, { replace: true });
         return;
       }
 

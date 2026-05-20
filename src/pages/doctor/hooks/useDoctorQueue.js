@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getDepartmentQueue } from '../../../api/queue';
 import { getSocket, requestDoctorQueueRefresh } from '../../../api/socket';
 import { getStoredUser } from '../../../api/authSession';
+import { filterActiveQueueEntries } from '../../nurse/nurseQueueUtils';
 import { mapDoctorQueueEntry } from '../doctorQueueUtils';
 
 const DOCTOR_DEPT = 'doctor';
@@ -15,7 +16,7 @@ export function useDoctorQueue({ onQueueSynced } = {}) {
   onSyncedRef.current = onQueueSynced;
 
   const applyEntries = useCallback((entries) => {
-    const mapped = (entries || []).map(mapDoctorQueueEntry);
+    const mapped = filterActiveQueueEntries(entries).map(mapDoctorQueueEntry);
     setQueue(mapped);
     onSyncedRef.current?.(mapped);
     return mapped;
@@ -54,6 +55,16 @@ export function useDoctorQueue({ onQueueSynced } = {}) {
       setLoading(false);
     };
 
+    const handlePatientMoved = (payload) => {
+      const { entryId, status, department } = payload || {};
+      if (department && department !== DOCTOR_DEPT) return;
+      if (status === 'completed' || status === 'skipped') {
+        setQueue((prev) => prev.filter((p) => p.entryId !== entryId));
+        return;
+      }
+      requestDoctorQueueRefresh();
+    };
+
     const handleLiveEvent = () => requestDoctorQueueRefresh();
 
     const onConnect = () => {
@@ -66,7 +77,7 @@ export function useDoctorQueue({ onQueueSynced } = {}) {
     socket.on('disconnect', onDisconnect);
     socket.on('queue:refresh', handleRefresh);
     socket.on('queue:new_patient', handleLiveEvent);
-    socket.on('queue:patient_moved', handleLiveEvent);
+    socket.on('queue:patient_moved', handlePatientMoved);
 
     if (socket.connected) onConnect();
 
@@ -76,16 +87,16 @@ export function useDoctorQueue({ onQueueSynced } = {}) {
       socket.off('disconnect', onDisconnect);
       socket.off('queue:refresh', handleRefresh);
       socket.off('queue:new_patient', handleLiveEvent);
-      socket.off('queue:patient_moved', handleLiveEvent);
+      socket.off('queue:patient_moved', handlePatientMoved);
     };
   }, [applyEntries, loadQueueHttp]);
 
   const refresh = useCallback(async () => {
+    const mapped = await loadQueueHttp();
     if (getSocket()?.connected) {
       requestDoctorQueueRefresh();
-      return;
     }
-    await loadQueueHttp();
+    return mapped;
   }, [loadQueueHttp]);
 
   return { queue, loading, error, live, refresh };

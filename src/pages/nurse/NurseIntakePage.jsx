@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { startQueueEntry } from '../../api/queue';
 import { recordVitalsAndPushToDoctor } from '../../api/vitals';
 import NurseTopbar from './components/NurseTopbar';
@@ -52,9 +52,14 @@ export default function NurseIntakePage() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [queueActionError, setQueueActionError] = useState('');
+  const skipAutoResumeRef = useRef(false);
 
   const onQueueSynced = useCallback(
     (mapped) => {
+      if (skipAutoResumeRef.current) {
+        skipAutoResumeRef.current = false;
+        return;
+      }
       const mine = pickAutoResumeEntry(mapped, userId);
       if (mine) {
         setActiveEntryId((prev) => prev || mine.entryId);
@@ -63,7 +68,7 @@ export default function NurseIntakePage() {
     [userId]
   );
 
-  const { queue, loading, error: queueLoadError, live, refresh } = useNurseQueue({
+  const { queue, setQueue, loading, error: queueLoadError, live, refresh } = useNurseQueue({
     onQueueSynced,
   });
 
@@ -179,10 +184,15 @@ export default function NurseIntakePage() {
         queueEntryId: activePatient.entryId,
       });
 
-      await recordVitalsAndPushToDoctor(body);
-      setToast(`${activePatient.name} sent to doctor queue`);
+      const completedEntryId = activePatient.entryId;
+      skipAutoResumeRef.current = true;
       setActiveEntryId(null);
       setForm(emptyIntakeForm());
+
+      await recordVitalsAndPushToDoctor(body);
+
+      setQueue((prev) => prev.filter((p) => p.entryId !== completedEntryId));
+      setToast(`${activePatient.name} sent to doctor queue`);
       await refresh();
     } catch (err) {
       setSubmitError(err.message || 'Failed to complete vitals');

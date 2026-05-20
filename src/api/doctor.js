@@ -1,37 +1,54 @@
 import { apiRequest } from './client';
 
+/** Doctor module routes are mounted at /api/v1/consultations in the backend. */
+const BASE = '/api/v1/consultations';
+
 export function createConsultation(body) {
-  return apiRequest('/api/v1/doctor', {
+  return apiRequest(BASE, {
     method: 'POST',
     body: JSON.stringify(body),
   });
 }
 
 export function getConsultationsByVisit(visitId) {
-  return apiRequest(`/api/v1/doctor/visit/${visitId}`);
+  return apiRequest(`${BASE}/visit/${visitId}`);
+}
+
+export function updateConsultation(id, body) {
+  return apiRequest(`${BASE}/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
 }
 
 export function createPrescription(body) {
-  return apiRequest('/api/v1/doctor/prescriptions', {
+  return apiRequest(`${BASE}/prescriptions`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
 }
 
 export function admitPatient(body) {
-  return apiRequest('/api/v1/doctor/admissions', {
+  return apiRequest(`${BASE}/admissions`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
 }
 
 export function dischargeVisit(visitId, body = {}) {
-  return apiRequest(`/api/v1/doctor/visits/${visitId}/discharge`, {
+  return apiRequest(`${BASE}/visits/${visitId}/discharge`, {
     method: 'PUT',
     body: JSON.stringify(body),
   });
 }
 
 export function getAvailableBeds() {
-  return apiRequest('/api/v1/ward/beds/available');
+  return apiRequest('/api/v1/wards/beds/available');
+}
+
+export function createLabOrder(body) {
+  return apiRequest(`${BASE}/lab-requests`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }

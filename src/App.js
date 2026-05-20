@@ -29,6 +29,10 @@ import DataAnalystPage from './pages/data_analyst';
 import SystemAdminPage from './pages/system_admin';
 import ExecutivePage from './pages/executive';
 
+function RoleRoute({ role, children }) {
+  return <RequireAuth role={role}>{children}</RequireAuth>;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -39,9 +43,9 @@ function App() {
         <Route
           path="/front_office"
           element={
-            <RequireAuth>
+            <RoleRoute role="front_office">
               <FrontOfficeLayout />
-            </RequireAuth>
+            </RoleRoute>
           }
         >
           <Route index element={<FrontOfficeDashboardPage />} />
@@ -54,37 +58,142 @@ function App() {
         <Route
           path="/nurse"
           element={
-            <RequireAuth>
+            <RoleRoute role="nurse">
               <NursePage />
-            </RequireAuth>
+            </RoleRoute>
           }
         />
         <Route
           path="/doctor"
           element={
-            <RequireAuth>
+            <RoleRoute role="doctor">
               <DoctorPage />
-            </RequireAuth>
+            </RoleRoute>
           }
         />
-        <Route path="/pharmacist" element={<PharmacistPage />} />
-        <Route path="/lab_technician" element={<LabTechnicianPage />} />
-        <Route path="/radiologist" element={<RadiologistPage />} />
-        <Route path="/ward_supervisor" element={<WardSupervisorPage />} />
-        <Route path="/ward_staff" element={<WardStaffPage />} />
-        <Route path="/porter" element={<PorterPage />} />
-        <Route path="/kitchen_staff" element={<KitchenStaffPage />} />
-        <Route path="/kitchen_manager" element={<KitchenManagerPage />} />
-        <Route path="/billing_clerk" element={<BillingClerkPage />} />
-        <Route path="/revenue_officer" element={<RevenueOfficerPage />} />
-        <Route path="/mortuary_staff" element={<MortuaryStaffPage />} />
-        <Route path="/social_worker" element={<SocialWorkerPage />} />
-        <Route path="/data_analyst" element={<DataAnalystPage />} />
-        <Route path="/system_admin" element={<SystemAdminPage />} />
-        <Route path="/executive" element={<ExecutivePage />} />
+        <Route
+          path="/pharmacist"
+          element={
+            <RoleRoute role="pharmacist">
+              <PharmacistPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/lab_technician"
+          element={
+            <RoleRoute role="lab_technician">
+              <LabTechnicianPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/radiologist"
+          element={
+            <RoleRoute role="radiologist">
+              <RadiologistPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/ward_supervisor"
+          element={
+            <RoleRoute role="ward_supervisor">
+              <WardSupervisorPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/ward_staff"
+          element={
+            <RoleRoute role="ward_staff">
+              <WardStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/porter"
+          element={
+            <RoleRoute role="porter">
+              <PorterPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/kitchen_staff"
+          element={
+            <RoleRoute role="kitchen_staff">
+              <KitchenStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/kitchen_manager"
+          element={
+            <RoleRoute role="kitchen_manager">
+              <KitchenManagerPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/billing_clerk"
+          element={
+            <RoleRoute role="billing_clerk">
+              <BillingClerkPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/revenue_officer"
+          element={
+            <RoleRoute role="revenue_officer">
+              <RevenueOfficerPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/mortuary_staff"
+          element={
+            <RoleRoute role="mortuary_staff">
+              <MortuaryStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/social_worker"
+          element={
+            <RoleRoute role="social_worker">
+              <SocialWorkerPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/data_analyst"
+          element={
+            <RoleRoute role="data_analyst">
+              <DataAnalystPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/system_admin"
+          element={
+            <RoleRoute role="system_admin">
+              <SystemAdminPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/executive"
+          element={
+            <RoleRoute role="executive">
+              <ExecutivePage />
+            </RoleRoute>
+          }
+        />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
