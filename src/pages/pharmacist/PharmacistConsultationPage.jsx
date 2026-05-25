@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getPharmacyPrescription } from '../../api/pharmacy';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
+import AddMedicationModal from '../../components/pharmacy/AddMedicationModal';
 import PharmacistTopbar from './components/PharmacistTopbar';
 import PharmacistWorkspace from './components/PharmacistWorkspace';
 import { usePharmacistQueue } from './hooks/usePharmacistQueue';
 import { usePharmacistSession } from './hooks/usePharmacistSession';
+import { pendingItems, stockSummary } from './pharmacyStockDisplay';
 
 const KOPANO = 'https://kopanovertex.com/';
 
@@ -27,7 +29,7 @@ function patientLabel(rx) {
 }
 
 function pendingMedicationCount(rx) {
-  return (rx.items || []).filter((i) => !i.is_dispensed).length;
+  return pendingItems(rx.items).length;
 }
 
 export default function PharmacistConsultationPage() {
@@ -41,6 +43,7 @@ export default function PharmacistConsultationPage() {
   const [toast, setToast] = useState('');
   const [queueActionError, setQueueActionError] = useState('');
   const [workspaceError, setWorkspaceError] = useState('');
+  const [showAddMedication, setShowAddMedication] = useState(false);
 
   const { queue, loading, error: queueLoadError, live, refresh } = usePharmacistQueue({});
 
@@ -138,19 +141,34 @@ export default function PharmacistConsultationPage() {
 
   function renderRxBadge(rx) {
     const pending = pendingMedicationCount(rx);
-    if (rx.status === 'partially_dispensed') {
-      return (
+    const stock = stockSummary(rx.items);
+    const statusBadge =
+      rx.status === 'partially_dispensed' ? (
         <span className={c.badgeProgress}>
           In progress
           {pending > 0 ? <span className="text-[0.58rem] font-bold normal-case"> · {pending} left</span> : null}
         </span>
+      ) : (
+        <span className={c.badgePending}>
+          Pending
+          {pending > 0 ? <span className="text-[0.58rem] font-bold normal-case"> · {pending} items</span> : null}
+        </span>
       );
-    }
+
     return (
-      <span className={c.badgePending}>
-        Pending
-        {pending > 0 ? <span className="text-[0.58rem] font-bold normal-case"> · {pending} items</span> : null}
-      </span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {statusBadge}
+        {stock.outOfStock > 0 ? (
+          <span className="inline-flex rounded-full bg-rose-100 px-1.5 py-0.5 text-[0.58rem] font-bold text-rose-900">
+            {stock.outOfStock} out
+          </span>
+        ) : null}
+        {stock.lowStock > 0 ? (
+          <span className="inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[0.58rem] font-bold text-amber-900">
+            {stock.lowStock} low
+          </span>
+        ) : null}
+      </div>
     );
   }
 
@@ -170,6 +188,12 @@ export default function PharmacistConsultationPage() {
           {toast}
         </div>
       ) : null}
+
+      <AddMedicationModal
+        open={showAddMedication}
+        onClose={() => setShowAddMedication(false)}
+        onSuccess={(msg) => setToast(msg)}
+      />
 
       <div className={c.body}>
         <aside className={c.queueAside} aria-label="Pharmacy prescription queue">
@@ -192,6 +216,14 @@ export default function PharmacistConsultationPage() {
             />
           ) : (
             <>
+              <button
+                type="button"
+                className={`${c.btnSecondary} mb-2 w-full text-sm`}
+                onClick={() => setShowAddMedication(true)}
+              >
+                + Add medication to inventory
+              </button>
+
               <div className={c.searchWrap}>
                 <label htmlFor="rx-queue-search" className="sr-only">
                   Search queue

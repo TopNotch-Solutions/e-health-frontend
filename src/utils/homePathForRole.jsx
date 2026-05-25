@@ -4,11 +4,17 @@
  */
 const ROLE_HOME_PATHS = {
   front_office: '/front_office',
+  front_office_supervisor: '/front_office_supervisor',
   nurse: '/nurse',
+  nurse_supervisor: '/nurse_supervisor',
   doctor: '/doctor',
+  doctor_supervisor: '/doctor_supervisor',
   pharmacist: '/pharmacist',
+  pharmacy_supervisor: '/pharmacy_supervisor',
   lab_technician: '/lab_technician',
+  laboratory_supervisor: '/laboratory_supervisor',
   radiologist: '/radiologist',
+  radiologist_supervisor: '/radiologist_supervisor',
   ward_supervisor: '/ward_supervisor',
   ward_staff: '/ward_staff',
   porter: '/porter',

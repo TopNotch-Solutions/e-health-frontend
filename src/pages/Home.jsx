@@ -2,11 +2,17 @@
 
 const ROLE_PATHS = [
   ['front_office', 'Front office'],
+  ['front_office_supervisor', 'Front office supervisor'],
   ['nurse', 'Nurse'],
+  ['nurse_supervisor', 'Nurse supervisor'],
   ['doctor', 'Doctor'],
+  ['doctor_supervisor', 'Doctor supervisor'],
   ['pharmacist', 'Pharmacist'],
+  ['pharmacy_supervisor', 'Pharmacy supervisor'],
   ['lab_technician', 'Lab technician'],
+  ['laboratory_supervisor', 'Laboratory supervisor'],
   ['radiologist', 'Radiologist'],
+  ['radiologist_supervisor', 'Radiologist supervisor'],
   ['ward_supervisor', 'Ward supervisor'],
   ['ward_staff', 'Ward staff'],
   ['porter', 'Porter'],

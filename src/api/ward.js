@@ -4,6 +4,11 @@ export function getWards() {
   return apiRequest('/api/v1/wards');
 }
 
+/** Ward supervisor live analytics (KPIs + chart series). */
+export function getWardSupervisorMetrics() {
+  return apiRequest('/api/v1/wards/supervisor-metrics');
+}
+
 export function getWardDashboard(wardId) {
   return apiRequest(`/api/v1/wards/${wardId}/dashboard`);
 }

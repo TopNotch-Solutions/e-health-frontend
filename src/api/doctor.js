@@ -52,3 +52,17 @@ export function createLabOrder(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function createSonarReferral(body) {
+  return apiRequest(`${BASE}/sonar-requests`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function prescribeDiet(body) {
+  return apiRequest(`${BASE}/diet-prescriptions`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

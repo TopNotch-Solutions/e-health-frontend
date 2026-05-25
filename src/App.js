@@ -5,6 +5,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import HomePage from './pages/Home';
 import RequireAuth from './components/RequireAuth';
 import FrontOfficeLayout from './pages/front_office/FrontOfficeLayout';
+import FrontOfficeSupervisorPage from './pages/front_office_supervisor';
 import FrontOfficeDashboardPage from './pages/front_office/FrontOfficeDashboardPage';
 import PatientRegistrationStep1Page from './pages/front_office/PatientRegistrationStep1Page';
 import PatientRegistrationStep2Page from './pages/front_office/PatientRegistrationStep2Page';
@@ -12,10 +13,15 @@ import PatientRegistrationStep3Page from './pages/front_office/PatientRegistrati
 import PatientRegistrationStep4Page from './pages/front_office/PatientRegistrationStep4Page';
 import PatientEhrPage from './pages/front_office/PatientEhrPage';
 import NursePage from './pages/nurse';
+import NurseSupervisorPage from './pages/nurse_supervisor';
 import DoctorPage from './pages/doctor';
+import DoctorSupervisorPage from './pages/doctor_supervisor';
 import PharmacistPage from './pages/pharmacist';
+import PharmacySupervisorPage from './pages/pharmacy_supervisor';
 import LabTechnicianPage from './pages/lab_technician';
+import LaboratorySupervisorPage from './pages/laboratory_supervisor';
 import RadiologistPage from './pages/radiologist';
+import RadiologistSupervisorPage from './pages/radiologist_supervisor';
 import WardSupervisorPage from './pages/ward_supervisor';
 import WardStaffPage from './pages/ward_staff';
 import PorterPage from './pages/porter';
@@ -56,10 +62,26 @@ function App() {
           <Route path="patient/:patientId" element={<PatientEhrPage />} />
         </Route>
         <Route
+          path="/front_office_supervisor"
+          element={
+            <RoleRoute role="front_office_supervisor">
+              <FrontOfficeSupervisorPage />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="/nurse"
           element={
             <RoleRoute role="nurse">
               <NursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/nurse_supervisor"
+          element={
+            <RoleRoute role="nurse_supervisor">
+              <NurseSupervisorPage />
             </RoleRoute>
           }
         />
@@ -72,10 +94,26 @@ function App() {
           }
         />
         <Route
+          path="/doctor_supervisor"
+          element={
+            <RoleRoute role="doctor_supervisor">
+              <DoctorSupervisorPage />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="/pharmacist"
           element={
             <RoleRoute role="pharmacist">
               <PharmacistPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/pharmacy_supervisor"
+          element={
+            <RoleRoute role="pharmacy_supervisor">
+              <PharmacySupervisorPage />
             </RoleRoute>
           }
         />
@@ -88,10 +126,26 @@ function App() {
           }
         />
         <Route
+          path="/laboratory_supervisor"
+          element={
+            <RoleRoute role="laboratory_supervisor">
+              <LaboratorySupervisorPage />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="/radiologist"
           element={
             <RoleRoute role="radiologist">
               <RadiologistPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/radiologist_supervisor"
+          element={
+            <RoleRoute role="radiologist_supervisor">
+              <RadiologistSupervisorPage />
             </RoleRoute>
           }
         />
@@ -186,9 +240,9 @@ function App() {
         <Route
           path="/executive"
           element={
-            <RoleRoute role="executive">
+            <RequireAuth roles={['executive', 'system_admin']}>
               <ExecutivePage />
-            </RoleRoute>
+            </RequireAuth>
           }
         />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

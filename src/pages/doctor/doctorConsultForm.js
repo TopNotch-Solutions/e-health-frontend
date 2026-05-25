@@ -37,6 +37,7 @@ export function vitalsToIntakeForm(vitals) {
 
 export const emptyMedLine = () => ({
   medication_name: '',
+  generic_name: '',
   dosage: '',
   frequency: '',
   quantity: '1',

@@ -5,11 +5,13 @@ import {
   updateConsultation,
   createPrescription,
   createLabOrder,
+  createSonarReferral,
   dischargeVisit,
   getAvailableBeds,
   getConsultationsByVisit,
 } from '../../../api/doctor';
 import { completeQueueEntry } from '../../../api/queue';
+import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import { IntakeSelect, IntakeTextarea } from '../../nurse/components/IntakeField';
 import { vitalsToIntakeForm, emptyMedLine } from '../doctorConsultForm';
@@ -18,6 +20,7 @@ import {
   ADMIT_TRANSPORT_CHECKLIST_OPTIONS,
   EQUIPMENT_MODES,
 } from '../../../constants/admitTransportChecklist';
+import { DIET_TYPES } from '../../../constants/dietTypes';
 
 function parseStoredDiagnoses(diagnosisText) {
   if (!diagnosisText || typeof diagnosisText !== 'string') return [];
@@ -56,12 +59,83 @@ export default function DoctorWorkspace({
   const [admitChecklist, setAdmitChecklist] = useState(() =>
     Object.fromEntries(ADMIT_TRANSPORT_CHECKLIST_OPTIONS.map((o) => [o.id, false]))
   );
+  const [admitDietType, setAdmitDietType] = useState('');
+  const [admitDietDescription, setAdmitDietDescription] = useState('');
+  const [admitDietRestrictions, setAdmitDietRestrictions] = useState('');
+  const [admitDietSpecialInstructions, setAdmitDietSpecialInstructions] = useState('');
   const [medFieldErrors, setMedFieldErrors] = useState({});
   const [diagnosisErrors, setDiagnosisErrors] = useState({});
   const [selectedLabTests, setSelectedLabTests] = useState([]);
   const [labClinicalNotes, setLabClinicalNotes] = useState('');
   const [labEmergency, setLabEmergency] = useState(false);
   const [labError, setLabError] = useState('');
+  const [selectedScan, setSelectedScan] = useState(null);
+  const [sonarSymptoms, setSonarSymptoms] = useState('');
+  const [sonarDiagnosticQuestions, setSonarDiagnosticQuestions] = useState('');
+  const [sonarPrepInstructions, setSonarPrepInstructions] = useState('');
+  const [sonarEmergency, setSonarEmergency] = useState(false);
+  const [sonarError, setSonarError] = useState('');
+  const [medCatalog, setMedCatalog] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState('');
+  const [liveStock, setLiveStock] = useState(null);
+  const [stockChecking, setStockChecking] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCatalogLoading(true);
+    setCatalogError('');
+    getMedicationCatalog()
+      .then((rows) => {
+        if (cancelled) return;
+        const list = Array.isArray(rows) ? rows : [];
+        setMedCatalog(list);
+        if (list.length === 0) {
+          setCatalogError('No medications in catalog. Run backend migration and medication catalog seed.');
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setMedCatalog([]);
+          setCatalogError(err.message || 'Could not load medication catalog.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const name = medLine.medication_name?.trim();
+    const qty = Number(medLine.quantity) || 1;
+    if (!name) {
+      setLiveStock(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setStockChecking(true);
+    const timer = setTimeout(() => {
+      checkMedicationStock(name, qty)
+        .then((data) => {
+          if (!cancelled) setLiveStock(data);
+        })
+        .catch(() => {
+          if (!cancelled) setLiveStock(null);
+        })
+        .finally(() => {
+          if (!cancelled) setStockChecking(false);
+        });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [medLine.medication_name, medLine.quantity]);
 
   useEffect(() => {
     if (!showAdmitModal) return;
@@ -86,12 +160,19 @@ export default function DoctorWorkspace({
     setConsultationId(null);
     setMedLine(emptyMedLine());
     setPrescriptionLines([]);
+    setLiveStock(null);
     setMedFieldErrors({});
     setDiagnosisErrors({});
     setSelectedLabTests([]);
     setLabClinicalNotes('');
     setLabEmergency(Boolean(patient?.isEmergency));
     setLabError('');
+    setSelectedScan(null);
+    setSonarSymptoms('');
+    setSonarDiagnosticQuestions('');
+    setSonarPrepInstructions('');
+    setSonarEmergency(Boolean(patient?.isEmergency));
+    setSonarError('');
 
     if (!patient?.visitId) return;
     getConsultationsByVisit(patient.visitId)
@@ -112,6 +193,23 @@ export default function DoctorWorkspace({
       if (!prev[key]) return prev;
       const next = { ...prev };
       delete next[key];
+      return next;
+    });
+  }
+
+  function handleMedicationSelect(medicationName) {
+    const entry = medCatalog.find(
+      (c) => c.name === medicationName || c.medication_name === medicationName
+    );
+    setMedLine((prev) => ({
+      ...prev,
+      medication_name: medicationName,
+      generic_name: entry?.generic || entry?.generic_name || '',
+    }));
+    setMedFieldErrors((prev) => {
+      if (!prev.medication_name) return prev;
+      const next = { ...prev };
+      delete next.medication_name;
       return next;
     });
   }
@@ -213,16 +311,30 @@ export default function DoctorWorkspace({
       setMedFieldErrors(errs);
       return;
     }
+    const qty = Number(medLine.quantity) || 1;
+    const stockSnapshot = liveStock || {
+      stock_status: 'out_of_stock',
+      stock_label: 'Out of stock',
+      quantity_in_stock: 0,
+    };
+
     setPrescriptionLines((lines) => [
       ...lines,
       {
         ...medLine,
         medication_name: name,
+        generic_name: medLine.generic_name?.trim() || '',
         dosage: dose,
-        quantity: Number(medLine.quantity) || 1,
+        quantity: qty,
+        stock_status: stockSnapshot.stock_status,
+        stock_label: stockSnapshot.stock_label,
+        quantity_in_stock: stockSnapshot.quantity_in_stock,
+        reorder_level: stockSnapshot.reorder_level,
+        can_dispense: stockSnapshot.can_dispense,
       },
     ]);
     setMedLine(emptyMedLine());
+    setLiveStock(null);
   }
 
   function removeMedLine(index) {
@@ -242,6 +354,41 @@ export default function DoctorWorkspace({
       if (exists) return prev.filter((t) => t.id !== test.id);
       return [...prev, { id: test.id, name: test.name, sampleType: test.sampleType || null }];
     });
+  }
+
+  async function handleSendToSonar() {
+    if (!selectedScan) return;
+    if (!validateDiagnosisImpression()) return;
+
+    setActionLoading(true);
+    onActionError('');
+    setSonarError('');
+    try {
+      await ensureConsultation();
+      await createSonarReferral({
+        visit_id: patient.visitId,
+        queue_entry_id: patient.entryId,
+        scan_type: selectedScan.name,
+        scan_id: selectedScan.id,
+        symptoms: sonarSymptoms.trim() || null,
+        diagnostic_questions: sonarDiagnosticQuestions.trim() || null,
+        prep_instructions: sonarPrepInstructions.trim() || null,
+        clinical_notes: clinicalNotes.trim() || null,
+        is_emergency: sonarEmergency,
+      });
+      setSelectedScan(null);
+      setSonarSymptoms('');
+      setSonarDiagnosticQuestions('');
+      setSonarPrepInstructions('');
+      onToast('Patient referred to ultrasound — removed from your queue');
+      onDone();
+    } catch (err) {
+      const msg = err.message || 'Failed to send to ultrasound';
+      setSonarError(msg);
+      onActionError(msg);
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   async function handleSendToLab() {
@@ -300,7 +447,7 @@ export default function DoctorWorkspace({
     onActionError('');
     try {
       const cid = await ensureConsultation();
-      await createPrescription({
+      const result = await createPrescription({
         visit_id: patient.visitId,
         consultation_id: cid,
         queue_entry_id: patient.entryId,
@@ -314,7 +461,15 @@ export default function DoctorWorkspace({
       });
       setPrescriptionLines([]);
       setMedLine(emptyMedLine());
-      onToast('Prescription sent to pharmacy — consultation completed');
+      setLiveStock(null);
+
+      const alerts = result?.lowStockAlerts || [];
+      const outCount = alerts.filter((a) => a.stock_status === 'out_of_stock').length;
+      const lowCount = alerts.filter((a) => a.stock_status === 'low_stock').length;
+      let msg = 'Prescription sent to pharmacy — consultation completed';
+      if (outCount) msg += ` ${outCount} medication(s) out of stock.`;
+      if (lowCount) msg += ` ${lowCount} low stock.`;
+      onToast(msg);
       onDone();
     } catch (err) {
       onActionError(err.message || 'Failed to send to pharmacy');
@@ -353,16 +508,28 @@ export default function DoctorWorkspace({
         id: opt.id,
         checked: Boolean(admitChecklist[opt.id]),
       }));
-      await admitPatient({
+      const admitBody = {
         visit_id: patient.visitId,
         bed_id: selectedBedId,
         equipment_required: admitEquipmentMode,
         equipment_notes: admitEquipmentNotes.trim() || null,
         critical_notes: admitCriticalNotes.trim() || null,
         equipment_checklist,
-      });
+      };
+      if (admitDietType) {
+        admitBody.diet_type = admitDietType;
+        admitBody.diet_description = admitDietDescription.trim() || null;
+        admitBody.diet_restrictions = admitDietRestrictions.trim() || null;
+        admitBody.diet_special_instructions = admitDietSpecialInstructions.trim() || null;
+      }
+      await admitPatient(admitBody);
       setShowAdmitModal(false);
-      await finishConsultation(`${patient.name} admitted — consultation completed`);
+      setAdmitDietType('');
+      setAdmitDietDescription('');
+      setAdmitDietRestrictions('');
+      setAdmitDietSpecialInstructions('');
+      const dietNote = admitDietType ? ' Diet sent to kitchen with ward location.' : '';
+      await finishConsultation(`${patient.name} admitted — consultation completed.${dietNote}`);
     } catch (err) {
       onActionError(err.message || 'Failed to admit patient');
     } finally {
@@ -410,9 +577,15 @@ export default function DoctorWorkspace({
           setClinicalNotes(value);
           if (value.trim()) clearDiagnosisError('clinicalNotes');
         }}
+        catalog={medCatalog}
+        catalogLoading={catalogLoading}
+        catalogError={catalogError}
         medLine={medLine}
         medFieldErrors={medFieldErrors}
         onMedFieldChange={setMedField}
+        onMedicationSelect={handleMedicationSelect}
+        liveStock={liveStock}
+        stockChecking={stockChecking}
         prescriptionLines={prescriptionLines}
         onAddMedToList={addMedToList}
         onRemoveMedLine={removeMedLine}
@@ -426,6 +599,18 @@ export default function DoctorWorkspace({
         onLabEmergencyChange={setLabEmergency}
         onSendToLab={handleSendToLab}
         labError={labError}
+        selectedScan={selectedScan}
+        onSelectScan={setSelectedScan}
+        sonarSymptoms={sonarSymptoms}
+        onSonarSymptomsChange={setSonarSymptoms}
+        sonarDiagnosticQuestions={sonarDiagnosticQuestions}
+        onSonarDiagnosticQuestionsChange={setSonarDiagnosticQuestions}
+        sonarPrepInstructions={sonarPrepInstructions}
+        onSonarPrepInstructionsChange={setSonarPrepInstructions}
+        sonarEmergency={sonarEmergency}
+        onSonarEmergencyChange={setSonarEmergency}
+        onSendToSonar={handleSendToSonar}
+        sonarError={sonarError}
         onAdmit={openAdmitModal}
         onDischarge={handleDischarge}
       />
@@ -505,6 +690,59 @@ export default function DoctorWorkspace({
                   rows={3}
                   placeholder="Falls risk, oxygen dependency, isolation precautions…"
                 />
+
+                <fieldset className="rounded-xl border border-amber-200 bg-amber-50/50 p-3">
+                  <legend className="px-1 text-xs font-bold uppercase tracking-wide text-amber-900">
+                    Diet prescription (kitchen)
+                  </legend>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Prescribe the inpatient diet now — kitchen staff will see ward, room, and bed on the meal
+                    board.
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    <IntakeSelect
+                      id="doc-admit-diet-type"
+                      label="Diet type"
+                      className={c.select}
+                      value={admitDietType}
+                      onChange={(e) => setAdmitDietType(e.target.value)}
+                    >
+                      <option value="">No diet order (add later)</option>
+                      {DIET_TYPES.map((d) => (
+                        <option key={d.value} value={d.value}>
+                          {d.label}
+                        </option>
+                      ))}
+                    </IntakeSelect>
+                    <IntakeTextarea
+                      id="doc-admit-diet-desc"
+                      label="Diet notes (optional)"
+                      value={admitDietDescription}
+                      onChange={(e) => setAdmitDietDescription(e.target.value)}
+                      className={c.textarea}
+                      rows={2}
+                      placeholder="Texture modifications, calorie targets…"
+                    />
+                    <IntakeTextarea
+                      id="doc-admit-diet-restrictions"
+                      label="Restrictions (optional)"
+                      value={admitDietRestrictions}
+                      onChange={(e) => setAdmitDietRestrictions(e.target.value)}
+                      className={c.textarea}
+                      rows={2}
+                      placeholder="Allergies, religious, fluid limits…"
+                    />
+                    <IntakeTextarea
+                      id="doc-admit-diet-special"
+                      label="Special instructions for kitchen (optional)"
+                      value={admitDietSpecialInstructions}
+                      onChange={(e) => setAdmitDietSpecialInstructions(e.target.value)}
+                      className={c.textarea}
+                      rows={2}
+                      placeholder="Serve at specific times, assist feeding…"
+                    />
+                  </div>
+                </fieldset>
 
                 <fieldset className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
                   <legend className="px-1 text-xs font-bold uppercase tracking-wide text-slate-600">

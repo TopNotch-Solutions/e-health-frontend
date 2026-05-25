@@ -148,7 +148,16 @@ export default function LoginPage() {
 
               {process.env.NODE_ENV === 'development' ? (
                 <p className={auth.devHint}>
-                  <span className="font-mono">front.office@demo.ehealth.gov</span> / Demo123!
+                  Demo supervisors:{' '}
+                  <span className="font-mono">nurse_supervisor@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">doctor_supervisor@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">laboratory_supervisor@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">radiologist_supervisor@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">kitchen_staff@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">kitchen_manager@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">billing_clerk@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">revenue_officer@demo.ehealth.gov</span>,{' '}
+                  <span className="font-mono">admin@ehealth.gov</span> / Demo123! (admin: admin123)
                 </p>
               ) : null}
 

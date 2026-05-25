@@ -1,5 +1,7 @@
 import NurseReadOnlyIntakeCards from './NurseReadOnlyIntakeCards';
 import DoctorLabOrderSection from './DoctorLabOrderSection';
+import DoctorSonarOrderSection from './DoctorSonarOrderSection';
+import DoctorPrescriptionSection from './DoctorPrescriptionSection';
 import { IntakeInput, IntakeTextarea } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 
@@ -22,9 +24,15 @@ export default function DoctorConsultationForm({
   onRemoveDiagnosis,
   clinicalNotes,
   onClinicalNotesChange,
+  catalog,
+  catalogLoading,
+  catalogError = '',
   medLine,
   medFieldErrors,
   onMedFieldChange,
+  onMedicationSelect,
+  liveStock,
+  stockChecking,
   prescriptionLines,
   onAddMedToList,
   onRemoveMedLine,
@@ -38,11 +46,21 @@ export default function DoctorConsultationForm({
   onLabEmergencyChange,
   onSendToLab,
   labError,
+  selectedScan,
+  onSelectScan,
+  sonarSymptoms,
+  onSonarSymptomsChange,
+  sonarDiagnosticQuestions,
+  onSonarDiagnosticQuestionsChange,
+  sonarPrepInstructions,
+  onSonarPrepInstructionsChange,
+  sonarEmergency,
+  onSonarEmergencyChange,
+  onSendToSonar,
+  sonarError,
   onAdmit,
   onDischarge,
 }) {
-  const hasPrescription = prescriptionLines.length > 0;
-
   return (
     <>
       {allergy ? (
@@ -106,102 +124,22 @@ export default function DoctorConsultationForm({
         </div>
       </section>
 
-      <section className={c.sectionPanel} aria-labelledby="doc-rx-heading">
-        <h3 id="doc-rx-heading" className={c.sectionTitle}>
-          Prescribe medication
-        </h3>
-        <p className="mt-1 text-sm text-slate-500">Optional. Add medications only if needed.</p>
-        <div className="mt-4 space-y-4">
-          <div className={c.vitalsGrid}>
-            <IntakeInput
-              id="doc-med-name"
-              label="Medication"
-              required={false}
-              error={medFieldErrors.medication_name}
-              className={c.input}
-              placeholder="e.g. Amoxicillin"
-              value={medLine.medication_name}
-              onChange={(e) => onMedFieldChange('medication_name', e.target.value)}
-            />
-            <IntakeInput
-              id="doc-med-dose"
-              label="Dosage"
-              required={false}
-              error={medFieldErrors.dosage}
-              className={c.input}
-              placeholder="e.g. 500mg TDS"
-              value={medLine.dosage}
-              onChange={(e) => onMedFieldChange('dosage', e.target.value)}
-            />
-            <IntakeInput
-              id="doc-med-freq"
-              label="Frequency"
-              required={false}
-              error={null}
-              className={c.input}
-              placeholder="e.g. Three times daily"
-              value={medLine.frequency}
-              onChange={(e) => onMedFieldChange('frequency', e.target.value)}
-            />
-            <IntakeInput
-              id="doc-med-qty"
-              label="Quantity"
-              required={false}
-              error={null}
-              className={c.input}
-              inputMode="numeric"
-              value={medLine.quantity}
-              onChange={(e) => onMedFieldChange('quantity', e.target.value)}
-            />
-          </div>
-          <IntakeInput
-            id="doc-med-inst"
-            label="Instructions"
-            required={false}
-            error={null}
-            className={c.input}
-            placeholder="Optional instructions"
-            value={medLine.instructions}
-            onChange={(e) => onMedFieldChange('instructions', e.target.value)}
-          />
-          <button type="button" className={c.btnSecondary} onClick={onAddMedToList}>
-            + Add to prescription list
-          </button>
-          {prescriptionLines.length > 0 ? (
-            <ul className="space-y-2">
-              {prescriptionLines.map((line, i) => (
-                <li
-                  key={`${line.medication_name}-${i}`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
-                >
-                  <span>
-                    <strong>{line.medication_name}</strong> - {line.dosage}
-                    {line.frequency ? ` (${line.frequency})` : ''} x{line.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    className="text-slate-500 hover:text-red-600"
-                    onClick={() => onRemoveMedLine(i)}
-                    aria-label="Remove medication"
-                  >
-                    x
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {hasPrescription ? (
-            <button
-              type="button"
-              className={`${c.btnAction} ${c.btnPharmacy}`}
-              disabled={actionLoading}
-              onClick={onSendToPharmacy}
-            >
-              Send to pharmacy
-            </button>
-          ) : null}
-        </div>
-      </section>
+      <DoctorPrescriptionSection
+        catalog={catalog}
+        catalogLoading={catalogLoading}
+        catalogError={catalogError}
+        medLine={medLine}
+        medFieldErrors={medFieldErrors}
+        onMedFieldChange={onMedFieldChange}
+        onMedicationSelect={onMedicationSelect}
+        liveStock={liveStock}
+        stockChecking={stockChecking}
+        prescriptionLines={prescriptionLines}
+        onAddMedToList={onAddMedToList}
+        onRemoveMedLine={onRemoveMedLine}
+        actionLoading={actionLoading}
+        onSendToPharmacy={onSendToPharmacy}
+      />
 
       <DoctorLabOrderSection
         selectedTests={selectedLabTests}
@@ -214,6 +152,22 @@ export default function DoctorConsultationForm({
         onSendToLab={onSendToLab}
         labError={labError}
         prescriptionLineCount={prescriptionLines.length}
+      />
+
+      <DoctorSonarOrderSection
+        selectedScan={selectedScan}
+        onSelectScan={onSelectScan}
+        symptoms={sonarSymptoms}
+        onSymptomsChange={onSonarSymptomsChange}
+        diagnosticQuestions={sonarDiagnosticQuestions}
+        onDiagnosticQuestionsChange={onSonarDiagnosticQuestionsChange}
+        prepInstructions={sonarPrepInstructions}
+        onPrepInstructionsChange={onSonarPrepInstructionsChange}
+        sonarEmergency={sonarEmergency}
+        onSonarEmergencyChange={onSonarEmergencyChange}
+        actionLoading={actionLoading}
+        onSendToSonar={onSendToSonar}
+        sonarError={sonarError}
       />
 
       <section className={c.sectionPanel} aria-labelledby="doc-disp-heading">

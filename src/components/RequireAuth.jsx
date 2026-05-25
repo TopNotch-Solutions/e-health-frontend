@@ -6,7 +6,7 @@ import { authRoleSlug, isRoleAllowedForPath } from '../utils/homePathForRole';
  * Requires a valid session. Optional `role` restricts the route to that role only.
  * Wrong role or missing token → login page (session cleared on role mismatch).
  */
-export default function RequireAuth({ children, role }) {
+export default function RequireAuth({ children, role, roles }) {
   const location = useLocation();
   const token = getAccessToken();
 
@@ -17,9 +17,14 @@ export default function RequireAuth({ children, role }) {
   const user = getStoredUser();
   const userRole = authRoleSlug(user).toLowerCase();
 
-  if (role) {
-    const expected = String(role).toLowerCase();
-    if (!userRole || userRole !== expected) {
+  const allowedRoles = roles?.length
+    ? roles.map((r) => String(r).toLowerCase())
+    : role
+      ? [String(role).toLowerCase()]
+      : null;
+
+  if (allowedRoles) {
+    if (!userRole || !allowedRoles.includes(userRole)) {
       clearSession();
       return <Navigate to="/login?forbidden=1" replace />;
     }

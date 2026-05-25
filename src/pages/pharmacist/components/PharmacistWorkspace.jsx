@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { dispensePrescription } from '../../../api/pharmacy';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
+import {
+  isOutOfStock,
+  lineStockStatus,
+  pendingItems,
+  statusBadgeClass,
+  stockSummary,
+} from '../pharmacyStockDisplay';
 
 function patientFromPrescription(rx) {
   const p = rx?.visit?.patient;
@@ -8,18 +15,6 @@ function patientFromPrescription(rx) {
   const name = [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || 'Patient';
   const num = p.patient_number ? `ID: ${p.patient_number}` : '';
   return { name, idLabel: num };
-}
-
-/** Lines awaiting pharmacist review (not yet given or marked not given). */
-function pendingItems(items) {
-  return (items || []).filter((i) => !i.dispensed_at);
-}
-
-function lineStatus(item) {
-  if (item.is_dispensed) return { label: 'Given', tone: 'given' };
-  if (item.dispensed_at) return { label: 'Not given', tone: 'notGiven' };
-  if (item.is_available === false) return { label: 'Low stock', tone: 'lowStock' };
-  return { label: 'Awaiting', tone: 'awaiting' };
 }
 
 export default function PharmacistWorkspace({
@@ -31,11 +26,15 @@ export default function PharmacistWorkspace({
   onDone,
   onRefreshDetail,
 }) {
-  /** Ticked = available in pharmacy and will be given to the patient. */
   const [availableIds, setAvailableIds] = useState(() => new Set());
 
   const pending = useMemo(
     () => pendingItems(prescription?.items),
+    [prescription?.items]
+  );
+
+  const summary = useMemo(
+    () => stockSummary(prescription?.items),
     [prescription?.items]
   );
 
@@ -44,6 +43,9 @@ export default function PharmacistWorkspace({
   }, [prescription?.id]);
 
   function toggleAvailable(id) {
+    const item = pending.find((i) => i.id === id);
+    if (item && isOutOfStock(item)) return;
+
     setAvailableIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -71,11 +73,11 @@ export default function PharmacistWorkspace({
       const notGiven = dispensed_items.length - given;
       let message = '';
       if (given > 0 && notGiven > 0) {
-        message = `${given} medication(s) given, ${notGiven} recorded as not given.`;
+        message = `${given} medication(s) given, ${notGiven} recorded as not given or out of stock.`;
       } else if (given > 0) {
         message = 'All selected medications given to patient.';
       } else {
-        message = 'No medications given — items recorded as unavailable.';
+        message = 'No medications given — items recorded as unavailable or out of stock.';
       }
       onToast(message);
 
@@ -98,20 +100,41 @@ export default function PharmacistWorkspace({
         <h3 className={c.sectionTitle}>Prescription · {patientName}</h3>
         {idLabel ? <p className="mt-0.5 text-xs font-semibold text-slate-600">{idLabel}</p> : null}
         <p className="mt-2 text-sm text-slate-600">
-          Tick each medication you have in stock and are giving to the patient. When you confirm,
-          ticked lines are marked as given; unticked lines are recorded as not given.
+          Tick medications you are giving. Lines marked <strong className="text-rose-800">Out of stock</strong>{' '}
+          cannot be dispensed. <strong className="text-amber-800">Low stock</strong> lines can still be given but
+          need replenishment soon.
         </p>
+
+        {summary.pending > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {summary.outOfStock > 0 ? (
+              <span className="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-900">
+                {summary.outOfStock} out of stock
+              </span>
+            ) : null}
+            {summary.lowStock > 0 ? (
+              <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">
+                {summary.lowStock} low stock
+              </span>
+            ) : null}
+            {summary.inStock > 0 ? (
+              <span className="inline-flex rounded-full bg-teal-100 px-2.5 py-1 text-xs font-bold text-teal-800">
+                {summary.inStock} in stock
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-600">
               <tr>
-                <th className="px-3 py-2">Available</th>
+                <th className="px-3 py-2">Give</th>
                 <th className="px-3 py-2">Medication</th>
                 <th className="px-3 py-2">Dosage</th>
                 <th className="px-3 py-2">Qty</th>
+                <th className="px-3 py-2">On hand</th>
                 <th className="px-3 py-2">Frequency</th>
-                <th className="px-3 py-2">Instructions</th>
                 <th className="px-3 py-2">Status</th>
               </tr>
             </thead>
@@ -125,10 +148,9 @@ export default function PharmacistWorkspace({
               ) : (
                 (prescription?.items || []).map((item) => {
                   const isPending = !item.dispensed_at;
+                  const out = isOutOfStock(item) && isPending;
                   const checked = availableIds.has(item.id);
-                  const lowStockAtPrescribe =
-                    item.is_available === false && isPending && !item.dispensed_at;
-                  const status = lineStatus(item);
+                  const status = lineStockStatus(item);
 
                   return (
                     <tr
@@ -136,54 +158,60 @@ export default function PharmacistWorkspace({
                       className={
                         item.is_dispensed
                           ? 'bg-emerald-50/40'
-                          : checked
-                            ? 'bg-teal-50/30'
-                            : ''
+                          : out
+                            ? 'bg-rose-50/50'
+                            : item.stock_status === 'low_stock' && isPending
+                              ? 'bg-amber-50/40'
+                              : checked
+                                ? 'bg-teal-50/30'
+                                : ''
                       }
                     >
                       <td className="px-3 py-2 align-middle">
                         {item.is_dispensed ? (
                           <span className="text-xs font-semibold text-emerald-800">Given</span>
                         ) : isPending ? (
-                          <label className="inline-flex cursor-pointer items-center gap-2">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                              checked={checked}
-                              disabled={actionLoading}
-                              onChange={() => toggleAvailable(item.id)}
-                            />
-                            <span className="text-xs font-medium text-slate-600">
-                              {checked ? 'Ready' : '—'}
-                            </span>
-                          </label>
+                          out ? (
+                            <span className="text-xs font-semibold text-rose-800">N/A</span>
+                          ) : (
+                            <label className="inline-flex cursor-pointer items-center gap-2">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                checked={checked}
+                                disabled={actionLoading}
+                                onChange={() => toggleAvailable(item.id)}
+                              />
+                              <span className="text-xs font-medium text-slate-600">
+                                {checked ? 'Give' : '—'}
+                              </span>
+                            </label>
+                          )
                         ) : (
                           <span className="text-xs text-slate-400">—</span>
                         )}
                       </td>
                       <td className="px-3 py-2 font-semibold text-slate-900">
                         {item.medication_name}
-                        {lowStockAtPrescribe ? (
+                        {out ? (
+                          <span className="mt-0.5 block text-xs font-normal text-rose-700">
+                            Not enough stock to fill order
+                          </span>
+                        ) : item.stock_status === 'low_stock' && isPending ? (
                           <span className="mt-0.5 block text-xs font-normal text-amber-700">
-                            Low stock when prescribed
+                            Reorder level {item.reorder_level ?? '—'} — replenish soon
                           </span>
                         ) : null}
                       </td>
                       <td className="px-3 py-2 text-slate-700">{item.dosage || '—'}</td>
                       <td className="px-3 py-2 text-slate-700">{item.quantity ?? '—'}</td>
+                      <td className="px-3 py-2 text-slate-700 tabular-nums">
+                        {item.quantity_in_stock != null ? item.quantity_in_stock : '—'}
+                      </td>
                       <td className="px-3 py-2 text-slate-700">{item.frequency || '—'}</td>
-                      <td className="px-3 py-2 text-slate-600">{item.instructions || '—'}</td>
                       <td className="px-3 py-2">
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${
-                            status.tone === 'given'
-                              ? 'bg-emerald-100 text-emerald-900'
-                              : status.tone === 'notGiven'
-                                ? 'bg-rose-100 text-rose-900'
-                                : status.tone === 'lowStock'
-                                  ? 'bg-amber-100 text-amber-900'
-                                  : 'bg-slate-100 text-slate-700'
-                          }`}
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${statusBadgeClass(status.tone)}`}
                         >
                           {status.label}
                         </span>
@@ -199,8 +227,14 @@ export default function PharmacistWorkspace({
         {pending.length > 0 ? (
           <p className="mt-3 text-sm text-slate-600">
             <span className="font-semibold text-teal-800">{tickedCount}</span> of{' '}
-            <span className="font-semibold">{pending.length}</span> pending medication
-            {pending.length === 1 ? '' : 's'} marked available to give.
+            <span className="font-semibold">{pending.filter((i) => !isOutOfStock(i)).length}</span> dispensable
+            medication{pending.length === 1 ? '' : 's'} marked to give.
+            {summary.outOfStock > 0 ? (
+              <span className="block text-xs text-rose-700">
+                {summary.outOfStock} line{summary.outOfStock === 1 ? ' is' : 's are'} out of stock and will be
+                recorded as not given.
+              </span>
+            ) : null}
           </p>
         ) : null}
 

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createWard, getWardDashboard, getWards, updateBed } from '../../api/ward';
 import CreateWardPanel from './components/CreateWardPanel';
 import WardBedGrid from './components/WardBedGrid';
+import WardSupervisorDashboard from './components/metrics/WardSupervisorDashboard';
 import WardSupervisorTopbar from './components/WardSupervisorTopbar';
+import WardSupervisorViewTabs from './components/WardSupervisorViewTabs';
+import { useWardSupervisorMetrics } from './hooks/useWardSupervisorMetrics';
 import { useWardSupervisorSession } from './hooks/useWardSupervisorSession';
 import { ws } from './styles/wardSupervisorClasses';
 
@@ -45,6 +48,7 @@ export default function WardSupervisorPage() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
 
+  const [mainTab, setMainTab] = useState('dashboard');
   const [view, setView] = useState('overview');
   const [selectedWardId, setSelectedWardId] = useState(null);
   const [dashboard, setDashboard] = useState(null);
@@ -101,12 +105,13 @@ export default function WardSupervisorPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (view === 'ward' && selectedWardId) {
+    if (mainTab === 'wards' && view === 'ward' && selectedWardId) {
       loadDashboard(selectedWardId);
     }
-  }, [view, selectedWardId, loadDashboard]);
+  }, [mainTab, view, selectedWardId, loadDashboard]);
 
   const facilityStats = useMemo(() => aggregateStats(wards), [wards]);
+  const { metrics, live, loading: metricsLoading, error: metricsError } = useWardSupervisorMetrics();
 
   const filteredWards = useMemo(() => {
     const q = wardSearch.trim().toLowerCase();
@@ -120,12 +125,14 @@ export default function WardSupervisorPage() {
   }, [wards, wardSearch]);
 
   function openWard(wardId) {
+    setMainTab('wards');
     setView('ward');
     setSelectedWardId(wardId);
     setError('');
   }
 
   function openCreate() {
+    setMainTab('wards');
     setView('create');
     setSelectedWardId(null);
     setDashboard(null);
@@ -137,6 +144,7 @@ export default function WardSupervisorPage() {
   }
 
   function openOverview() {
+    setMainTab('wards');
     setView('overview');
     setSelectedWardId(null);
     setDashboard(null);
@@ -222,7 +230,14 @@ export default function WardSupervisorPage() {
         </p>
       ) : null}
 
+      {metricsError && mainTab === 'dashboard' ? (
+        <p className={ws.alert} role="alert">
+          {metricsError} (showing last available data)
+        </p>
+      ) : null}
+
       <div className={ws.body}>
+        {mainTab === 'wards' ? (
         <aside className={ws.queueAside} aria-label="Ward list">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -292,10 +307,39 @@ export default function WardSupervisorPage() {
             )}
           </div>
         </aside>
+        ) : null}
 
         <main className={ws.main}>
+          <WardSupervisorViewTabs activeTab={mainTab} onTabChange={setMainTab} />
+
+          {mainTab === 'dashboard' ? (
+            <div
+              id="ws-panel-dashboard"
+              role="tabpanel"
+              aria-labelledby="ws-tab-dashboard"
+              className={ws.mainInner}
+            >
+              {metricsLoading ? (
+                <p className={ws.hint}>Loading dashboard…</p>
+              ) : metrics ? (
+                <WardSupervisorDashboard
+                  metrics={metrics}
+                  live={live}
+                  facilityStats={facilityStats}
+                  onCreateWard={openCreate}
+                />
+              ) : (
+                <p className={ws.hint}>No metrics available.</p>
+              )}
+            </div>
+          ) : (
+            <div
+              id="ws-panel-wards"
+              role="tabpanel"
+              aria-labelledby="ws-tab-wards"
+              className={view === 'create' ? ws.workspaceScroll : ws.mainInner}
+            >
           {view === 'create' ? (
-            <div className={ws.workspaceScroll}>
             <CreateWardPanel
               name={name}
               onNameChange={setName}
@@ -310,9 +354,8 @@ export default function WardSupervisorPage() {
               onSubmit={handleCreateWard}
               onCancel={openOverview}
             />
-            </div>
           ) : view === 'ward' && selectedWard ? (
-            <div className={ws.mainInner}>
+            <>
               <div className={`${ws.hero} ${ws.wardInfoHeader}`}>
                 <p className="text-[0.65rem] font-bold uppercase tracking-widest text-teal-200">
                   {selectedWard.ward_number}
@@ -366,14 +409,13 @@ export default function WardSupervisorPage() {
                   )}
                 </div>
               </section>
-            </div>
+            </>
           ) : (
-            <div className={ws.mainInner}>
+            <>
               <div className={`${ws.hero} ${ws.wardInfoHeader}`}>
-                <h1 className={ws.heroTitle}>Ward operations</h1>
+                <h1 className={ws.heroTitle}>Ward management</h1>
                 <p className={ws.heroSub}>
-                  Select a ward to view beds and occupancy, or create a new ward with rooms and beds in
-                  one step.
+                  Select a ward from the list to view beds and occupancy, or create a new ward.
                 </p>
                 <div className={ws.kpiGrid}>
                   <div className={ws.kpiCard}>
@@ -394,7 +436,6 @@ export default function WardSupervisorPage() {
                   </div>
                 </div>
               </div>
-
               <div className={ws.workspaceScroll}>
                 <div className={`${ws.idle} rounded-xl border border-dashed border-teal-200 bg-white`}>
                   <WardIcon />
@@ -408,6 +449,8 @@ export default function WardSupervisorPage() {
                   </button>
                 </div>
               </div>
+            </>
+          )}
             </div>
           )}
         </main>
