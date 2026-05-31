@@ -26,7 +26,7 @@ export const admin = {
     'relative overflow-hidden rounded-xl border border-teal-200/80 bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 p-4 text-white shadow-lg shadow-teal-900/15 sm:p-5',
   heroTitle: 'text-lg font-bold tracking-tight sm:text-xl',
   heroSub: 'mt-1 max-w-xl text-xs leading-snug text-teal-100',
-  kpiGrid: 'mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3',
+  kpiGrid: 'mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4',
   kpiCard:
     'rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur-sm transition hover:bg-white/15',
   kpiValue: 'text-xl font-bold tabular-nums sm:text-2xl',
@@ -84,6 +84,12 @@ export const FACILITY_TYPE_OPTIONS = [
   { value: 'health_center', label: 'Health Center' },
 ];
 
+export const NATIONAL_ADMIN_FACILITY_NAME = 'National Health Administration';
+
+export function isOperationalFacility(facility) {
+  return facility?.name !== NATIONAL_ADMIN_FACILITY_NAME;
+}
+
 export function facilityTypeLabel(type) {
   return FACILITY_TYPE_OPTIONS.find((o) => o.value === type)?.label || type || '—';
 }
@@ -92,5 +98,6 @@ export const ADMIN_SECTIONS = [
   { id: 'dashboard', label: 'Dashboard Overview', icon: 'dashboard' },
   { id: 'facilities', label: 'Facility Management', icon: 'facility' },
   { id: 'employees', label: 'Employee Management', icon: 'employees' },
+  { id: 'admins', label: 'System Administrators', icon: 'admins' },
   { id: 'settings', label: 'System Settings', icon: 'settings' },
 ];

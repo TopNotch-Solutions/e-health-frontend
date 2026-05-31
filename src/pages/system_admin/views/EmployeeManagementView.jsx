@@ -27,6 +27,7 @@ export default function EmployeeManagementView({
   roleFilter,
   onRegisterClick,
   onToggleActive,
+  onTransferClick,
   togglingId,
 }) {
   return (
@@ -35,7 +36,8 @@ export default function EmployeeManagementView({
         <div>
           <h2 className={c.sectionTitle}>Employee management</h2>
           <p className={c.sectionDesc}>
-            Search and manage staff. Use inactivate instead of delete — records stay in audit logs.
+            Register and manage staff at any state hospital or clinic nationwide. Use inactivate
+            instead of delete — records stay in audit logs.
           </p>
         </div>
         <button type="button" className={c.btnPrimary} onClick={onRegisterClick}>
@@ -98,6 +100,8 @@ export default function EmployeeManagementView({
               <th className={c.th}>Email</th>
               <th className={c.th}>Role</th>
               <th className={c.th}>Assigned facility</th>
+              <th className={c.th}>Registered by</th>
+              <th className={c.th}>Assigned by</th>
               <th className={c.th}>Status</th>
               <th className={c.th}>Actions</th>
             </tr>
@@ -105,13 +109,13 @@ export default function EmployeeManagementView({
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={6} className={c.tdMuted}>
+                <td colSpan={8} className={c.tdMuted}>
                   Loading employees…
                 </td>
               </tr>
             ) : employees.length === 0 ? (
               <tr>
-                <td colSpan={6} className={c.tdMuted}>
+                <td colSpan={8} className={c.tdMuted}>
                   No employees match your filters.
                 </td>
               </tr>
@@ -124,6 +128,8 @@ export default function EmployeeManagementView({
                     <td className={c.td}>{row.email}</td>
                     <td className={c.td}>{roleLabel(row)}</td>
                     <td className={c.td}>{facilityName(row)}</td>
+                    <td className={c.td}>{row.registered_by || '—'}</td>
+                    <td className={c.td}>{row.assigned_by || '—'}</td>
                     <td className={c.td}>
                       {inactive ? (
                         <span className={c.badgeInactive}>Inactive</span>
@@ -132,25 +138,34 @@ export default function EmployeeManagementView({
                       )}
                     </td>
                     <td className={c.td}>
-                      {inactive ? (
+                      <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
-                          className={c.btnSuccess}
-                          disabled={togglingId === row.id}
-                          onClick={() => onToggleActive(row, true)}
+                          className={c.btnSecondary}
+                          onClick={() => onTransferClick(row)}
                         >
-                          Activate
+                          Transfer
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className={c.btnDanger}
-                          disabled={togglingId === row.id}
-                          onClick={() => onToggleActive(row, false)}
-                        >
-                          Inactivate
-                        </button>
-                      )}
+                        {inactive ? (
+                          <button
+                            type="button"
+                            className={c.btnSuccess}
+                            disabled={togglingId === row.id}
+                            onClick={() => onToggleActive(row, true)}
+                          >
+                            Activate
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={c.btnDanger}
+                            disabled={togglingId === row.id}
+                            onClick={() => onToggleActive(row, false)}
+                          >
+                            Inactivate
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

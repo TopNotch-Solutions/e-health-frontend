@@ -22,7 +22,7 @@ export function getResultsSubtitle(stats, phase) {
     return 'No match in the national register. Register a new patient or use emergency intake.';
   }
   if (phase === 'returning' && stats.returning === 1) {
-    return 'Complete intake details and check in, or open the electronic health record.';
+    return 'Returning patient identified. Select a routing destination and send to the clinic queue.';
   }
   if (stats.returning > 1) {
     return 'Select the correct patient. Do not start a new registration.';

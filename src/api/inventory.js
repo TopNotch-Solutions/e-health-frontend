@@ -47,6 +47,21 @@ export function receiveStock(inventoryId, body) {
   });
 }
 
+export function getPendingReceipts() {
+  return apiRequest('/api/v1/inventory/pharmacy/pending-receipts');
+}
+
+export function getConfirmedReceipts(limit = 20) {
+  return apiRequest(`/api/v1/inventory/pharmacy/confirmed-receipts?limit=${limit}`);
+}
+
+export function confirmStockReceipt(transactionId) {
+  return apiRequest(`/api/v1/inventory/pharmacy/receipts/${transactionId}/confirm`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
 export function updateMedication(inventoryId, body) {
   return apiRequest(`/api/v1/inventory/pharmacy/${inventoryId}`, {
     method: 'PUT',

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPatientVisit, registerEmergencyPatient } from '../../api/patients';
+import { routingLabel } from './constants/routingOptions';
 import LookupEmergencyBanner from './components/lookup/LookupEmergencyBanner';
 import LookupPageHero from './components/lookup/LookupPageHero';
 import LookupResultsView from './components/lookup/LookupResultsView';
 import LookupSearchCard from './components/lookup/LookupSearchCard';
+import TodaysRegistrationsPanel from './components/TodaysRegistrationsPanel';
 import { useToast } from './context/ToastContext';
 import { usePatientSearch } from './hooks/usePatientSearch';
 import { useRegistration } from './RegistrationContext';
@@ -86,10 +88,14 @@ export default function FrontOfficeDashboardPage() {
     setCheckInLoading(true);
     setCheckInPatientId(patient.id);
     try {
-      await createPatientVisit(patient.id, intake);
-      const msg = intake.is_emergency
-        ? `${patientName(patient)} checked in as emergency and prioritized in the nurse queue.`
-        : `${patientName(patient)} checked in and sent to the nurse queue.`;
+      const result = await createPatientVisit(patient.id, intake);
+      const dept = result.queueEntry?.department || intake.routing_destination;
+      const destLabel = intake.immediate_triage
+        ? 'Emergency Unit'
+        : routingLabel(dept) || dept;
+      const msg = intake.immediate_triage || intake.is_emergency
+        ? `${patientName(patient)} routed to ${destLabel} (emergency priority).`
+        : `${patientName(patient)} routed to ${destLabel}.`;
       showToast(msg, 'success');
       resetSearch();
     } catch (err) {
@@ -104,7 +110,7 @@ export default function FrontOfficeDashboardPage() {
     setEmergencyLoading(true);
     try {
       await registerEmergencyPatient({ sex: 'other' });
-      showToast('Emergency patient registered and prioritized at the top of the nurse queue.', 'success');
+      showToast('Unknown emergency patient registered and routed to Emergency Unit.', 'success');
       resetSearch();
     } catch (err) {
       showToast(err.message || 'Emergency registration failed', 'error');
@@ -134,6 +140,7 @@ export default function FrontOfficeDashboardPage() {
             loading={loading}
           />
           <LookupEmergencyBanner loading={emergencyLoading} onEmergency={handleEmergency} />
+          <TodaysRegistrationsPanel compact limit={5} showHeaderLink />
         </>
       ) : null}
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AddMedicationForm from '../../../components/pharmacy/AddMedicationForm';
+import PendingReceiptsPanel from '../../../components/pharmacy/PendingReceiptsPanel';
 import {
   getPharmacyAlerts,
   getPharmacyInventory,
@@ -24,6 +25,7 @@ export default function InventoryWorkspace({ onStockUpdated }) {
   const [receiveId, setReceiveId] = useState(null);
   const [receiveQty, setReceiveQty] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [receiptsKey, setReceiptsKey] = useState(0);
 
   const [showAdd, setShowAdd] = useState(false);
 
@@ -66,9 +68,10 @@ export default function InventoryWorkspace({ onStockUpdated }) {
     setError('');
     try {
       await receiveStock(receiveId, { quantity: qty });
-      setToast('Stock received and quantity updated.');
+      setToast('Receipt recorded — awaiting confirmation by another pharmacy supervisor.');
       setReceiveId(null);
       setReceiveQty('');
+      setReceiptsKey((k) => k + 1);
       await loadAll();
       onStockUpdated?.();
     } catch (err) {
@@ -82,6 +85,7 @@ export default function InventoryWorkspace({ onStockUpdated }) {
     setToast(message);
     setShowAdd(false);
     setError('');
+    setReceiptsKey((k) => k + 1);
     loadAll();
     onStockUpdated?.();
   }
@@ -147,7 +151,7 @@ export default function InventoryWorkspace({ onStockUpdated }) {
             <div>
               <h2 className={ps.sectionTitle}>Medication inventory</h2>
               <p className="mt-0.5 text-xs text-slate-600">
-                Record purchased stock and quantities received into the pharmacy.
+                Add medications and record purchased stock. Another staff member must confirm before stock counts.
               </p>
             </div>
             <button type="button" className={ps.btnPrimary} onClick={() => setShowAdd((v) => !v)}>
@@ -167,7 +171,7 @@ export default function InventoryWorkspace({ onStockUpdated }) {
           {receiveId ? (
             <form onSubmit={handleReceive} className="mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-teal-200 bg-teal-50/50 p-3">
               <label className="block min-w-[8rem] flex-1">
-                <span className={ps.formLabel}>Quantity received *</span>
+                <span className={ps.formLabel}>Quantity to receive *</span>
                 <input
                   type="number"
                   min="1"
@@ -178,7 +182,7 @@ export default function InventoryWorkspace({ onStockUpdated }) {
                 />
               </label>
               <button type="submit" className={ps.btnPrimary} disabled={submitting}>
-                {submitting ? 'Receiving…' : 'Confirm receipt'}
+                {submitting ? 'Recording…' : 'Record receipt'}
               </button>
               <button type="button" className={ps.btnGhost} onClick={() => setReceiveId(null)}>
                 Cancel
@@ -231,6 +235,17 @@ export default function InventoryWorkspace({ onStockUpdated }) {
               ))
             )}
           </div>
+        </div>
+
+        <div className={ps.sectionPanel}>
+          <PendingReceiptsPanel
+            key={receiptsKey}
+            classNames={ps}
+            onUpdated={() => {
+              loadAll();
+              onStockUpdated?.();
+            }}
+          />
         </div>
 
         <div className={ps.sectionPanel}>

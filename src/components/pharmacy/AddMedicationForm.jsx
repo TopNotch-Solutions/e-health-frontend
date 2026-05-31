@@ -59,7 +59,11 @@ export default function AddMedicationForm({ onSuccess, onCancel, submitLabel = '
         reorder_level: parseInt(addForm.reorder_level, 10) || 10,
       });
       setAddForm(emptyForm);
-      onSuccess?.('Medication added to inventory.');
+      onSuccess?.(
+        parseInt(addForm.quantity_in_stock, 10) > 0
+          ? 'Medication added — stock pending confirmation by another pharmacy supervisor.'
+          : 'Medication added to inventory.'
+      );
     } catch (err) {
       setError(err.message || 'Failed to add medication');
     } finally {
@@ -115,7 +119,7 @@ export default function AddMedicationForm({ onSuccess, onCancel, submitLabel = '
       ) : null}
 
       <label className="block">
-        <span className={nc.label}>Initial quantity</span>
+        <span className={nc.label}>Initial quantity (pending confirmation)</span>
         <input
           type="number"
           min="0"

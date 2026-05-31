@@ -19,7 +19,8 @@ export default function LookupPageHero({ phase, now = new Date() }) {
           {dateStr} · {timeStr}
         </p>
         <p className="mt-2 max-w-2xl text-sm text-teal-100/80">
-          Search by National ID or date of birth with full name. Register only when no match exists.
+          Search first by National ID or date of birth with full name. Register only when no match exists,
+          then route non-emergency patients to a clinic sector queue.
         </p>
         <div className={lookup.heroSteps} aria-label="Lookup progress">
           {steps.map((step) => (

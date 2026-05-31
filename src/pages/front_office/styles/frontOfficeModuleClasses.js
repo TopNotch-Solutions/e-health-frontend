@@ -60,4 +60,8 @@ export const fo = {
   actionIconDanger: 'bg-rose-100 text-rose-700 group-hover:bg-rose-200',
   actionTitle: 'font-bold text-slate-900',
   actionText: 'mt-1 text-sm text-slate-600',
+  tableWrap: 'rounded-xl border border-slate-200 bg-white',
+  table: 'min-w-full text-left text-sm',
+  th: 'border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500',
+  td: 'px-4 py-3 text-slate-700',
 };

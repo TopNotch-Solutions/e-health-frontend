@@ -2,22 +2,27 @@ import { useCallback, useEffect, useState } from 'react';
 import { getStoredUser } from '../../api/authSession';
 import {
   createAdminFacility,
+  createAdminSystemAdmin,
   createAdminUser,
   getAdminAuditLogs,
   getAdminDashboard,
   getAdminFacilities,
   getAdminRoles,
   getAdminUsers,
+  transferAdminEmployee,
   updateAdminUser,
 } from '../../api/admin';
 import AdminSidebar from './components/AdminSidebar';
 import AdminTopbar from './components/AdminTopbar';
 import CreateFacilityModal from './components/CreateFacilityModal';
 import RegisterEmployeeModal from './components/RegisterEmployeeModal';
+import RegisterSystemAdminModal from './components/RegisterSystemAdminModal';
+import TransferEmployeeModal from './components/TransferEmployeeModal';
 import { admin as c } from './styles/adminClasses';
 import AdminDashboardView from './views/AdminDashboardView';
 import EmployeeManagementView from './views/EmployeeManagementView';
 import FacilityManagementView from './views/FacilityManagementView';
+import SystemAdminManagementView from './views/SystemAdminManagementView';
 import SystemSettingsView from './views/SystemSettingsView';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -38,33 +43,54 @@ export default function SystemAdminPage() {
   const [dashboard, setDashboard] = useState(null);
   const [facilities, setFacilities] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [systemAdmins, setSystemAdmins] = useState([]);
   const [roles, setRoles] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const [employeesLoading, setEmployeesLoading] = useState(false);
+  const [adminsLoading, setAdminsLoading] = useState(false);
   const [auditLoading, setAuditLoading] = useState(false);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
 
   const [search, setSearch] = useState('');
+  const [adminSearch, setAdminSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [adminStatusFilter, setAdminStatusFilter] = useState('');
   const [facilityFilter, setFacilityFilter] = useState('');
+  const [dashboardFacilityFilter, setDashboardFacilityFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
 
   const [facilityModalOpen, setFacilityModalOpen] = useState(false);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferEmployee, setTransferEmployee] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
+
+  const loadDashboard = useCallback(async () => {
+    setDashboardLoading(true);
+    try {
+      const dash = await getAdminDashboard({
+        facility_id: dashboardFacilityFilter || undefined,
+      });
+      setDashboard(dash);
+    } catch (err) {
+      setError(err.message || 'Failed to load dashboard');
+    } finally {
+      setDashboardLoading(false);
+    }
+  }, [dashboardFacilityFilter]);
 
   const loadCore = useCallback(async () => {
     setError('');
     try {
-      const [dash, facs, roleList] = await Promise.all([
-        getAdminDashboard(),
+      const [facs, roleList] = await Promise.all([
         getAdminFacilities(),
         getAdminRoles(),
       ]);
-      setDashboard(dash);
       setFacilities(facs || []);
       setRoles(roleList || []);
     } catch (err) {
@@ -83,6 +109,7 @@ export default function SystemAdminPage() {
         status: statusFilter || undefined,
         facility_id: facilityFilter || undefined,
         role: roleFilter || undefined,
+        exclude_role: 'system_admin',
       });
       setEmployees(rows || []);
     } catch (err) {
@@ -91,6 +118,23 @@ export default function SystemAdminPage() {
       setEmployeesLoading(false);
     }
   }, [search, statusFilter, facilityFilter, roleFilter]);
+
+  const loadSystemAdmins = useCallback(async () => {
+    setAdminsLoading(true);
+    try {
+      const { rows } = await getAdminUsers({
+        limit: 100,
+        search: adminSearch.trim() || undefined,
+        status: adminStatusFilter || undefined,
+        role_only: 'system_admin',
+      });
+      setSystemAdmins(rows || []);
+    } catch (err) {
+      setError(err.message || 'Failed to load system administrators');
+    } finally {
+      setAdminsLoading(false);
+    }
+  }, [adminSearch, adminStatusFilter]);
 
   const loadAudit = useCallback(async () => {
     setAuditLoading(true);
@@ -109,8 +153,16 @@ export default function SystemAdminPage() {
   }, [loadCore]);
 
   useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  useEffect(() => {
     if (section === 'employees') loadEmployees();
   }, [section, loadEmployees]);
+
+  useEffect(() => {
+    if (section === 'admins') loadSystemAdmins();
+  }, [section, loadSystemAdmins]);
 
   useEffect(() => {
     if (section === 'settings') loadAudit();
@@ -128,6 +180,12 @@ export default function SystemAdminPage() {
     return () => clearTimeout(t);
   }, [search, section, loadEmployees]);
 
+  useEffect(() => {
+    if (section !== 'admins') return undefined;
+    const t = setTimeout(() => loadSystemAdmins(), 300);
+    return () => clearTimeout(t);
+  }, [adminSearch, section, loadSystemAdmins]);
+
   const handleCreateFacility = async (form) => {
     setSubmitting(true);
     try {
@@ -136,8 +194,7 @@ export default function SystemAdminPage() {
       setToast('Facility created successfully.');
       const facs = await getAdminFacilities();
       setFacilities(facs || []);
-      const dash = await getAdminDashboard();
-      setDashboard(dash);
+      await loadDashboard();
     } catch (err) {
       setToast(err.message || 'Could not create facility');
     } finally {
@@ -156,12 +213,51 @@ export default function SystemAdminPage() {
       }
       setToast(msg);
       await loadEmployees();
-      const dash = await getAdminDashboard();
-      setDashboard(dash);
+      await loadDashboard();
       const facs = await getAdminFacilities();
       setFacilities(facs || []);
     } catch (err) {
       setToast(err.message || 'Could not register employee');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRegisterSystemAdmin = async (form) => {
+    setSubmitting(true);
+    try {
+      const created = await createAdminSystemAdmin(form);
+      setAdminModalOpen(false);
+      let msg = `${created.first_name} ${created.last_name} added as system administrator.`;
+      if (created.temporary_password) {
+        msg += ` Temporary password: ${created.temporary_password}`;
+      }
+      setToast(msg);
+      await loadSystemAdmins();
+      await loadDashboard();
+    } catch (err) {
+      setToast(err.message || 'Could not add system administrator');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleTransferEmployee = async (payload) => {
+    if (!transferEmployee) return;
+    setSubmitting(true);
+    try {
+      const updated = await transferAdminEmployee(transferEmployee.id, payload);
+      setTransferModalOpen(false);
+      setTransferEmployee(null);
+      setToast(
+        `${updated.first_name} ${updated.last_name} transferred to ${updated.facility?.name || 'new facility'}. Login credentials unchanged.`
+      );
+      await loadEmployees();
+      await loadDashboard();
+      const facs = await getAdminFacilities();
+      setFacilities(facs || []);
+    } catch (err) {
+      setToast(err.message || 'Transfer failed');
     } finally {
       setSubmitting(false);
     }
@@ -178,10 +274,13 @@ export default function SystemAdminPage() {
     setTogglingId(row.id);
     try {
       await updateAdminUser(row.id, { is_active: activate });
-      setToast(activate ? 'Employee activated.' : 'Employee inactivated.');
-      await loadEmployees();
-      const dash = await getAdminDashboard();
-      setDashboard(dash);
+      setToast(activate ? 'Account activated.' : 'Account inactivated.');
+      if (section === 'admins') {
+        await loadSystemAdmins();
+      } else {
+        await loadEmployees();
+      }
+      await loadDashboard();
     } catch (err) {
       setToast(err.message || 'Status update failed');
     } finally {
@@ -194,7 +293,11 @@ export default function SystemAdminPage() {
     content = (
       <AdminDashboardView
         dashboard={dashboard}
-        loading={loading}
+        loading={dashboardLoading}
+        facilities={facilities}
+        facilityFilter={dashboardFacilityFilter}
+        onFacilityFilterChange={setDashboardFacilityFilter}
+        onSelectFacility={(id) => setDashboardFacilityFilter(String(id))}
         onNavigate={setSection}
       />
     );
@@ -223,7 +326,26 @@ export default function SystemAdminPage() {
         onRoleFilterChange={setRoleFilter}
         onRegisterClick={() => setEmployeeModalOpen(true)}
         onToggleActive={handleToggleActive}
+        onTransferClick={(row) => {
+          setTransferEmployee(row);
+          setTransferModalOpen(true);
+        }}
         togglingId={togglingId}
+      />
+    );
+  } else if (section === 'admins') {
+    content = (
+      <SystemAdminManagementView
+        admins={systemAdmins}
+        loading={adminsLoading}
+        search={adminSearch}
+        onSearchChange={setAdminSearch}
+        statusFilter={adminStatusFilter}
+        onStatusFilterChange={setAdminStatusFilter}
+        onRegisterClick={() => setAdminModalOpen(true)}
+        onToggleActive={handleToggleActive}
+        togglingId={togglingId}
+        currentUserId={user?.id}
       />
     );
   } else {
@@ -270,7 +392,23 @@ export default function SystemAdminPage() {
         onClose={() => setEmployeeModalOpen(false)}
         onSubmit={handleRegisterEmployee}
         submitting={submitting}
-        roles={roles}
+        facilities={facilities}
+      />
+      <RegisterSystemAdminModal
+        open={adminModalOpen}
+        onClose={() => setAdminModalOpen(false)}
+        onSubmit={handleRegisterSystemAdmin}
+        submitting={submitting}
+      />
+      <TransferEmployeeModal
+        open={transferModalOpen}
+        employee={transferEmployee}
+        onClose={() => {
+          setTransferModalOpen(false);
+          setTransferEmployee(null);
+        }}
+        onSubmit={handleTransferEmployee}
+        submitting={submitting}
         facilities={facilities}
       />
 

@@ -10,7 +10,9 @@ export default function FacilityManagementView({
       <div className={`${c.panelHeader} mb-3`}>
         <div>
           <h2 className={c.sectionTitle}>Facility management</h2>
-          <p className={c.sectionDesc}>View and register facilities across regions.</p>
+          <p className={c.sectionDesc}>
+            Register and oversee every state hospital, clinic, and health center on the national network.
+          </p>
         </div>
         <button type="button" className={c.btnPrimary} onClick={onCreateClick}>
           Create new facility

@@ -35,6 +35,8 @@ export function createPatientVisit(patientId, intake = {}) {
   if (intake.mode_of_arrival) body.mode_of_arrival = intake.mode_of_arrival;
   if (intake.accompanied_by) body.accompanied_by = intake.accompanied_by;
   if (intake.is_emergency) body.is_emergency = true;
+  if (intake.immediate_triage) body.immediate_triage = true;
+  if (intake.routing_destination) body.routing_destination = intake.routing_destination;
   return apiRequest(`/api/v1/patients/${patientId}/visits`, {
     method: 'POST',
     body: JSON.stringify(body),

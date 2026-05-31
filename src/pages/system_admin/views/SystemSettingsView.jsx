@@ -25,6 +25,10 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
       <div className={`${c.sectionPanel} mb-3`}>
         <h3 className={c.sectionTitle}>Configuration</h3>
         <ul className="mt-3 space-y-2 text-sm text-slate-600">
+          <li>
+            System administrators operate nationally — they manage all state hospitals and clinics,
+            including staff onboarding, transfers, and facility registration.
+          </li>
           <li>Employee lifecycle: accounts are inactivated, never deleted from the system.</li>
           <li>Facilities: hospital, clinic, and health center types are supported nationally.</li>
           <li>Billing shifts and fee schedules are managed per facility by supervisors and revenue staff.</li>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { admin as c } from '../styles/adminClasses';
+import { useEffect, useMemo, useState } from 'react';
+import { getAdminRoles } from '../../../api/admin';
+import { admin as c, isOperationalFacility } from '../styles/adminClasses';
 
 const EMPTY = {
   first_name: '',
@@ -14,14 +15,44 @@ export default function RegisterEmployeeModal({
   onClose,
   onSubmit,
   submitting,
-  roles,
   facilities,
 }) {
   const [form, setForm] = useState(EMPTY);
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+
+  const selectedFacility = useMemo(
+    () => facilities.find((f) => f.id === form.facility_id),
+    [facilities, form.facility_id]
+  );
+  const isClinic = selectedFacility?.type === 'clinic';
 
   useEffect(() => {
     if (open) setForm(EMPTY);
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    let cancelled = false;
+    const loadRoles = async () => {
+      setRolesLoading(true);
+      try {
+        const params = form.facility_id
+          ? { facility_id: form.facility_id }
+          : {};
+        const list = await getAdminRoles(params);
+        if (!cancelled) setRoles(list || []);
+      } catch {
+        if (!cancelled) setRoles([]);
+      } finally {
+        if (!cancelled) setRolesLoading(false);
+      }
+    };
+
+    loadRoles();
+    return () => { cancelled = true; };
+  }, [open, form.facility_id]);
 
   if (!open) return null;
 
@@ -47,7 +78,9 @@ export default function RegisterEmployeeModal({
           Register new employee
         </h2>
         <p className={c.modalSub}>
-          A temporary password is generated if none is set. Share it securely with the employee.
+          {isClinic
+            ? 'Clinic employees receive the temporary password Demo123! and must be assigned an authorized clinic role.'
+            : 'A temporary password is generated if none is set. Share it securely with the employee.'}
         </p>
 
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
@@ -72,19 +105,6 @@ export default function RegisterEmployeeModal({
             <input id="emp-email" type="email" className={c.input} value={form.email} onChange={set('email')} required />
           </div>
           <div>
-            <label className={c.label} htmlFor="emp-role">
-              Role
-            </label>
-            <select id="emp-role" className={c.input} value={form.role_id} onChange={set('role_id')} required>
-              <option value="">Select role…</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.display_name || r.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
             <label className={c.label} htmlFor="emp-facility">
               Assigned facility
             </label>
@@ -96,9 +116,35 @@ export default function RegisterEmployeeModal({
               required
             >
               <option value="">Select facility…</option>
-              {facilities.map((f) => (
+              {facilities.filter(isOperationalFacility).map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.name}
+                  {f.name}{f.type === 'clinic' ? ' (Clinic)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={c.label} htmlFor="emp-role">
+              {isClinic ? 'Clinic role' : 'Role'}
+            </label>
+            <select
+              id="emp-role"
+              className={c.input}
+              value={form.role_id}
+              onChange={set('role_id')}
+              required
+              disabled={!form.facility_id || rolesLoading}
+            >
+              <option value="">
+                {!form.facility_id
+                  ? 'Select a facility first…'
+                  : rolesLoading
+                    ? 'Loading roles…'
+                    : 'Select role…'}
+              </option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.display_name || r.name}
                 </option>
               ))}
             </select>
@@ -107,7 +153,7 @@ export default function RegisterEmployeeModal({
             <button type="button" className={c.btnSecondary} onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className={c.btnPrimary} disabled={submitting}>
+            <button type="submit" className={c.btnPrimary} disabled={submitting || rolesLoading}>
               {submitting ? 'Registering…' : 'Register employee'}
             </button>
           </div>

@@ -17,6 +17,7 @@ export default function DoctorPrescriptionSection({
   onRemoveMedLine,
   actionLoading,
   onSendToPharmacy,
+  hideSubmitButton = false,
 }) {
   const hasPrescription = prescriptionLines.length > 0;
   const summary = prescriptionListSummary(prescriptionLines);
@@ -240,7 +241,7 @@ export default function DoctorPrescriptionSection({
           </ul>
         ) : null}
 
-        {hasPrescription ? (
+        {hasPrescription && !hideSubmitButton ? (
           <button
             type="button"
             className={`${c.btnAction} ${c.btnPharmacy}`}

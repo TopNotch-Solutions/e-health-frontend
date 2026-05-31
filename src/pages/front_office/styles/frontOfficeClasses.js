@@ -1,17 +1,3 @@
-/**
- * Centralized Tailwind class strings for the front office module.
- * Keeps layout components free of long inline class lists.
- */
-
-/** Shell layout — fixed viewport; only main scrolls (matches nurse module). */
-export const layout = {
-  page: 'flex h-screen max-h-[100dvh] flex-col overflow-hidden bg-slate-50 text-slate-900',
-  main: 'flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6 sm:px-6 lg:px-8',
-  footer:
-    'shrink-0 border-t border-slate-200 bg-white px-4 py-3 text-center text-xs text-slate-500 sm:px-6',
-  footerLink: 'font-semibold text-teal-700 hover:underline',
-};
-
 export const topbar = {
   root:
     'flex w-full shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6',
@@ -54,4 +40,11 @@ export const toast = {
   success: 'border-emerald-200 bg-emerald-50 text-emerald-900',
   info: 'border-slate-200 bg-white text-slate-900',
   dismiss: 'ml-auto shrink-0 text-sm font-medium opacity-70 hover:opacity-100',
+};
+
+export const shell = {
+  main: 'flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50 p-4 sm:p-6',
+  footer:
+    'shrink-0 border-t border-slate-200 bg-white px-4 py-3 text-center text-xs text-slate-500',
+  footerLink: 'font-semibold text-teal-700 hover:underline',
 };

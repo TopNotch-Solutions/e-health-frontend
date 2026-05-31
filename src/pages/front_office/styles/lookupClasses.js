@@ -5,7 +5,7 @@
 import { fo } from './frontOfficeModuleClasses';
 
 export const lookup = {
-  page: 'mx-auto w-full max-w-6xl space-y-1',
+  page: 'mx-auto max-w-6xl space-y-6 pb-10',
   hero:
     'overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-teal-900 to-teal-800 text-white shadow-lg',
   heroInner: 'p-6 sm:p-8',

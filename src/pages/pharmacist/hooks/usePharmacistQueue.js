@@ -61,6 +61,8 @@ export function usePharmacistQueue({ onQueueSynced } = {}) {
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('queue:new_patient', bumpQueue);
+    socket.on('pharmacy:new_prescription', bumpQueue);
+    socket.on('pharmacy:inventory_update', bumpQueue);
     socket.on('notification:stock_alert', bumpQueue);
 
     if (socket.connected) onConnect();
@@ -70,6 +72,8 @@ export function usePharmacistQueue({ onQueueSynced } = {}) {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('queue:new_patient', bumpQueue);
+      socket.off('pharmacy:new_prescription', bumpQueue);
+      socket.off('pharmacy:inventory_update', bumpQueue);
       socket.off('notification:stock_alert', bumpQueue);
     };
   }, [loadQueueHttp]);

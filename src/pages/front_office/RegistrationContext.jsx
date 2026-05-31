@@ -19,6 +19,8 @@ const defaultDraft = () => ({
   emergency_contact_phone: '',
   emergency_contact_relationship: '',
   is_emergency: false,
+  immediate_triage: false,
+  routing_destination: '',
 });
 
 const RegistrationContext = createContext(null);
@@ -86,6 +88,8 @@ export function RegistrationProvider({ children }) {
       emergency_contact_phone: draft.emergency_contact_phone.trim() || null,
       category: 'known',
       is_emergency: Boolean(draft.is_emergency),
+      immediate_triage: Boolean(draft.immediate_triage),
+      routing_destination: draft.routing_destination || undefined,
     };
   }, [draft]);
 
@@ -97,12 +101,18 @@ export function RegistrationProvider({ children }) {
       if (!payload.first_name || !payload.last_name || !payload.sex) {
         throw new Error('First name, last name, and sex are required.');
       }
+      if (!payload.immediate_triage && !payload.routing_destination) {
+        throw new Error('Select a routing destination before finishing registration.');
+      }
       const data = await registerPatient(payload);
       clearDraft();
+      const routeMsg = payload.immediate_triage
+        ? 'routed to Emergency Unit'
+        : `routed to queue`;
       navigate('/front_office', {
         replace: true,
         state: {
-          notice: `Patient ${payload.first_name} ${payload.last_name} registered (${data.patient?.patient_number || ''}) and queued to nurse.`,
+          notice: `Patient ${payload.first_name} ${payload.last_name} registered (${data.patient?.patient_number || ''}) and ${routeMsg}.`,
         },
       });
       return data;

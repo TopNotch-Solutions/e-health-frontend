@@ -66,3 +66,17 @@ export function prescribeDiet(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function clinicScheduleFollowUp(body) {
+  return apiRequest(`${BASE}/clinic/follow-up`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function clinicTransferBookingRoom(body) {
+  return apiRequest(`${BASE}/clinic/booking-room`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

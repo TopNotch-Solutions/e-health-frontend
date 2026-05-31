@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getPharmacyPrescription } from '../../api/pharmacy';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
-import AddMedicationModal from '../../components/pharmacy/AddMedicationModal';
 import PharmacistTopbar from './components/PharmacistTopbar';
 import PharmacistWorkspace from './components/PharmacistWorkspace';
 import { usePharmacistQueue } from './hooks/usePharmacistQueue';
@@ -43,7 +42,6 @@ export default function PharmacistConsultationPage() {
   const [toast, setToast] = useState('');
   const [queueActionError, setQueueActionError] = useState('');
   const [workspaceError, setWorkspaceError] = useState('');
-  const [showAddMedication, setShowAddMedication] = useState(false);
 
   const { queue, loading, error: queueLoadError, live, refresh } = usePharmacistQueue({});
 
@@ -189,12 +187,6 @@ export default function PharmacistConsultationPage() {
         </div>
       ) : null}
 
-      <AddMedicationModal
-        open={showAddMedication}
-        onClose={() => setShowAddMedication(false)}
-        onSuccess={(msg) => setToast(msg)}
-      />
-
       <div className={c.body}>
         <aside className={c.queueAside} aria-label="Pharmacy prescription queue">
           <h2 className={c.queueTitle}>Patient prescription queue</h2>
@@ -216,14 +208,6 @@ export default function PharmacistConsultationPage() {
             />
           ) : (
             <>
-              <button
-                type="button"
-                className={`${c.btnSecondary} mb-2 w-full text-sm`}
-                onClick={() => setShowAddMedication(true)}
-              >
-                + Add medication to inventory
-              </button>
-
               <div className={c.searchWrap}>
                 <label htmlFor="rx-queue-search" className="sr-only">
                   Search queue

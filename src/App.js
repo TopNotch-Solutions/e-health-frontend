@@ -12,7 +12,11 @@ import PatientRegistrationStep2Page from './pages/front_office/PatientRegistrati
 import PatientRegistrationStep3Page from './pages/front_office/PatientRegistrationStep3Page';
 import PatientRegistrationStep4Page from './pages/front_office/PatientRegistrationStep4Page';
 import PatientEhrPage from './pages/front_office/PatientEhrPage';
+import TodaysRegistrationsPage from './pages/front_office/TodaysRegistrationsPage';
 import NursePage from './pages/nurse';
+import ParameterNursePage from './pages/parameter_nurse';
+import ScreeningNursePage from './pages/screening_nurse';
+import ClinicDoctorPage from './pages/clinic_doctor';
 import NurseSupervisorPage from './pages/nurse_supervisor';
 import DoctorPage from './pages/doctor';
 import DoctorSupervisorPage from './pages/doctor_supervisor';
@@ -55,6 +59,7 @@ function App() {
           }
         >
           <Route index element={<FrontOfficeDashboardPage />} />
+          <Route path="today" element={<TodaysRegistrationsPage />} />
           <Route path="registration/step-1" element={<PatientRegistrationStep1Page />} />
           <Route path="registration/step-2" element={<PatientRegistrationStep2Page />} />
           <Route path="registration/step-3" element={<PatientRegistrationStep3Page />} />
@@ -74,6 +79,30 @@ function App() {
           element={
             <RoleRoute role="nurse">
               <NursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/parameter_nurse"
+          element={
+            <RoleRoute role="parameter_nurse">
+              <ParameterNursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/screening_nurse"
+          element={
+            <RoleRoute role="screening_nurse">
+              <ScreeningNursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/clinic_doctor"
+          element={
+            <RoleRoute role="master_doctor">
+              <ClinicDoctorPage />
             </RoleRoute>
           }
         />

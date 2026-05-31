@@ -10,7 +10,7 @@ export default function LookupEmergencyBanner({ loading, onEmergency }) {
         disabled={loading}
         onClick={onEmergency}
       >
-        {loading ? 'Registering…' : 'Register unknown emergency patient (priority queue)'}
+        {loading ? 'Registering…' : 'Register unknown patient → Emergency Unit'}
       </button>
     </p>
   );

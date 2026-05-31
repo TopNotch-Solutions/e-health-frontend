@@ -18,8 +18,11 @@ async function apiRequestFull(path, options = {}) {
   return json;
 }
 
-export function getAdminDashboard() {
-  return apiRequest('/api/v1/admin/dashboard');
+export function getAdminDashboard(params = {}) {
+  const q = new URLSearchParams();
+  if (params.facility_id) q.set('facility_id', String(params.facility_id));
+  const qs = q.toString();
+  return apiRequest(`/api/v1/admin/dashboard${qs ? `?${qs}` : ''}`);
 }
 
 export function getAdminFacilities() {
@@ -41,17 +44,30 @@ export async function getAdminUsers(params = {}) {
   if (params.role) q.set('role', params.role);
   if (params.facility_id) q.set('facility_id', params.facility_id);
   if (params.status) q.set('status', params.status);
+  if (params.exclude_role) q.set('exclude_role', params.exclude_role);
+  if (params.role_only) q.set('role_only', params.role_only);
   const qs = q.toString();
   const json = await apiRequestFull(`/api/v1/admin/users${qs ? `?${qs}` : ''}`);
   return { rows: json.data || [], pagination: json.pagination };
 }
 
-export function getAdminRoles() {
-  return apiRequest('/api/v1/admin/roles');
+export function getAdminRoles(params = {}) {
+  const q = new URLSearchParams();
+  if (params.facility_id) q.set('facility_id', String(params.facility_id));
+  if (params.context) q.set('context', params.context);
+  const qs = q.toString();
+  return apiRequest(`/api/v1/admin/roles${qs ? `?${qs}` : ''}`);
 }
 
 export function createAdminUser(body) {
   return apiRequest('/api/v1/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function createAdminSystemAdmin(body) {
+  return apiRequest('/api/v1/admin/system-admins', {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -62,6 +78,17 @@ export function updateAdminUser(id, body) {
     method: 'PUT',
     body: JSON.stringify(body),
   });
+}
+
+export function transferAdminEmployee(id, body) {
+  return apiRequest(`/api/v1/admin/users/${id}/transfer`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function getAdminEmployeeFacilityHistory(id) {
+  return apiRequest(`/api/v1/admin/users/${id}/facility-history`);
 }
 
 export async function getAdminAuditLogs(params = {}) {
