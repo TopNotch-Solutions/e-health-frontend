@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { getAccessToken, getStoredUser, clearSession } from '../api/authSession';
-import { authRoleSlug, isRoleAllowedForPath } from '../utils/homePathForRole';
+import { authRoleSlug, homePathForRole, isRoleAllowedForPath } from '../utils/homePathForRole';
 
 /**
  * Requires a valid session. Optional `role` restricts the route to that role only.
@@ -25,12 +25,32 @@ export default function RequireAuth({ children, role, roles }) {
 
   if (allowedRoles) {
     if (!userRole || !allowedRoles.includes(userRole)) {
+      const home = homePathForRole(userRole);
+      if (userRole && home && home !== location.pathname) {
+        return <Navigate to={home} replace />;
+      }
       clearSession();
-      return <Navigate to="/login?forbidden=1" replace />;
+      return (
+        <Navigate
+          to="/login?forbidden=1"
+          replace
+          state={{ attemptedRole: userRole, attemptedPath: location.pathname }}
+        />
+      );
     }
   } else if (!isRoleAllowedForPath(location.pathname, user)) {
+    const home = homePathForRole(userRole);
+    if (userRole && home && home !== location.pathname) {
+      return <Navigate to={home} replace />;
+    }
     clearSession();
-    return <Navigate to="/login?forbidden=1" replace />;
+    return (
+      <Navigate
+        to="/login?forbidden=1"
+        replace
+        state={{ attemptedRole: userRole, attemptedPath: location.pathname }}
+      />
+    );
   }
 
   return children;

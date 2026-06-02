@@ -1,6 +1,12 @@
 ﻿import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { authRoleSlug, homePathForRole, isRoleAllowedForPath } from '../../utils/homePathForRole';
+import {
+  authRoleSlug,
+  homePathForRole,
+  isRoleAllowedForPath,
+  roleAccessHint,
+} from '../../utils/homePathForRole';
+import { clearSession } from '../../api/authSession';
 import AuthPageShell from './components/AuthPageShell';
 import { auth } from './styles/authClasses';
 
@@ -52,11 +58,20 @@ export default function LoginPage() {
     const params = new URLSearchParams(location.search);
     if (params.get('expired') === '1') {
       setLoginError('Your session has expired. Please sign in again.');
+      return;
     }
     if (params.get('forbidden') === '1') {
-      setLoginError('You do not have access to that page. Sign in with the correct role.');
+      const role = location.state?.attemptedRole;
+      const path = location.state?.attemptedPath;
+      if (role) {
+        setLoginError(
+          `You do not have access to ${path || 'that page'}. ${roleAccessHint(role)}`
+        );
+      } else {
+        setLoginError('You do not have access to that page. Sign in with the correct role.');
+      }
     }
-  }, [location.search]);
+  }, [location.search, location.state]);
 
   const now = new Date();
 
@@ -79,7 +94,13 @@ export default function LoginPage() {
         localStorage.setItem('accessToken', accessToken);
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
-        const defaultHome = homePathForRole(authRoleSlug(user));
+        const roleSlug = authRoleSlug(user);
+        const defaultHome = homePathForRole(roleSlug);
+        if (!defaultHome || !isRoleAllowedForPath(defaultHome, user)) {
+          clearSession();
+          setLoginError(roleSlug ? roleAccessHint(roleSlug) : roleAccessHint(''));
+          return;
+        }
         const forbidden = new URLSearchParams(location.search).get('forbidden') === '1';
         const useReturnTo =
           !forbidden &&

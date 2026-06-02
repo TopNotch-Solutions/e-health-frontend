@@ -21,6 +21,7 @@ import ArtNursePage from './pages/art_nurse';
 import EmergencyUnitNursePage from './pages/emergency_unit_nurse';
 import EmergencyUnitDoctorPage from './pages/emergency_unit_doctor';
 import BookingRoomPage from './pages/booking_room';
+import ClinicStationPlaceholderPage from './pages/clinic_station/ClinicStationPlaceholderPage';
 import ClinicDoctorPage from './pages/clinic_doctor';
 import NurseSupervisorPage from './pages/nurse_supervisor';
 import DoctorPage from './pages/doctor';
@@ -100,6 +101,46 @@ function App() {
           element={
             <RoleRoute role="screening_nurse">
               <ScreeningNursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/anc_nurse"
+          element={
+            <RoleRoute role="anc_nurse">
+              <ClinicStationPlaceholderPage subtitle="Antenatal care" />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/pediatric_corner"
+          element={
+            <RoleRoute role="pediatric_corner">
+              <ClinicStationPlaceholderPage subtitle="Pediatric corner" />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/prep_suite"
+          element={
+            <RoleRoute role="prep_suite">
+              <ClinicStationPlaceholderPage subtitle="PrEP suite" />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/pap_smear_suite"
+          element={
+            <RoleRoute role="pap_smear_suite">
+              <ClinicStationPlaceholderPage subtitle="Pap smear suite" />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/family_planner"
+          element={
+            <RoleRoute role="family_planner">
+              <ClinicStationPlaceholderPage subtitle="Family planning" />
             </RoleRoute>
           }
         />
