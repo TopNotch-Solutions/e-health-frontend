@@ -6,6 +6,7 @@ import {
   getConsultationsByVisit,
   clinicScheduleFollowUp,
   clinicTransferBookingRoom,
+  clinicTransferEmergencyUnit,
 } from '../../../api/doctor';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
 import { emptyMedLine } from '../../doctor/doctorConsultForm';
@@ -212,7 +213,7 @@ export default function ClinicDoctorWorkspace({
       validation = validatePharmacyDisposition(form, prescriptionLines);
     } else if (form.disposition === 'follow_up') {
       validation = validateFollowUpForm(form);
-    } else if (form.disposition === 'booking_room') {
+    } else if (form.disposition === 'booking_room' || form.disposition === 'emergency_unit') {
       validation = validateDiagnosisField(form);
     } else {
       validation = { disposition: 'Select a disposition action.' };
@@ -275,6 +276,18 @@ export default function ClinicDoctorWorkspace({
             : `${patient.name} transferred to Booking Room`
         );
         onDone();
+        return;
+      }
+
+      if (form.disposition === 'emergency_unit') {
+        await clinicTransferEmergencyUnit({
+          visit_id: patient.visitId,
+          queue_entry_id: patient.entryId,
+          diagnosis: form.diagnosis.trim(),
+          notes: form.notes.trim() || null,
+        });
+        onToast(`${patient.name} transferred to Emergency Unit`);
+        onDone();
       }
     } catch (err) {
       onActionError(err.message || 'Failed to complete disposition');
@@ -290,7 +303,8 @@ export default function ClinicDoctorWorkspace({
       ? hasPrescription
       : form.disposition === 'follow_up'
         ? Boolean(form.follow_up_date)
-        : form.disposition === 'booking_room';
+        : form.disposition === 'booking_room'
+        || form.disposition === 'emergency_unit';
 
   return (
     <div className="space-y-4">

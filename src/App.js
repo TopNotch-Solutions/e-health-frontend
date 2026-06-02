@@ -16,6 +16,11 @@ import TodaysRegistrationsPage from './pages/front_office/TodaysRegistrationsPag
 import NursePage from './pages/nurse';
 import ParameterNursePage from './pages/parameter_nurse';
 import ScreeningNursePage from './pages/screening_nurse';
+import HivTesterPage from './pages/hiv_tester';
+import ArtNursePage from './pages/art_nurse';
+import EmergencyUnitNursePage from './pages/emergency_unit_nurse';
+import EmergencyUnitDoctorPage from './pages/emergency_unit_doctor';
+import BookingRoomPage from './pages/booking_room';
 import ClinicDoctorPage from './pages/clinic_doctor';
 import NurseSupervisorPage from './pages/nurse_supervisor';
 import DoctorPage from './pages/doctor';
@@ -95,6 +100,46 @@ function App() {
           element={
             <RoleRoute role="screening_nurse">
               <ScreeningNursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/hiv_tester"
+          element={
+            <RoleRoute role="hiv_tester">
+              <HivTesterPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/art_nurse"
+          element={
+            <RoleRoute role="art_nurse">
+              <ArtNursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/emergency_unit_nurse"
+          element={
+            <RoleRoute role="emergency_unit_nurse">
+              <EmergencyUnitNursePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/emergency_unit_doctor"
+          element={
+            <RoleRoute role="emergency_unit_doctor">
+              <EmergencyUnitDoctorPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/booking_room"
+          element={
+            <RoleRoute role="booking_room">
+              <BookingRoomPage />
             </RoleRoute>
           }
         />

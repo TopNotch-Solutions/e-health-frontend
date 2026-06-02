@@ -15,6 +15,7 @@ const ROUTING_BTN_COLORS = {
   pharmacy: 'bg-teal-600 hover:bg-teal-700 focus:ring-teal-500',
   follow_up: 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500',
   booking_room: 'bg-amber-700 hover:bg-amber-800 focus:ring-amber-500',
+  emergency_unit: 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500',
 };
 
 function dispositionButtonClass(disposition) {

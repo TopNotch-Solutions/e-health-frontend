@@ -2,6 +2,7 @@ export const CLINIC_DISPOSITIONS = [
   { value: 'pharmacy', label: 'Pharmacy' },
   { value: 'follow_up', label: 'Follow-up appointment' },
   { value: 'booking_room', label: 'Booking Room' },
+  { value: 'emergency_unit', label: 'Emergency Unit' },
 ];
 
 export function emptyClinicDoctorForm() {
@@ -49,6 +50,7 @@ export function dispositionButtonLabel(form, loading, hasPrescription = false) {
       ? 'Prescribe & transfer to Booking Room'
       : 'Transfer to Booking Room';
   }
+  if (form.disposition === 'emergency_unit') return 'Transfer to Emergency Unit';
   return 'Complete disposition';
 }
 
@@ -58,6 +60,10 @@ export function dispositionRequiresPrescription(disposition) {
 
 export function dispositionShowsPrescription(disposition) {
   return ['pharmacy', 'follow_up', 'booking_room'].includes(disposition);
+}
+
+export function dispositionRequiresFollowUpDate(disposition) {
+  return disposition === 'follow_up';
 }
 
 export function pathTypeLabel(pathType) {

@@ -74,6 +74,13 @@ export function clinicScheduleFollowUp(body) {
   });
 }
 
+export function clinicTransferEmergencyUnit(body) {
+  return apiRequest('/api/v1/consultations/clinic/emergency-unit', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export function clinicTransferBookingRoom(body) {
   return apiRequest(`${BASE}/clinic/booking-room`, {
     method: 'POST',
