@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getHandoverVitals, recordScreeningNurseAssessmentAndPush } from '../../api/vitals';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
@@ -143,6 +144,9 @@ export default function ScreeningNursePage() {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
 
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
+
     setActionLoading(true);
     setQueueActionError('');
     try {
@@ -170,6 +174,14 @@ export default function ScreeningNursePage() {
       return;
     }
 
+    const destLabel = SCREENING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
+    if (!(await confirmAction({
+      title: 'Submit assessment?',
+      text: `Save screening assessment and route ${activePatient.name} to ${destLabel || form.routing_destination}?`,
+      icon: 'question',
+      confirmButtonText: 'Submit & route',
+    }))) return;
+
     setActionLoading(true);
     setSubmitError('');
     setFieldErrors({});
@@ -178,7 +190,6 @@ export default function ScreeningNursePage() {
         visitId: activePatient.visitId,
         queueEntryId: activePatient.entryId,
       });
-      const destLabel = SCREENING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
 
       const completedEntryId = activePatient.entryId;
       skipAutoResumeRef.current = true;
@@ -200,7 +211,7 @@ export default function ScreeningNursePage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!window.confirm(`Return ${activePatient.name} to the waiting queue? Unsaved assessment will be discarded.`)) {
+    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved assessment will be discarded.'))) {
       return;
     }
 

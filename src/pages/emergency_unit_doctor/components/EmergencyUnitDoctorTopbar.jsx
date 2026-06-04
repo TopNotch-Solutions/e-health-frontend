@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { topbar } from '../../nurse/styles/nurseClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function EmergencyUnitDoctorTopbar({ doctorLabel, initials, live }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${topbar.root} shrink-0`}>
@@ -38,9 +30,7 @@ export default function EmergencyUnitDoctorTopbar({ doctorLabel, initials, live 
             {doctorLabel}
           </span>
         </div>
-        <button type="button" className={topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Emergency Unit Doctor' className={topbar.signOut} />
       </div>
     </header>
   );

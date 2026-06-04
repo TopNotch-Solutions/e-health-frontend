@@ -1,17 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { topbar } from '../../doctor/styles/doctorLayoutClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function RadiologistTopbar({ radiologistLabel, initials, live }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
-
   return (
     <header className={`${topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
@@ -34,9 +25,7 @@ export default function RadiologistTopbar({ radiologistLabel, initials, live }) 
             {radiologistLabel}
           </span>
         </div>
-        <button type="button" className={topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Ultrasound (sonar)' className={topbar.signOut} />
       </div>
     </header>
   );

@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/auth';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import RegisterPage from './pages/auth/RegisterPage';
@@ -22,6 +22,9 @@ import EmergencyUnitNursePage from './pages/emergency_unit_nurse';
 import EmergencyUnitDoctorPage from './pages/emergency_unit_doctor';
 import BookingRoomPage from './pages/booking_room';
 import ClinicStationPlaceholderPage from './pages/clinic_station/ClinicStationPlaceholderPage';
+import PrepSuitePage from './pages/prep_suite';
+import DermatologistPage from './pages/dermatologist';
+import PapSmearSuitePage from './pages/pap_smear_suite';
 import ClinicDoctorPage from './pages/clinic_doctor';
 import NurseSupervisorPage from './pages/nurse_supervisor';
 import DoctorPage from './pages/doctor';
@@ -41,6 +44,8 @@ import BillingClerkPage from './pages/billing_clerk';
 import RevenueOfficerPage from './pages/revenue_officer';
 import MortuaryStaffPage from './pages/mortuary_staff';
 import SocialWorkerPage from './pages/social_worker';
+import FamilyPlanningSuitePage from './pages/family_planner';
+import PediatricCornerPage from './pages/pediatric_corner';
 import DataAnalystPage from './pages/data_analyst';
 import SystemAdminPage from './pages/system_admin';
 import ExecutivePage from './pages/executive';
@@ -116,7 +121,7 @@ function App() {
           path="/pediatric_corner"
           element={
             <RoleRoute role="pediatric_corner">
-              <ClinicStationPlaceholderPage subtitle="Pediatric corner" />
+              <PediatricCornerPage />
             </RoleRoute>
           }
         />
@@ -124,7 +129,7 @@ function App() {
           path="/prep_suite"
           element={
             <RoleRoute role="prep_suite">
-              <ClinicStationPlaceholderPage subtitle="PrEP suite" />
+              <PrepSuitePage />
             </RoleRoute>
           }
         />
@@ -132,7 +137,7 @@ function App() {
           path="/pap_smear_suite"
           element={
             <RoleRoute role="pap_smear_suite">
-              <ClinicStationPlaceholderPage subtitle="Pap smear suite" />
+              <PapSmearSuitePage />
             </RoleRoute>
           }
         />
@@ -140,7 +145,7 @@ function App() {
           path="/family_planner"
           element={
             <RoleRoute role="family_planner">
-              <ClinicStationPlaceholderPage subtitle="Family planning" />
+              <FamilyPlanningSuitePage />
             </RoleRoute>
           }
         />
@@ -189,6 +194,14 @@ function App() {
           element={
             <RoleRoute role="master_doctor">
               <ClinicDoctorPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/dermatologist"
+          element={
+            <RoleRoute role="dermatologist">
+              <DermatologistPage />
             </RoleRoute>
           }
         />

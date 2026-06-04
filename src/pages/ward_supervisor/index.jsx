@@ -1,1 +1,1 @@
-﻿export { default } from './WardSupervisorPage';
+export { default } from './WardSupervisorPage';

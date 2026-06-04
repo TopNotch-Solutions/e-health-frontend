@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import {
   confirmStockReceipt,
   getConfirmedReceipts,
@@ -59,6 +60,12 @@ export default function PendingReceiptsPanel({
   }, [load]);
 
   async function handleConfirm(transactionId) {
+    if (!(await confirmAction({
+      title: 'Confirm stock receipt?',
+      text: 'Confirm this stock receipt and add the quantity to inventory? You cannot confirm your own entry.',
+      icon: 'question',
+      confirmButtonText: 'Confirm receipt',
+    }))) return;
     setConfirmingId(transactionId);
     setError('');
     try {

@@ -1,1 +1,1 @@
-﻿export { default } from './BillingClerkPage';
+export { default } from './BillingClerkPage';

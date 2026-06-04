@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { admin as c } from '../styles/adminClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function AdminTopbar({ adminLabel, initials }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${c.topbar.root} shrink-0`}>
@@ -29,9 +21,7 @@ export default function AdminTopbar({ adminLabel, initials }) {
             {adminLabel}
           </span>
         </div>
-        <button type="button" className={c.topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='System Admin' className={c.topbar.signOut} />
       </div>
     </header>
   );

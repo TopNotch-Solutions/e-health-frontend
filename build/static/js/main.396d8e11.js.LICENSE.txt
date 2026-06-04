@@ -1,3 +1,8 @@
+/*!
+* sweetalert2 v11.26.25
+* Released under the MIT License.
+*/
+
 /*! decimal.js-light v2.5.1 https://github.com/MikeMcl/decimal.js-light/LICENCE */
 
 /**

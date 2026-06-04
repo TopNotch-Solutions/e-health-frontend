@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { submitSonarResults } from '../../../api/sonar';
 import NurseReadOnlyIntakeCards from '../../doctor/components/NurseReadOnlyIntakeCards';
 import { vitalsToIntakeForm } from '../../doctor/doctorConsultForm';
@@ -63,6 +64,13 @@ export default function RadiologistWorkspace({
       onActionError('Complete imaging notes and the diagnostic report before sending to the doctor.');
       return;
     }
+
+    if (!(await confirmAction({
+      title: 'Submit report?',
+      text: 'Send the diagnostic report to the ordering doctor and return the patient for follow-up?',
+      icon: 'question',
+      confirmButtonText: 'Submit report',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

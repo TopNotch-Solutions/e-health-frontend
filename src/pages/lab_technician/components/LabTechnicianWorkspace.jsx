@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { submitLabResults } from '../../../api/lab';
 import NurseReadOnlyIntakeCards from '../../doctor/components/NurseReadOnlyIntakeCards';
 import { vitalsToIntakeForm } from '../../doctor/doctorConsultForm';
@@ -81,6 +82,13 @@ export default function LabTechnicianWorkspace({
       onActionError('Enter a value for each ordered test before sending results to the doctor.');
       return;
     }
+
+    if (!(await confirmAction({
+      title: 'Submit results?',
+      text: 'Send laboratory results to the ordering doctor and return the patient to the doctor queue?',
+      icon: 'question',
+      confirmButtonText: 'Submit results',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

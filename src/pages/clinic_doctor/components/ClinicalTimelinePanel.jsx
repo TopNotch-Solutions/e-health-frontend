@@ -1,5 +1,7 @@
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import ParameterHandoverPanel from '../../screening_nurse/components/ParameterHandoverPanel';
+import PapSmearHandoverPanel from './PapSmearHandoverPanel';
+import PediatricHandoverPanel from './PediatricHandoverPanel';
 import ScreeningHandoverPanel from './ScreeningHandoverPanel';
 import { pathTypeLabel } from '../clinicDoctorForm';
 
@@ -21,9 +23,11 @@ export default function ClinicalTimelinePanel({ timeline, loading }) {
     );
   }
 
-  const { vitals, screeningAssessment, pathType } = timeline;
+  const { vitals, screeningAssessment, papSmearScreening, pediatricAssessment, pathType } = timeline;
   const showParameter = Boolean(vitals);
   const showScreening = pathType === 'sick' && Boolean(screeningAssessment);
+  const showPapSmear = Boolean(papSmearScreening);
+  const showPediatric = Boolean(pediatricAssessment);
 
   return (
     <div className="space-y-4">
@@ -50,6 +54,14 @@ export default function ClinicalTimelinePanel({ timeline, loading }) {
             <p className={`${c.hint} mt-2`}>No screening assessment recorded for this visit.</p>
           </section>
         )
+      ) : null}
+
+      {showPapSmear ? (
+        <PapSmearHandoverPanel screening={papSmearScreening} />
+      ) : null}
+
+      {showPediatric ? (
+        <PediatricHandoverPanel assessment={pediatricAssessment} />
       ) : null}
     </div>
   );

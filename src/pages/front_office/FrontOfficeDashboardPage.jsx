@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPatientVisit, registerEmergencyPatient } from '../../api/patients';
 import { routingLabel } from './constants/routingOptions';
@@ -85,6 +86,17 @@ export default function FrontOfficeDashboardPage() {
   }
 
   async function handleCheckIn(patient, intake) {
+    const destLabel = intake.immediate_triage
+      ? 'Emergency Unit'
+      : routingLabel(intake.routing_destination) || intake.routing_destination;
+    if (!(await confirmAction({
+      title: 'Check in patient?',
+      text: intake.immediate_triage || intake.is_emergency
+        ? `Route ${patientName(patient)} to ${destLabel} with emergency priority?`
+        : `Check in ${patientName(patient)} and route to ${destLabel}?`,
+      icon: 'question',
+      confirmButtonText: 'Check in',
+    }))) return;
     setCheckInLoading(true);
     setCheckInPatientId(patient.id);
     try {
@@ -107,6 +119,12 @@ export default function FrontOfficeDashboardPage() {
   }
 
   async function handleEmergency() {
+    if (!(await confirmAction({
+      title: 'Register emergency patient?',
+      text: 'Register an unknown emergency patient and route them to the Emergency Unit?',
+      icon: 'warning',
+      confirmButtonText: 'Register & route',
+    }))) return;
     setEmergencyLoading(true);
     try {
       await registerEmergencyPatient({ sex: 'other' });

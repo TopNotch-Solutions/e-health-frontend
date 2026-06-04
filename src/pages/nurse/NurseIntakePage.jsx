@@ -1,4 +1,5 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { startQueueEntry } from '../../api/queue';
 import { recordVitalsAndPushToDoctor } from '../../api/vitals';
 import NurseTopbar from './components/NurseTopbar';
@@ -174,6 +175,13 @@ export default function NurseIntakePage() {
       el?.focus();
       return;
     }
+
+    if (!(await confirmAction({
+      title: 'Complete intake?',
+      text: `Save vitals and send ${activePatient.name} to the doctor queue?`,
+      icon: 'question',
+      confirmButtonText: 'Complete & send',
+    }))) return;
 
     setActionLoading(true);
     setSubmitError('');

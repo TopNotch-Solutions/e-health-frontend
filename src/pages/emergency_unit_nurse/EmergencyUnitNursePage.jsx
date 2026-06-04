@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getClinicalTimeline } from '../../api/vitals';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
@@ -91,6 +92,8 @@ export default function EmergencyUnitNursePage() {
   async function handleSelectPatient(patient) {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
     setActionLoading(true);
     setQueueActionError('');
     try {
@@ -179,7 +182,7 @@ export default function EmergencyUnitNursePage() {
                 {workspaceError ? <p className={c.submitError} role="alert">{workspaceError}</p> : null}
                 <div className="mt-4 border-t border-slate-200 pt-4">
                   <button type="button" className={c.btnSecondary} disabled={actionLoading} onClick={async () => {
-                    if (!window.confirm('Return to queue?')) return;
+                    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved work will be discarded.'))) return;
                     await releaseQueueEntry(activePatient.entryId);
                     handleDone();
                   }}>Return to queue</button>

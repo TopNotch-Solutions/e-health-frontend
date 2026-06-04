@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getClinicalTimeline } from '../../api/vitals';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
@@ -131,6 +132,9 @@ export default function ClinicDoctorPage() {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
 
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
+
     setActionLoading(true);
     setQueueActionError('');
     setWorkspaceError('');
@@ -160,7 +164,7 @@ export default function ClinicDoctorPage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!window.confirm(`Return ${activePatient.name} to the waiting queue? Unsaved work will be discarded.`)) {
+    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved work will be discarded.'))) {
       return;
     }
 
@@ -299,7 +303,7 @@ export default function ClinicDoctorPage() {
               <QueueEmptyIcon />
               <h3 className={c.idleTitle}>No patient selected</h3>
               <p className={c.idleText}>
-                Select a patient from the consultation queue. Upstream nurse records will appear in the clinical timeline.
+                Select a patient from the consultation queue. Upstream records (including Pap Smear escalations) appear in the clinical timeline.
               </p>
             </div>
           ) : (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { IntakeInput, IntakeTextarea } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import { submitButtonClass } from '../../nurse/utils/submitButtonClasses';
@@ -64,7 +65,27 @@ export default function TreatmentPathwayPanel({
   const { pathway_state: state, flags, pathway_data: data } = episode;
   const locked = state === 'day_1' && !data?.counseling_completed;
 
+  function saveConfirmText(section, advance) {
+    const texts = {
+      counseling: 'Save counseling notes for this patient?',
+      baseline_bloodwork: 'Save baseline bloodwork results?',
+      initial_prescription: advance
+        ? 'Save initial prescription and advance the pathway?'
+        : 'Save initial prescription draft?',
+      month_1_followup: 'Save month 1 follow-up and advance the pathway?',
+      suppression_check: 'Confirm viral suppression and enter maintenance?',
+      maintenance: 'Save maintenance follow-up details?',
+    };
+    return texts[section] || 'Save this ART pathway step?';
+  }
+
   async function save(section, payload, advance = false) {
+    if (!(await confirmAction({
+      title: advance ? 'Save and continue?' : 'Save progress?',
+      text: saveConfirmText(section, advance),
+      icon: 'question',
+      confirmButtonText: advance ? 'Save & continue' : 'Save',
+    }))) return;
     setActionLoading(true);
     setSubmitError('');
     try {
@@ -85,7 +106,12 @@ export default function TreatmentPathwayPanel({
   }
 
   async function handleCompleteSession() {
-    if (!window.confirm('End ART queue session? Patient remains in maintenance follow-up.')) return;
+    if (!(await confirmAction({
+      title: 'End queue session?',
+      text: 'End ART queue session? Patient remains in maintenance follow-up.',
+      icon: 'question',
+      confirmButtonText: 'End session',
+    }))) return;
     setActionLoading(true);
     setSubmitError('');
     try {

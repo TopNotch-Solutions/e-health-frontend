@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { ps } from '../styles/pharmacySupervisorClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function PharmacySupervisorTopbar({ supervisorLabel, initials }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${ps.topbar.root} shrink-0`}>
@@ -27,9 +19,7 @@ export default function PharmacySupervisorTopbar({ supervisorLabel, initials }) 
             {supervisorLabel}
           </span>
         </div>
-        <button type="button" className={ps.topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Pharmacy Supervisor' className={ps.topbar.signOut} />
       </div>
     </header>
   );

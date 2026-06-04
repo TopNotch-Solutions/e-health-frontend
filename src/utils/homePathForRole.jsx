@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Maps backend `user.role` (Role.name, snake_case) to the app home path after login.
  * Keep in sync with `backend/config/roles.js` and `App.js` route paths.
  */
@@ -42,6 +42,7 @@ const ROLE_HOME_PATHS = {
   emergency_unit_doctor: '/emergency_unit_doctor',
   booking_room: '/booking_room',
   master_doctor: '/clinic_doctor',
+  dermatologist: '/dermatologist',
 };
 
 /** Legacy, informal, or queue-department slugs → canonical Role.name */
@@ -75,6 +76,7 @@ const ROLE_ALIASES = {
   eu_doctor: 'emergency_unit_doctor',
   booking: 'booking_room',
   mortuary_booking: 'booking_room',
+  dermatology: 'dermatologist',
 };
 
 /** Display labels — mirrors backend config/clinicRoles.js + hospital roles */
@@ -116,6 +118,7 @@ const ROLE_DISPLAY_NAMES = {
   emergency_unit_doctor: 'Emergency Unit Doctor',
   booking_room: 'Booking Room',
   master_doctor: 'Master Doctor',
+  dermatologist: 'Dermatologist',
 };
 
 export function normalizeRoleSlug(roleName) {

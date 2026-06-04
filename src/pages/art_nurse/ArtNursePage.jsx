@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getArtNurseHandover } from '../../api/hivArt';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
@@ -139,6 +140,9 @@ export default function ArtNursePage() {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
 
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
+
     setActionLoading(true);
     setQueueActionError('');
     try {
@@ -157,7 +161,7 @@ export default function ArtNursePage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!window.confirm(`Return ${activePatient.name} to the waiting queue?`)) return;
+    if (!(await confirmReturnToQueue(activePatient.name))) return;
 
     setActionLoading(true);
     try {

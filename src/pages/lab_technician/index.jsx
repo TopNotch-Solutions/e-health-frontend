@@ -1,1 +1,1 @@
-﻿export { default } from './LabTechnicianConsultationPage';
+export { default } from './LabTechnicianConsultationPage';

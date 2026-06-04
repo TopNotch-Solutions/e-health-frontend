@@ -1,1 +1,1 @@
-﻿export { default } from './WardStaffConsultationPage';
+export { default } from './WardStaffConsultationPage';

@@ -1,4 +1,5 @@
 import { confirmPatientArrival } from '../../../api/ward';
+import { confirmAction } from '../../../utils/confirmAction';
 import { EQUIPMENT_MODES } from '../../../constants/admitTransportChecklist';
 import { wst } from '../styles/wardStaffClasses';
 
@@ -42,6 +43,13 @@ export default function WardStaffWorkspace({
 
   async function handleConfirmArrival() {
     if (!admission?.id) return;
+
+    if (!(await confirmAction({
+      title: 'Confirm arrival?',
+      text: `Confirm ${patientName} has arrived and mark the bed as occupied?`,
+      icon: 'question',
+      confirmButtonText: 'Confirm arrival',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

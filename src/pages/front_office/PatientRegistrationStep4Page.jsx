@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { confirmAction } from '../../utils/confirmAction';
 import RegistrationGuard from './RegistrationGuard';
 import { useRegistration } from './RegistrationContext';
 import RegistrationStepper from './RegistrationStepper';
@@ -17,6 +18,23 @@ function Step4Form() {
 
   async function onFinish(e) {
     e.preventDefault();
+    const finishLabel = routingButtonLabel({
+      destination: draft.routing_destination,
+      immediateTriage: draft.immediate_triage,
+      loading: submitting,
+      action: 'Finish & route',
+    });
+    const routeLabel = draft.immediate_triage
+      ? 'Emergency Unit'
+      : (draft.routing_destination || 'the selected queue');
+    if (!(await confirmAction({
+      title: 'Finish registration?',
+      text: draft.immediate_triage
+        ? `Register ${draft.first_name} ${draft.last_name} and route to Emergency Unit?`
+        : `Register ${draft.first_name} ${draft.last_name} and route to ${routeLabel}?`,
+      icon: 'question',
+      confirmButtonText: finishLabel,
+    }))) return;
     await submitRegistration();
   }
 

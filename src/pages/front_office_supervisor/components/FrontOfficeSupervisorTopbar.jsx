@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { fos } from '../styles/frontOfficeSupervisorClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function FrontOfficeSupervisorTopbar({ supervisorLabel, initials }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${fos.topbar.root} shrink-0`}>
@@ -27,9 +19,7 @@ export default function FrontOfficeSupervisorTopbar({ supervisorLabel, initials 
             {supervisorLabel}
           </span>
         </div>
-        <button type="button" className={fos.topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Front Office Supervisor' className={fos.topbar.signOut} />
       </div>
     </header>
   );

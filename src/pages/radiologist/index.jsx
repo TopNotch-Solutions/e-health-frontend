@@ -1,1 +1,1 @@
-﻿export { default } from './RadiologistConsultationPage';
+export { default } from './RadiologistConsultationPage';

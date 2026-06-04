@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getLabRequest, startLabProcessing } from '../../api/lab';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
@@ -89,7 +90,7 @@ export default function LabTechnicianConsultationPage() {
   const showLabWorkspace =
     sessionActive && requestDetail && !detailLoading && !detailError;
 
-  function handleOpenRequest(row, e) {
+  async function handleOpenRequest(row, e) {
     e?.stopPropagation();
     setQueueActionError('');
     setWorkspaceError('');
@@ -99,10 +100,27 @@ export default function LabTechnicianConsultationPage() {
       );
       return;
     }
+    const name = row.patientName || 'this patient';
+    if (!(await confirmAction({
+      title: 'Open lab request?',
+      text: `Open lab processing for ${name}?`,
+      icon: 'question',
+      confirmButtonText: 'Open request',
+    }))) return;
     setActiveRequestId(row.id);
   }
 
-  function handleReturnToQueue() {
+  async function handleReturnToQueue() {
+    const name = activeCardSnapshot?.patientName
+      || (requestDetail?.visit?.patient
+        ? [requestDetail.visit.patient.first_name, requestDetail.visit.patient.last_name].filter(Boolean).join(' ')
+        : 'this patient');
+    if (!(await confirmAction({
+      title: 'Return to queue?',
+      text: `Return ${name} to the waiting queue? Unsaved lab work will be discarded.`,
+      icon: 'question',
+      confirmButtonText: 'Return to queue',
+    }))) return;
     setActiveRequestId(null);
     setRequestDetail(null);
     setWorkspaceError('');
@@ -110,7 +128,14 @@ export default function LabTechnicianConsultationPage() {
     refresh();
   }
 
-  function handleLabDone() {
+  async function handleLabDone() {
+    const name = activeCardSnapshot?.patientName || 'this patient';
+    if (!(await confirmAction({
+      title: 'Close session?',
+      text: `Close the lab session for ${name} and return to the queue?`,
+      icon: 'question',
+      confirmButtonText: 'Close session',
+    }))) return;
     setActiveRequestId(null);
     setRequestDetail(null);
     setWorkspaceError('');

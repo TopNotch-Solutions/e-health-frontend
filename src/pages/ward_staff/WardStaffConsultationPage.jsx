@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getWardAdmission } from '../../api/ward';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
@@ -110,7 +111,7 @@ export default function WardStaffConsultationPage() {
   const sessionActive = Boolean(activeAdmissionId);
   const showWorkspace = sessionActive && detail && !detailLoading && !detailError;
 
-  function handleOpen(row, e) {
+  async function handleOpen(row, e) {
     e?.stopPropagation();
     setQueueActionError('');
     setWorkspaceError('');
@@ -118,10 +119,24 @@ export default function WardStaffConsultationPage() {
       setQueueActionError('Finish or return from the current patient before opening another.');
       return;
     }
+    const name = row.patientName || 'this patient';
+    if (!(await confirmAction({
+      title: 'Open patient?',
+      text: `Open ward arrival details for ${name}?`,
+      icon: 'question',
+      confirmButtonText: 'Open patient',
+    }))) return;
     setActiveAdmissionId(row.id);
   }
 
-  function handleReturnToQueue() {
+  async function handleReturnToQueue() {
+    const name = bannerPatient?.name || 'this patient';
+    if (!(await confirmAction({
+      title: 'Return to queue?',
+      text: `Return ${name} to the waiting queue?`,
+      icon: 'question',
+      confirmButtonText: 'Return to queue',
+    }))) return;
     setActiveAdmissionId(null);
     setDetail(null);
     setWorkspaceError('');
@@ -129,7 +144,14 @@ export default function WardStaffConsultationPage() {
     refresh();
   }
 
-  function handleDone() {
+  async function handleDone() {
+    const name = bannerPatient?.name || 'this patient';
+    if (!(await confirmAction({
+      title: 'Close session?',
+      text: `Close the session for ${name} and return to the queue?`,
+      icon: 'question',
+      confirmButtonText: 'Close session',
+    }))) return;
     setActiveAdmissionId(null);
     setDetail(null);
     setWorkspaceError('');

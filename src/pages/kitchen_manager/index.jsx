@@ -1,1 +1,1 @@
-﻿export { default } from './KitchenManagerPage';
+export { default } from './KitchenManagerPage';

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { dispensePrescription } from '../../../api/pharmacy';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import {
@@ -56,6 +57,15 @@ export default function PharmacistWorkspace({
 
   async function handleConfirmDispensing() {
     if (!prescription?.id || pending.length === 0) return;
+
+    const { name: patientName } = patientFromPrescription(prescription);
+    const tickedCount = pending.filter((i) => availableIds.has(i.id)).length;
+    if (!(await confirmAction({
+      title: 'Confirm dispensing?',
+      text: `Update dispensing for ${patientName}? ${tickedCount} of ${pending.length} medication(s) marked to give.`,
+      icon: 'question',
+      confirmButtonText: 'Confirm dispensing',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { ws } from '../styles/wardSupervisorClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function WardSupervisorTopbar({ supervisorLabel, initials }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${ws.topbar.root} shrink-0`}>
@@ -27,9 +19,7 @@ export default function WardSupervisorTopbar({ supervisorLabel, initials }) {
             {supervisorLabel}
           </span>
         </div>
-        <button type="button" className={ws.topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Ward Supervisor' className={ws.topbar.signOut} />
       </div>
     </header>
   );

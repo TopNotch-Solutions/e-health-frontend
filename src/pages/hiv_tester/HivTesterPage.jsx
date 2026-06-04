@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getHivTesterHandover, submitHivTestResult } from '../../api/hivArt';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
@@ -15,7 +16,7 @@ import {
 
 const KOPANO = 'https://kopanovertex.com/';
 
-const emptyForm = { result: '', notes: '' };
+const emptyForm = { result: '', notes: '', sendToPrepSuite: false };
 
 function QueueEmptyIcon() {
   return (
@@ -128,6 +129,9 @@ export default function HivTesterPage() {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
 
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
+
     setActionLoading(true);
     setQueueActionError('');
     try {
@@ -147,13 +151,22 @@ export default function HivTesterPage() {
 
   async function handleSubmit() {
     if (!activePatient || !form.result || actionLoading) return;
-    if (!window.confirm(
+    const routeToPrep = form.result === 'negative' && form.sendToPrepSuite;
+
+    const confirmMessage =
       form.result === 'positive'
         ? `Confirm POSITIVE result for ${activePatient.name}? Patient will be escalated to ART.`
-        : `Confirm NEGATIVE result for ${activePatient.name}? Visit will end and result saved to history.`
-    )) {
-      return;
-    }
+        : routeToPrep
+          ? `Confirm NEGATIVE result for ${activePatient.name}? Patient will be sent to the PrEP Suite.`
+          : `Confirm NEGATIVE result for ${activePatient.name}?`;
+
+    const confirmed = await confirmAction({
+      title: 'Confirm test result?',
+      text: confirmMessage,
+      icon: 'warning',
+      confirmButtonText: 'Confirm result',
+    });
+    if (!confirmed) return;
 
     setActionLoading(true);
     setSubmitError('');
@@ -169,13 +182,16 @@ export default function HivTesterPage() {
         queue_entry_id: activePatient.entryId,
         result: form.result,
         notes: form.notes,
+        route_to_prep: form.result === 'negative' ? routeToPrep : undefined,
       });
 
       setQueue((prev) => prev.filter((p) => p.entryId !== completedEntryId));
       setToast(
         form.result === 'positive'
           ? `${activePatient.name} escalated to ART queue`
-          : `${activePatient.name} — negative result saved · session ended`
+          : routeToPrep
+            ? `${activePatient.name} — negative result saved · routed to PrEP Suite`
+            : `${activePatient.name} — negative result saved`
       );
       await refresh();
       void res;
@@ -188,7 +204,7 @@ export default function HivTesterPage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!window.confirm(`Return ${activePatient.name} to the waiting queue?`)) return;
+    if (!(await confirmReturnToQueue(activePatient.name))) return;
 
     setActionLoading(true);
     try {

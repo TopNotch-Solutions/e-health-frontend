@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { topbar } from '../../doctor/styles/doctorLayoutClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function KitchenTopbar({ staffLabel, initials, live, moduleTag }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${topbar.root} shrink-0`}>
@@ -34,9 +26,7 @@ export default function KitchenTopbar({ staffLabel, initials, live, moduleTag })
             {staffLabel}
           </span>
         </div>
-        <button type="button" className={topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Kitchen' className={topbar.signOut} />
       </div>
     </header>
   );

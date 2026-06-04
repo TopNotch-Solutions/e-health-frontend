@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getPharmacyPrescription } from '../../api/pharmacy';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
@@ -122,7 +123,13 @@ export default function PharmacistConsultationPage() {
     setActivePrescriptionId(rx.id);
   }
 
-  function handleReturnToQueue() {
+  async function handleReturnToQueue() {
+    if (!(await confirmAction({
+      title: 'Return to queue?',
+      text: 'Pause dispensing and return to the prescription queue?',
+      icon: 'question',
+      confirmButtonText: 'Return to queue',
+    }))) return;
     setActivePrescriptionId(null);
     setPrescriptionDetail(null);
     setWorkspaceError('');
@@ -130,7 +137,13 @@ export default function PharmacistConsultationPage() {
     refresh();
   }
 
-  function handleDispensingDone() {
+  async function handleDispensingDone() {
+    if (!(await confirmAction({
+      title: 'Finish dispensing?',
+      text: 'Close this prescription session and return to the queue?',
+      icon: 'question',
+      confirmButtonText: 'Done',
+    }))) return;
     setActivePrescriptionId(null);
     setPrescriptionDetail(null);
     setWorkspaceError('');

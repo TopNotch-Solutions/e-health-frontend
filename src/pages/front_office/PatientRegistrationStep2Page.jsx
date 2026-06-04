@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import RegistrationGuard from './RegistrationGuard';
 import { useRegistration } from './RegistrationContext';
 import RegistrationStepper from './RegistrationStepper';

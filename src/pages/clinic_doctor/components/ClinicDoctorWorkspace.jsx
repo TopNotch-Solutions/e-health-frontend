@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import {
   createConsultation,
   updateConsultation,
@@ -223,6 +224,25 @@ export default function ClinicDoctorWorkspace({
       setFieldErrors(validation);
       return;
     }
+
+    const confirmTexts = {
+      pharmacy: `Prescribe medications and route ${patient.name} to Pharmacy?`,
+      follow_up: `Schedule follow-up for ${patient.name} on ${form.follow_up_date}?`,
+      booking_room: `Transfer ${patient.name} to the Booking Room?`,
+      emergency_unit: `Transfer ${patient.name} to the Emergency Unit?`,
+    };
+    const confirmTitles = {
+      pharmacy: 'Route to Pharmacy?',
+      follow_up: 'Schedule follow-up?',
+      booking_room: 'Transfer to Booking Room?',
+      emergency_unit: 'Transfer to Emergency Unit?',
+    };
+    if (!(await confirmAction({
+      title: confirmTitles[form.disposition],
+      text: confirmTexts[form.disposition],
+      icon: 'question',
+      confirmButtonText: 'Yes, proceed',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

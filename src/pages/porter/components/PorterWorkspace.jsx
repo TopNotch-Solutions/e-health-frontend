@@ -1,5 +1,6 @@
 import { EQUIPMENT_MODES } from '../../../constants/admitTransportChecklist';
 import { markTransportDelivered, markTransportPickedUp } from '../../../api/transport';
+import { confirmAction } from '../../../utils/confirmAction';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 
 function equipmentLabel(value) {
@@ -27,6 +28,12 @@ export default function PorterWorkspace({
 
   async function handlePickedUp() {
     if (!transport?.id) return;
+    if (!(await confirmAction({
+      title: 'Mark picked up?',
+      text: 'Confirm the patient has been collected from the pick-up point.',
+      icon: 'question',
+      confirmButtonText: 'Mark picked up',
+    }))) return;
     setActionLoading(true);
     onActionError('');
     try {
@@ -43,6 +50,12 @@ export default function PorterWorkspace({
 
   async function handleDelivered() {
     if (!transport?.id) return;
+    if (!(await confirmAction({
+      title: 'Mark delivered?',
+      text: 'Confirm the patient has been handed over at the destination.',
+      icon: 'question',
+      confirmButtonText: 'Mark delivered',
+    }))) return;
     setActionLoading(true);
     onActionError('');
     try {

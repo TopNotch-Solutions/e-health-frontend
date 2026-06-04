@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { ex } from '../styles/executiveClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function ExecutiveTopbar({ label, initials }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${ex.topbar.root} shrink-0`}>
@@ -27,9 +19,7 @@ export default function ExecutiveTopbar({ label, initials }) {
             {label}
           </span>
         </div>
-        <button type="button" className={ex.topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Executive' className={ex.topbar.signOut} />
       </div>
     </header>
   );

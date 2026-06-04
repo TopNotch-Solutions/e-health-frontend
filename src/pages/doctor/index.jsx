@@ -1,1 +1,1 @@
-﻿export { default } from './DoctorConsultationPage';
+export { default } from './DoctorConsultationPage';

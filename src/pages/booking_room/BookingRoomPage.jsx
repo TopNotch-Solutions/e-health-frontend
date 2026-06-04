@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import {
   getBookingRoomHandover,
@@ -115,7 +116,15 @@ export default function BookingRoomPage() {
     }
     let cancelled = false;
     getBookingRoomHandover(activePatient.visitId)
-      .then((data) => { if (!cancelled) setHandover(data); })
+      .then((data) => {
+        if (cancelled) return;
+        setHandover(data);
+        if (data?.pathwayRestricted) {
+          setForm((prev) => (
+            prev.disposition === 'mortuary' ? emptyBookingForm() : prev
+          ));
+        }
+      })
       .catch(() => { if (!cancelled) setHandover(null); });
     setForm(emptyBookingForm());
     setSubmitError('');
@@ -152,6 +161,9 @@ export default function BookingRoomPage() {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
 
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
+
     setActionLoading(true);
     setQueueActionError('');
     setSubmitError('');
@@ -178,7 +190,13 @@ export default function BookingRoomPage() {
     const confirmMsg = form.disposition === 'mortuary'
       ? `Process ${activePatient.name} to the mortuary?`
       : `Transfer ${activePatient.name} to the selected state hospital?`;
-    if (!window.confirm(confirmMsg)) return;
+    const confirmed = await confirmAction({
+      title: form.disposition === 'mortuary' ? 'Process to mortuary?' : 'Transfer to state hospital?',
+      text: confirmMsg,
+      icon: 'warning',
+      confirmButtonText: form.disposition === 'mortuary' ? 'Process' : 'Transfer',
+    });
+    if (!confirmed) return;
 
     setActionLoading(true);
     setSubmitError('');
@@ -215,7 +233,7 @@ export default function BookingRoomPage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!window.confirm(`Return ${activePatient.name} to the waiting queue? Unsaved work will be discarded.`)) {
+    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved work will be discarded.'))) {
       return;
     }
 

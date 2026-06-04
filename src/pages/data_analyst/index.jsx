@@ -1,4 +1,4 @@
-﻿import RoleHome from '../RoleHome';
+import RoleHome from '../RoleHome';
 
 export default function DataAnalystPage() {
   return (

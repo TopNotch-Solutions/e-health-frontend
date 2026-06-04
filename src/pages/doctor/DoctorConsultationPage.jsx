@@ -5,6 +5,7 @@ import DoctorWorkspace from './components/DoctorWorkspace';
 import { useDoctorQueue, useDoctorSession, pickAutoResumeEntry } from './hooks/useDoctorQueue';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
+import { confirmStartPatientSession } from '../../utils/confirmAction';
 import { layout as c } from './styles/doctorLayoutClasses';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -116,6 +117,9 @@ export default function DoctorConsultationPage() {
   async function handleStartConsultation(patient, e) {
     e.stopPropagation();
     if (patient.status === 'completed' || isLockedToOther(patient) || actionLoading) return;
+
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
 
     setActionLoading(true);
     setQueueActionError('');

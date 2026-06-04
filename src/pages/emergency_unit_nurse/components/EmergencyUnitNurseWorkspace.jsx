@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { getMedicationCatalog, checkMedicationStock } from '../../../api/inventory';
 import { submitEmergencyNurseRoute } from '../../../api/emergencyUnit';
 import { IntakeSelect, IntakeTextarea } from '../../nurse/components/IntakeField';
@@ -74,6 +75,14 @@ export default function EmergencyUnitNurseWorkspace({
       setFieldErrors(validation);
       return;
     }
+
+    const dest = NURSE_ROUTING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
+    if (!(await confirmAction({
+      title: 'Route patient?',
+      text: `Submit interventions and route ${patient.name} to ${dest || form.routing_destination}?`,
+      icon: 'question',
+      confirmButtonText: 'Submit & route',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

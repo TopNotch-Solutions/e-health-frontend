@@ -1,1 +1,1 @@
-﻿export { default } from './NurseIntakePage';
+export { default } from './NurseIntakePage';

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { recordPayment } from '../../../api/billing';
 import { nurse as nc } from '../../nurse/styles/nurseClasses';
 
@@ -37,6 +38,12 @@ export default function BillingPaymentPanel({ billRow, onPaid, onActionError }) 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!totalsMatch) return;
+    if (!(await confirmAction({
+      title: 'Confirm payment?',
+      text: `Record payment of ${formatMoney(total)} for this visit?`,
+      icon: 'question',
+      confirmButtonText: 'Confirm payment',
+    }))) return;
     setLoading(true);
     onActionError('');
     try {

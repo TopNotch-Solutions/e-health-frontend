@@ -1,1 +1,1 @@
-﻿export { default } from './SystemAdminPage';
+export { default } from './SystemAdminPage';

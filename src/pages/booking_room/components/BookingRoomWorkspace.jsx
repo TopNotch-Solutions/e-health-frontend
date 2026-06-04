@@ -1,7 +1,7 @@
 import { IntakeInput, IntakeSelect, IntakeTextarea } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import {
-  FINAL_DISPOSITIONS,
+  dispositionsForHandover,
   dispositionButtonClass,
   dispositionButtonLabel,
 } from '../bookingRoomForm';
@@ -31,8 +31,51 @@ export default function BookingRoomWorkspace({
         ? canSubmitMortuary
         : false;
 
+  const dispositionOptions = dispositionsForHandover(handover);
+  const pathwayRestricted = !!handover?.pathwayRestricted;
+
   return (
     <div className="space-y-4">
+      {handover?.dermatologyAssessment ? (
+        <section className={c.readOnlyGroup}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className={c.readOnlyGroupTitle}>Dermatologist assessment</h3>
+            <span className={c.readOnlyBadge}>Read only</span>
+          </div>
+          <div className="mt-3 space-y-2 text-sm text-slate-700">
+            <p><span className="font-semibold">Skin assessment:</span> {handover.dermatologyAssessment.skin_assessment}</p>
+            <p><span className="font-semibold">Observations:</span> {handover.dermatologyAssessment.clinical_observations}</p>
+          </div>
+        </section>
+      ) : null}
+
+      {handover?.socialWorkerAssessment ? (
+        <section className={c.readOnlyGroup}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className={c.readOnlyGroupTitle}>Social Worker assessment</h3>
+            <span className={c.readOnlyBadge}>Read only</span>
+          </div>
+          <div className="mt-3 space-y-2 text-sm text-slate-700">
+            <p>
+              <span className="font-semibold">Classification:</span>{' '}
+              {handover.socialWorkerAssessment.severity === 'severe' ? 'Severe' : 'Routine'}
+            </p>
+            <p>
+              <span className="font-semibold">Social assessment:</span>{' '}
+              {handover.socialWorkerAssessment.social_assessment_details}
+            </p>
+            <p>
+              <span className="font-semibold">Case history:</span>{' '}
+              {handover.socialWorkerAssessment.case_history}
+            </p>
+            <p>
+              <span className="font-semibold">Clinical notes:</span>{' '}
+              {handover.socialWorkerAssessment.clinical_notes}
+            </p>
+          </div>
+        </section>
+      ) : null}
+
       {handover?.consultation ? (
         <section className={c.readOnlyGroup}>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -52,7 +95,9 @@ export default function BookingRoomWorkspace({
       <section className={c.sectionPanel}>
         <h3 className={c.sectionTitle}>Final disposition</h3>
         <p className="mt-1 text-sm text-slate-500">
-          Transfer the patient to an external state hospital or process to the mortuary.
+          {pathwayRestricted
+            ? 'This patient was referred from the Dermatologist. Transfer to an external state hospital only.'
+            : 'Transfer the patient to an external state hospital or process to the mortuary.'}
         </p>
 
         <div className="mt-4">
@@ -64,7 +109,7 @@ export default function BookingRoomWorkspace({
             onChange={(e) => onFormChange({ disposition: e.target.value })}
           >
             <option value="">Select disposition…</option>
-            {FINAL_DISPOSITIONS.map((d) => (
+            {dispositionOptions.map((d) => (
               <option key={d.value} value={d.value}>{d.label}</option>
             ))}
           </IntakeSelect>

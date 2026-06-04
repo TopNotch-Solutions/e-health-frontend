@@ -1,16 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
-import { disconnectSocket } from '../../../api/socket';
+/* topbar-signout-v2 */
 import { wst } from '../styles/wardStaffClasses';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
 export default function WardStaffTopbar({ staffLabel, initials, live }) {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    disconnectSocket();
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={`${wst.topbar.root} shrink-0`}>
@@ -34,9 +26,7 @@ export default function WardStaffTopbar({ staffLabel, initials, live }) {
             {staffLabel}
           </span>
         </div>
-        <button type="button" className={wst.topbar.signOut} onClick={handleSignOut}>
-          Sign Out
-        </button>
+        <TopbarSignOutButton moduleLabel='Ward staff' className={wst.topbar.signOut} />
       </div>
     </header>
   );

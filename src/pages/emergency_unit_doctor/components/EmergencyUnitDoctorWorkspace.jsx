@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { getMedicationCatalog, checkMedicationStock } from '../../../api/inventory';
 import {
   emergencyDoctorTransferBookingRoom,
@@ -115,6 +116,16 @@ export default function EmergencyUnitDoctorWorkspace({
       setFieldErrors(validation);
       return;
     }
+
+    const confirmText = form.disposition === 'pharmacy'
+      ? `Prescribe medications and route ${patient.name} to Pharmacy?`
+      : `Transfer ${patient.name} to the Booking Room?`;
+    if (!(await confirmAction({
+      title: form.disposition === 'pharmacy' ? 'Route to Pharmacy?' : 'Transfer to Booking Room?',
+      text: confirmText,
+      icon: 'question',
+      confirmButtonText: 'Yes, proceed',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

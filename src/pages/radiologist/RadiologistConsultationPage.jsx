@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getSonarRequest, startSonarScan } from '../../api/sonar';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
@@ -96,7 +97,7 @@ export default function RadiologistConsultationPage() {
   const showWorkspace =
     sessionActive && requestDetail && !detailLoading && !detailError;
 
-  function handleOpenRequest(row, e) {
+  async function handleOpenRequest(row, e) {
     e?.stopPropagation();
     setQueueActionError('');
     setWorkspaceError('');
@@ -106,10 +107,23 @@ export default function RadiologistConsultationPage() {
       );
       return;
     }
+    const name = row.patientName || 'this patient';
+    if (!(await confirmAction({
+      title: 'Open ultrasound session?',
+      text: `Open ultrasound for ${name}?`,
+      icon: 'question',
+      confirmButtonText: 'Open session',
+    }))) return;
     setActiveRequestId(row.id);
   }
 
-  function handleReturnToQueue() {
+  async function handleReturnToQueue() {
+    if (!(await confirmAction({
+      title: 'Return to queue?',
+      text: `Return ${activePatientName} to the waiting queue? Unsaved scan work will be discarded.`,
+      icon: 'question',
+      confirmButtonText: 'Return to queue',
+    }))) return;
     setActiveRequestId(null);
     setRequestDetail(null);
     setWorkspaceError('');
@@ -117,7 +131,13 @@ export default function RadiologistConsultationPage() {
     refresh();
   }
 
-  function handleDone() {
+  async function handleDone() {
+    if (!(await confirmAction({
+      title: 'Close session?',
+      text: `Close the ultrasound session for ${activePatientName} and return to the queue?`,
+      icon: 'question',
+      confirmButtonText: 'Close session',
+    }))) return;
     setActiveRequestId(null);
     setRequestDetail(null);
     setWorkspaceError('');

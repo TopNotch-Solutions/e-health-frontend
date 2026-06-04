@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { recordParameterNurseVitalsAndPush } from '../../api/vitals';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
@@ -119,6 +120,9 @@ export default function ParameterNursePage() {
     if (isLockedToOther(patient) || actionLoading) return;
     if (workspaceActive && patient.entryId !== activeEntryId) return;
 
+    const starting = patient.status === 'pending';
+    if (!(await confirmStartPatientSession(patient.name, starting))) return;
+
     setActionLoading(true);
     setQueueActionError('');
     try {
@@ -147,6 +151,15 @@ export default function ParameterNursePage() {
       return;
     }
 
+    const destLabel = PARAMETER_NURSE_CLASSIFICATIONS[form.visit_classification].destinations
+      .find((d) => d.value === form.routing_destination)?.label;
+    if (!(await confirmAction({
+      title: 'Submit vitals?',
+      text: `Record vitals and route ${activePatient.name} to ${destLabel || form.routing_destination}?`,
+      icon: 'question',
+      confirmButtonText: 'Submit & route',
+    }))) return;
+
     setActionLoading(true);
     setSubmitError('');
     setFieldErrors({});
@@ -155,8 +168,6 @@ export default function ParameterNursePage() {
         visitId: activePatient.visitId,
         queueEntryId: activePatient.entryId,
       });
-      const destLabel = PARAMETER_NURSE_CLASSIFICATIONS[form.visit_classification].destinations
-        .find((d) => d.value === form.routing_destination)?.label;
 
       const completedEntryId = activePatient.entryId;
       skipAutoResumeRef.current = true;
@@ -197,7 +208,7 @@ export default function ParameterNursePage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!window.confirm(`Return ${activePatient.name} to the waiting queue? Unsaved vitals will be discarded.`)) {
+    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved vitals will be discarded.'))) {
       return;
     }
 

@@ -1,5 +1,6 @@
 export const SCREENING_DESTINATIONS = [
   { value: 'master_doctor', label: "Master Doctor's queue", buttonClass: 'primary' },
+  { value: 'dermatologist', label: 'Dermatologist', buttonClass: 'primary' },
   { value: 'hiv_tester', label: 'HIV Testing Room', buttonClass: 'lab' },
   { value: 'emergency_unit', label: 'Emergency Unit', buttonClass: 'emergency' },
 ];

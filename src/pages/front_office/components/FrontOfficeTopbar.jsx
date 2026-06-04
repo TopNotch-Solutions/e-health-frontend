@@ -1,5 +1,6 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../api/authSession';
+/* topbar-signout-v2 */
+import { NavLink } from 'react-router-dom';
+import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 import { topbar } from '../styles/frontOfficeClasses';
 
 const navLink =
@@ -10,12 +11,6 @@ const navActive = 'bg-teal-50 text-teal-800 ring-1 ring-teal-200';
  * Full-width top navigation: branding, module tabs, sign out.
  */
 export default function FrontOfficeTopbar() {
-  const navigate = useNavigate();
-
-  function handleSignOut() {
-    clearSession();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <header className={topbar.root}>
@@ -37,9 +32,7 @@ export default function FrontOfficeTopbar() {
           </NavLink>
         </nav>
       </div>
-      <button type="button" className={topbar.signOut} onClick={handleSignOut}>
-        Sign Out
-      </button>
+      <TopbarSignOutButton moduleLabel='Front Office' className={topbar.signOut} />
     </header>
   );
 }

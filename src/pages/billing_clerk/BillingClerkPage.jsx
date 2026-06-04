@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getStoredUser } from '../../api/authSession';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
@@ -79,7 +80,13 @@ export default function BillingClerkPage() {
     setActiveBillId(row.bill_id);
   }
 
-  function handleReturnToQueue() {
+  async function handleReturnToQueue() {
+    if (!(await confirmAction({
+      title: 'Return to queue?',
+      text: 'Pause this billing session and return the patient to the queue?',
+      icon: 'question',
+      confirmButtonText: 'Return to queue',
+    }))) return;
     setActiveBillId(null);
     setWorkspaceError('');
     refresh();

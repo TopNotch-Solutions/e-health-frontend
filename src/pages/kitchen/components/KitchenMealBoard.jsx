@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { confirmAction } from '../../../utils/confirmAction';
 import { markMealDispensed, markMealPrepared } from '../../../api/kitchen';
 import { dietTypeLabel } from '../../../constants/dietTypes';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
@@ -117,6 +118,12 @@ export default function KitchenMealBoard({
   }
 
   async function handleDispensed(id) {
+    if (!(await confirmAction({
+      title: 'Mark meal served?',
+      text: 'Mark this meal as dispensed/served to the patient?',
+      icon: 'question',
+      confirmButtonText: 'Mark served',
+    }))) return;
     setActionLoading(true);
     setActionError('');
     try {

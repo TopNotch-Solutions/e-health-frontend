@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getStoredUser } from '../../api/authSession';
 import {
   createAdminFacility,
@@ -264,13 +265,15 @@ export default function SystemAdminPage() {
   };
 
   const handleToggleActive = async (row, activate) => {
-    if (!window.confirm(
-      activate
+    const confirmed = await confirmAction({
+      title: activate ? 'Activate account?' : 'Inactivate account?',
+      text: activate
         ? `Activate ${row.first_name} ${row.last_name}?`
-        : `Inactivate ${row.first_name} ${row.last_name}? They will remain in audit logs.`
-    )) {
-      return;
-    }
+        : `Inactivate ${row.first_name} ${row.last_name}? They will remain in audit logs.`,
+      icon: 'question',
+      confirmButtonText: activate ? 'Activate' : 'Inactivate',
+    });
+    if (!confirmed) return;
     setTogglingId(row.id);
     try {
       await updateAdminUser(row.id, { is_active: activate });

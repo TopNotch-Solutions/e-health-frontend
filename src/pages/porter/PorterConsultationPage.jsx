@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '../../utils/confirmAction';
 import { getTransportRequest } from '../../api/transport';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
@@ -107,7 +108,7 @@ export default function PorterConsultationPage() {
   const sessionActive = Boolean(activeTransportId);
   const showWorkspace = sessionActive && detail && !detailLoading && !detailError;
 
-  function handleOpen(row, e) {
+  async function handleOpen(row, e) {
     e?.stopPropagation();
     setQueueActionError('');
     setWorkspaceError('');
@@ -115,10 +116,23 @@ export default function PorterConsultationPage() {
       setQueueActionError('Return to the queue or finish the current job before opening another.');
       return;
     }
+    if (!(await confirmAction({
+      title: 'Open transport job?',
+      text: `Open transport for ${row.patientName}?`,
+      icon: 'question',
+      confirmButtonText: 'Open job',
+    }))) return;
     setActiveTransportId(row.id);
   }
 
-  function handleReturnToQueue() {
+  async function handleReturnToQueue() {
+    const name = activeSnapshot?.patientName || 'this patient';
+    if (!(await confirmAction({
+      title: 'Return to queue?',
+      text: `Return ${name} to the transport queue? Progress on this job will be paused.`,
+      icon: 'question',
+      confirmButtonText: 'Return to queue',
+    }))) return;
     setActiveTransportId(null);
     setDetail(null);
     setWorkspaceError('');
@@ -126,7 +140,13 @@ export default function PorterConsultationPage() {
     refresh();
   }
 
-  function handleJobDone() {
+  async function handleJobDone() {
+    if (!(await confirmAction({
+      title: 'Close job?',
+      text: 'Close this transport job and return to the queue list?',
+      icon: 'question',
+      confirmButtonText: 'Close job',
+    }))) return;
     setActiveTransportId(null);
     setDetail(null);
     setWorkspaceError('');

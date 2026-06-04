@@ -21,6 +21,7 @@ import {
   EQUIPMENT_MODES,
 } from '../../../constants/admitTransportChecklist';
 import { DIET_TYPES } from '../../../constants/dietTypes';
+import { confirmAction } from '../../../utils/confirmAction';
 
 function parseStoredDiagnoses(diagnosisText) {
   if (!diagnosisText || typeof diagnosisText !== 'string') return [];
@@ -359,6 +360,12 @@ export default function DoctorWorkspace({
   async function handleSendToSonar() {
     if (!selectedScan) return;
     if (!validateDiagnosisImpression()) return;
+    if (!(await confirmAction({
+      title: 'Send to ultrasound?',
+      text: `Refer ${patient.name} to ultrasound (${selectedScan.name})? The patient will leave your queue.`,
+      icon: 'warning',
+      confirmButtonText: 'Send to ultrasound',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');
@@ -394,6 +401,14 @@ export default function DoctorWorkspace({
   async function handleSendToLab() {
     if (selectedLabTests.length === 0) return;
     if (!validateDiagnosisImpression()) return;
+    if (!(await confirmAction({
+      title: 'Send to laboratory?',
+      text: prescriptionLines.length > 0
+        ? `Send ${patient.name} to the lab and queue prescription for pharmacy?`
+        : `Send ${patient.name} to the laboratory? The patient will leave your queue.`,
+      icon: 'warning',
+      confirmButtonText: 'Send to lab',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');
@@ -442,6 +457,12 @@ export default function DoctorWorkspace({
   async function handleSendToPharmacy() {
     if (prescriptionLines.length === 0) return;
     if (!validateDiagnosisImpression()) return;
+    if (!(await confirmAction({
+      title: 'Send to pharmacy?',
+      text: `Send prescription for ${patient.name} to the pharmacy and complete this consultation?`,
+      icon: 'warning',
+      confirmButtonText: 'Send to pharmacy',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');
@@ -500,6 +521,12 @@ export default function DoctorWorkspace({
       onActionError('Select a bed to admit the patient.');
       return;
     }
+    if (!(await confirmAction({
+      title: 'Admit patient?',
+      text: `Admit ${patient.name} to the selected bed and complete this consultation?`,
+      icon: 'warning',
+      confirmButtonText: 'Admit patient',
+    }))) return;
     setActionLoading(true);
     onActionError('');
     try {
@@ -539,6 +566,12 @@ export default function DoctorWorkspace({
 
   async function handleDischarge() {
     if (!validateDiagnosisImpression()) return;
+    if (!(await confirmAction({
+      title: 'Discharge patient?',
+      text: `Discharge ${patient.name} and complete this consultation?`,
+      icon: 'warning',
+      confirmButtonText: 'Discharge',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');

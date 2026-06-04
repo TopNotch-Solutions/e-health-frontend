@@ -5,6 +5,23 @@ export const FINAL_DISPOSITIONS = [
   { value: 'mortuary', label: 'Process to Mortuary', variant: 'emergency' },
 ];
 
+export const DERMATOLOGIST_PATHWAY_DISPOSITIONS = [
+  { value: 'state_hospital', label: 'Transfer to State Hospital', variant: 'primary' },
+];
+
+export function dispositionsForHandover(handover) {
+  if (handover?.pathwayRestricted) {
+    return handover.allowedDispositions?.length
+      ? handover.allowedDispositions.map((d) => ({
+        value: d.value,
+        label: d.label,
+        variant: d.buttonClass === 'emergency' ? 'emergency' : 'primary',
+      }))
+      : DERMATOLOGIST_PATHWAY_DISPOSITIONS;
+  }
+  return FINAL_DISPOSITIONS;
+}
+
 export function emptyBookingForm() {
   return {
     disposition: '',
