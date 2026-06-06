@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   authRoleSlug,
@@ -12,6 +12,7 @@ import { auth } from './styles/authClasses';
 
 const COAT_OF_ARMS_SRC =
   '/coat-of-arms-of-namibia-fde79406-29d7-4998-b650-8a01436de59-resize-750-removebg-preview.png';
+const LOGIN_HERO_IMAGE_SRC = '/IMG-20241213-WA0031.jpg';
 
 const KOPANO_VERTEX_URL = 'https://kopanovertex.com/';
 
@@ -124,8 +125,14 @@ export default function LoginPage() {
   return (
     <AuthPageShell>
       <div className={auth.split}>
-        <aside className={auth.heroPanel} aria-label="Health Management System">
-          <div className={auth.heroInner}>
+        <aside
+          className={`${auth.heroPanel} relative isolate overflow-hidden bg-cover bg-center`}
+          style={{
+            backgroundImage: `linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 118, 110, 0.72) 52%, rgba(15, 118, 110, 0.42) 100%), url(${LOGIN_HERO_IMAGE_SRC})`,
+          }}
+          aria-label="Health Management System"
+        >
+          <div className={`${auth.heroInner} relative z-10`}>
             <p className={auth.heroKicker}>E-Health Management System</p>
             <h1 className={auth.heroTitle}>Login</h1>
             <p className={auth.heroMeta}>
@@ -138,7 +145,7 @@ export default function LoginPage() {
               administration tools across the national health network.
             </p>
           </div>
-          <p className={auth.heroFooter}>
+          <p className={`${auth.heroFooter} relative z-10`}>
             A digital national solution by{' '}
             <a
               href={KOPANO_VERTEX_URL}
