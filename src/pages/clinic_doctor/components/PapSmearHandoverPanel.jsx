@@ -21,7 +21,7 @@ function severityLabel(severity) {
   return displayValue(severity);
 }
 
-export default function PapSmearHandoverPanel({ screening }) {
+export default function PapSmearHandoverPanel({ screening, hideStaff = false }) {
   if (!screening) return null;
 
   const recorder = screening.screenedBy
@@ -34,7 +34,7 @@ export default function PapSmearHandoverPanel({ screening }) {
         <h3 className={c.readOnlyGroupTitle}>Pap Smear Suite handover</h3>
         <span className={c.readOnlyBadge}>Read only</span>
       </div>
-      {recorder ? (
+      {!hideStaff && recorder ? (
         <p className="mt-1 text-xs text-slate-500">Documented by {recorder}</p>
       ) : null}
 

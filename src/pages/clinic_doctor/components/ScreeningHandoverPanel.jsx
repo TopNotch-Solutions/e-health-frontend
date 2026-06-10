@@ -15,7 +15,7 @@ function FieldCard({ label, value }) {
   );
 }
 
-export default function ScreeningHandoverPanel({ assessment }) {
+export default function ScreeningHandoverPanel({ assessment, hideStaff = false }) {
   if (!assessment) return null;
 
   const recorder = assessment.recordedBy
@@ -28,7 +28,7 @@ export default function ScreeningHandoverPanel({ assessment }) {
         <h3 className={c.readOnlyGroupTitle}>Screening Nurse handover</h3>
         <span className={c.readOnlyBadge}>Read only</span>
       </div>
-      {recorder ? (
+      {!hideStaff && recorder ? (
         <p className="mt-1 text-xs text-slate-500">Assessed by {recorder}</p>
       ) : null}
 

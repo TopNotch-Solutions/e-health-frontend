@@ -16,6 +16,10 @@ export function getPatientHistory(id) {
   return apiRequest(`/api/v1/patients/${id}/history`);
 }
 
+export function getClinicalMedicalHistory(patientId) {
+  return apiRequest(`/api/v1/patients/${patientId}/clinical-medical-history`);
+}
+
 export function registerPatient(body) {
   return apiRequest('/api/v1/patients', {
     method: 'POST',

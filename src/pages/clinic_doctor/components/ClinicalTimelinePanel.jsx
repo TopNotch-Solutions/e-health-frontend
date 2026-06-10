@@ -5,7 +5,7 @@ import PediatricHandoverPanel from './PediatricHandoverPanel';
 import ScreeningHandoverPanel from './ScreeningHandoverPanel';
 import { pathTypeLabel } from '../clinicDoctorForm';
 
-export default function ClinicalTimelinePanel({ timeline, loading }) {
+export default function ClinicalTimelinePanel({ timeline, loading, hideStaff = false }) {
   if (loading) {
     return (
       <section className={c.readOnlyGroup}>
@@ -37,7 +37,7 @@ export default function ClinicalTimelinePanel({ timeline, loading }) {
       </section>
 
       {showParameter ? (
-        <ParameterHandoverPanel vitals={vitals} loading={false} />
+        <ParameterHandoverPanel vitals={vitals} loading={false} hideStaff={hideStaff} />
       ) : (
         <section className={c.readOnlyGroup}>
           <h3 className={c.readOnlyGroupTitle}>Parameter Nurse handover</h3>
@@ -47,7 +47,7 @@ export default function ClinicalTimelinePanel({ timeline, loading }) {
 
       {pathType === 'sick' ? (
         showScreening ? (
-          <ScreeningHandoverPanel assessment={screeningAssessment} />
+          <ScreeningHandoverPanel assessment={screeningAssessment} hideStaff={hideStaff} />
         ) : (
           <section className={c.readOnlyGroup}>
             <h3 className={c.readOnlyGroupTitle}>Screening Nurse handover</h3>
@@ -57,11 +57,11 @@ export default function ClinicalTimelinePanel({ timeline, loading }) {
       ) : null}
 
       {showPapSmear ? (
-        <PapSmearHandoverPanel screening={papSmearScreening} />
+        <PapSmearHandoverPanel screening={papSmearScreening} hideStaff={hideStaff} />
       ) : null}
 
       {showPediatric ? (
-        <PediatricHandoverPanel assessment={pediatricAssessment} />
+        <PediatricHandoverPanel assessment={pediatricAssessment} hideStaff={hideStaff} />
       ) : null}
     </div>
   );

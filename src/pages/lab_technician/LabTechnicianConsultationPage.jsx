@@ -294,7 +294,7 @@ export default function LabTechnicianConsultationPage() {
                   <span className={c.bannerLabel}>Patient ID</span>
                   <strong className={c.bannerValue}>{activePatientId || '—'}</strong>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <div>
                   <button type="button" className={c.btnSecondary} onClick={handleReturnToQueue}>
                     Return to queue
                   </button>

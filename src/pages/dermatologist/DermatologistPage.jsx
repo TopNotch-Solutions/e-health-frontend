@@ -4,6 +4,8 @@ import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getClinicalTimeline } from '../../api/vitals';
 import { getDermatologistHandover } from '../../api/dermatologist';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import NurseReadOnlyIntakeCards from '../doctor/components/NurseReadOnlyIntakeCards';
+import { vitalsToIntakeForm } from '../doctor/doctorConsultForm';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import ClinicalTimelinePanel from '../clinic_doctor/components/ClinicalTimelinePanel';
@@ -85,6 +87,11 @@ export default function DermatologistPage() {
   const activePatient = useMemo(
     () => queue.find((p) => p.entryId === activeEntryId) || null,
     [queue, activeEntryId]
+  );
+
+  const intakeForm = useMemo(
+    () => vitalsToIntakeForm(activePatient?.vitals || timeline?.vitals),
+    [activePatient?.vitals, timeline?.vitals]
   );
 
   useEffect(() => {
@@ -317,6 +324,7 @@ export default function DermatologistPage() {
               </div>
 
               <div className={c.formScroll}>
+                <NurseReadOnlyIntakeCards form={intakeForm} idPrefix="derm" />
                 <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} />
                 {!handoverLoading ? (
                   <PriorConsultationsPanel consultations={handover?.priorConsultations} />

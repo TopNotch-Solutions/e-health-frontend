@@ -41,15 +41,15 @@ function SectionCard({ title, headingId, children }) {
   );
 }
 
-export default function NurseReadOnlyIntakeCards({ form, idPrefix = 'doc' }) {
-  return (
-    <div className={c.readOnlyGroup}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className={c.readOnlyGroupTitle}>Nurse intake</h3>
-      </div>
-
-      <div className="space-y-4">
-        <SectionCard title="Vital signs" headingId={`${idPrefix}-ro-vitals`}>
+export default function NurseReadOnlyIntakeCards({
+  form,
+  idPrefix = 'doc',
+  medicalHistorySource = null,
+  title = 'Nurse intake',
+  prioritizeMedicalHistory = false,
+}) {
+  const vitalsSection = (
+    <SectionCard title="Vital signs" headingId={`${idPrefix}-ro-vitals`}>
           <div className={c.readOnlyStatGrid}>
             <StatCard label="BP (systolic)" value={form.blood_pressure_systolic} unit="mmHg" />
             <StatCard label="BP (diastolic)" value={form.blood_pressure_diastolic} unit="mmHg" />
@@ -58,9 +58,11 @@ export default function NurseReadOnlyIntakeCards({ form, idPrefix = 'doc' }) {
             <StatCard label="Weight" value={form.weight} unit="kg" />
             <StatCard label="Respiratory rate" value={form.respiratory_rate} unit="/min" />
           </div>
-        </SectionCard>
+    </SectionCard>
+  );
 
-        <SectionCard title="Main complaint" headingId={`${idPrefix}-ro-complaint`}>
+  const complaintSection = (
+    <SectionCard title="Main complaint" headingId={`${idPrefix}-ro-complaint`}>
           <div className="space-y-3">
             <FieldCard label="Chief complaint" value={form.chief_complaint} />
             <div className="grid gap-3 sm:grid-cols-2">
@@ -70,20 +72,48 @@ export default function NurseReadOnlyIntakeCards({ form, idPrefix = 'doc' }) {
             <FieldCard label="Aggravating factors" value={form.aggravating_factors} />
             <FieldCard label="Alleviating factors" value={form.alleviating_factors} />
           </div>
-        </SectionCard>
+    </SectionCard>
+  );
 
-        <SectionCard title="Medical history" headingId={`${idPrefix}-ro-history`}>
+  const historySection = (
+    <SectionCard title="Medical history" headingId={`${idPrefix}-ro-history`}>
+          {medicalHistorySource ? (
+            <p className="mb-3 text-xs text-slate-500">
+              From prior visit{' '}
+              {medicalHistorySource.visit_number ? (
+                <span className="font-mono font-semibold">{medicalHistorySource.visit_number}</span>
+              ) : null}
+              {medicalHistorySource.recorded_at
+                ? ` · ${new Date(medicalHistorySource.recorded_at).toLocaleDateString()}`
+                : null}
+            </p>
+          ) : null}
           <div className="space-y-3">
             <FieldCard label="Current medications" value={form.current_medications} />
             <FieldCard label="Immunization status" value={form.immunization_status} />
             <FieldCard label="Social history" value={form.social_history} />
           </div>
-        </SectionCard>
+    </SectionCard>
+  );
 
-        <SectionCard title="Physical examination" headingId={`${idPrefix}-ro-pe`}>
-          <FieldCard label="Examination findings" value={form.physical_examination} />
-        </SectionCard>
+  const examSection = (
+    <SectionCard title="Physical examination" headingId={`${idPrefix}-ro-pe`}>
+      <FieldCard label="Examination findings" value={form.physical_examination} />
+    </SectionCard>
+  );
+
+  const sections = prioritizeMedicalHistory
+    ? [historySection, complaintSection, vitalsSection, examSection]
+    : [vitalsSection, complaintSection, historySection, examSection];
+
+  return (
+    <div className={c.readOnlyGroup}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className={c.readOnlyGroupTitle}>{title}</h3>
+        <span className={c.readOnlyBadge}>Read only</span>
       </div>
+
+      <div className="space-y-4">{sections}</div>
     </div>
   );
 }

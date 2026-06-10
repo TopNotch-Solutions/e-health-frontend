@@ -10,6 +10,8 @@ import {
   clinicTransferEmergencyUnit,
 } from '../../../api/doctor';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
+import { getClinicalMedicalHistory } from '../../../api/patients';
+import PatientStopsMedicalHistoryPanel from '../../../components/patient/PatientStopsMedicalHistoryPanel';
 import { emptyMedLine } from '../../doctor/doctorConsultForm';
 import ClinicalTimelinePanel from './ClinicalTimelinePanel';
 import ClinicDiagnosisSection from './ClinicDiagnosisSection';
@@ -45,6 +47,35 @@ export default function ClinicDoctorWorkspace({
   const [stockChecking, setStockChecking] = useState(false);
 
   const diagnosisUnlocked = isDiagnosisComplete(form);
+  const [medicalHistory, setMedicalHistory] = useState(null);
+  const [medicalHistoryLoading, setMedicalHistoryLoading] = useState(false);
+  const [medicalHistoryError, setMedicalHistoryError] = useState('');
+
+  useEffect(() => {
+    const patientId = patient?.patient?.id;
+    if (!patientId) {
+      setMedicalHistory(null);
+      setMedicalHistoryError('');
+      return undefined;
+    }
+    let cancelled = false;
+    setMedicalHistoryLoading(true);
+    setMedicalHistoryError('');
+    getClinicalMedicalHistory(patientId)
+      .then((data) => {
+        if (!cancelled) setMedicalHistory(data);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setMedicalHistoryError(err.message || 'Failed to load medical history');
+          setMedicalHistory(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setMedicalHistoryLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [patient?.patient?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -328,7 +359,12 @@ export default function ClinicDoctorWorkspace({
 
   return (
     <div className="space-y-4">
-      <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} />
+      <PatientStopsMedicalHistoryPanel
+        history={medicalHistory}
+        loading={medicalHistoryLoading}
+        error={medicalHistoryError}
+      />
+      <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} hideStaff />
 
       <ClinicDiagnosisSection
         diagnosis={form.diagnosis}

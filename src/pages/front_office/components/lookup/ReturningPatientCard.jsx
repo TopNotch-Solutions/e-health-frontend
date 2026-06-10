@@ -5,7 +5,7 @@ import EmergencyPatientToggle from '../EmergencyPatientToggle';
 import ImmediateTriageToggle from '../ImmediateTriageToggle';
 import QueueRoutingForm, { routingButtonLabel } from '../QueueRoutingForm';
 import { useToast } from '../../context/ToastContext';
-import { formatDob, maskId, patientName } from '../../patientUtils';
+import { activeVisitLocation, formatDob, maskId, patientName } from '../../patientUtils';
 import { lookup } from '../../styles/lookupClasses';
 
 export default function ReturningPatientCard({
@@ -21,6 +21,9 @@ export default function ReturningPatientCard({
   const [immediateTriage, setImmediateTriage] = useState(false);
   const [routingDestination, setRoutingDestination] = useState('');
   const busy = checkInLoading && checkInPatientId === patient.id;
+  const hasActiveVisit = Boolean(patient.has_active_visit || patient.active_visit);
+  const activeLocation = activeVisitLocation(patient);
+  const checkInBlocked = hasActiveVisit;
 
   function handleImmediateTriageChange(checked) {
     setImmediateTriage(checked);
@@ -28,6 +31,14 @@ export default function ReturningPatientCard({
   }
 
   async function handleCheckIn() {
+    if (checkInBlocked) {
+      showToast(
+        `This patient already has an active visit${activeLocation ? ` in ${activeLocation}` : ''}. `
+        + 'They must complete their current consultation before a new check-in.',
+        'error'
+      );
+      return;
+    }
     if (!immediateTriage && !routingDestination) {
       showToast('Select a routing destination before sending the patient to queue.', 'error');
       return;
@@ -76,13 +87,24 @@ export default function ReturningPatientCard({
         {patient.phone ? ` · ${patient.phone}` : ''}
       </p>
 
+      {hasActiveVisit ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" role="status">
+          Active visit in progress
+          {patient.active_visit?.visit_number ? (
+            <> (<span className="font-mono">{patient.active_visit.visit_number}</span>)</>
+          ) : null}
+          {activeLocation ? <> — currently in <span className="font-semibold">{activeLocation}</span></> : null}
+          . Check-in is disabled until this visit is completed or discharged.
+        </p>
+      ) : null}
+
       {!immediateTriage ? (
         <IntakeDetailsForm
           modeOfArrival={modeOfArrival}
           accompaniedBy={accompaniedBy}
           onModeChange={setModeOfArrival}
           onAccompaniedChange={setAccompaniedBy}
-          disabled={checkInLoading}
+          disabled={checkInLoading || checkInBlocked}
           classNames={lookup}
         />
       ) : null}
@@ -92,20 +114,20 @@ export default function ReturningPatientCard({
           id={`fo-returning-emergency-${patient.id}`}
           checked={isEmergency}
           onChange={setIsEmergency}
-          disabled={checkInLoading || immediateTriage}
+          disabled={checkInLoading || immediateTriage || checkInBlocked}
         />
         <ImmediateTriageToggle
           id={`fo-returning-triage-${patient.id}`}
           checked={immediateTriage}
           onChange={handleImmediateTriageChange}
-          disabled={checkInLoading}
+          disabled={checkInLoading || checkInBlocked}
         />
       </div>
 
       <QueueRoutingForm
         destination={routingDestination}
         onDestinationChange={setRoutingDestination}
-        disabled={checkInLoading || immediateTriage}
+        disabled={checkInLoading || immediateTriage || checkInBlocked}
         immediateTriage={immediateTriage}
         hideWhenImmediateTriage
         classNames={lookup}
@@ -115,7 +137,7 @@ export default function ReturningPatientCard({
         <button
           type="button"
           className={lookup.btnPrimary}
-          disabled={checkInLoading}
+          disabled={checkInLoading || checkInBlocked}
           onClick={handleCheckIn}
         >
           {routeLabel}

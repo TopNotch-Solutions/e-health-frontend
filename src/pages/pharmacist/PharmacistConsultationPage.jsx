@@ -320,7 +320,7 @@ export default function PharmacistConsultationPage() {
                     {(activePatientUi?.patientIdLabel || '').replace(/^ID:\s*/, '') || '—'}
                   </strong>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <div>
                   <button type="button" className={c.btnSecondary} onClick={handleReturnToQueue}>
                     Return to queue
                   </button>

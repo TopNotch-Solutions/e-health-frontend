@@ -96,6 +96,31 @@ export default function EhrVisitCard({ visit, defaultOpen = false }) {
               ) : null}
             </DetailBlock>
 
+            {visit.vitals?.current_medications ||
+            visit.vitals?.immunization_status ||
+            visit.vitals?.social_history ? (
+              <DetailBlock title="Medical history">
+                {visit.vitals?.current_medications ? (
+                  <p>
+                    <span className="font-semibold text-slate-800">Current medications: </span>
+                    {visit.vitals.current_medications}
+                  </p>
+                ) : null}
+                {visit.vitals?.immunization_status ? (
+                  <p className={visit.vitals?.current_medications ? 'mt-2' : ''}>
+                    <span className="font-semibold text-slate-800">Immunization status: </span>
+                    {visit.vitals.immunization_status}
+                  </p>
+                ) : null}
+                {visit.vitals?.social_history ? (
+                  <p className={visit.vitals?.current_medications || visit.vitals?.immunization_status ? 'mt-2' : ''}>
+                    <span className="font-semibold text-slate-800">Social history: </span>
+                    {visit.vitals.social_history}
+                  </p>
+                ) : null}
+              </DetailBlock>
+            ) : null}
+
             {visit.consultations?.length > 0 ? (
               <DetailBlock title="Consultations">
                 <ul className="space-y-3">

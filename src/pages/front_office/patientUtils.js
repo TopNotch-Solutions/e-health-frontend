@@ -21,6 +21,17 @@ export function maskId(id) {
   return `${id.slice(0, 4)}…${id.slice(-4)}`;
 }
 
+export function formatDepartmentLabel(department) {
+  if (!department) return 'the facility';
+  return String(department).replace(/_/g, ' ');
+}
+
+export function activeVisitLocation(patient) {
+  const visit = patient?.active_visit;
+  if (!visit) return null;
+  return formatDepartmentLabel(visit.queue_department || visit.current_department);
+}
+
 export function mapSexToApi(value) {
   if (value === 'f' || value === 'female') return 'female';
   if (value === 'm' || value === 'male') return 'male';

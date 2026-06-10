@@ -22,7 +22,7 @@ function StatCard({ label, value, unit }) {
   );
 }
 
-export default function ParameterHandoverPanel({ vitals, loading }) {
+export default function ParameterHandoverPanel({ vitals, loading, hideStaff = false }) {
   if (loading) {
     return (
       <section className={c.readOnlyGroup}>
@@ -50,7 +50,7 @@ export default function ParameterHandoverPanel({ vitals, loading }) {
         <h3 className={c.readOnlyGroupTitle}>Parameter Nurse handover</h3>
         <span className={c.readOnlyBadge}>Read only</span>
       </div>
-      {recorder ? (
+      {!hideStaff && recorder ? (
         <p className="mt-1 text-xs text-slate-500">Recorded by {recorder}</p>
       ) : null}
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../../utils/confirmAction';
 import { getMedicationCatalog, checkMedicationStock } from '../../../api/inventory';
 import {
@@ -9,7 +9,8 @@ import { IntakeSelect } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import { submitButtonClass } from '../../nurse/utils/submitButtonClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
-import { emptyMedLine } from '../../doctor/doctorConsultForm';
+import NurseReadOnlyIntakeCards from '../../doctor/components/NurseReadOnlyIntakeCards';
+import { emptyMedLine, vitalsToIntakeForm } from '../../doctor/doctorConsultForm';
 import ClinicalTimelinePanel from '../../clinic_doctor/components/ClinicalTimelinePanel';
 import ClinicDiagnosisSection from '../../clinic_doctor/components/ClinicDiagnosisSection';
 import {
@@ -164,8 +165,14 @@ export default function EmergencyUnitDoctorWorkspace({
       ? hasPrescription
       : form.disposition === 'booking_room';
 
+  const intakeForm = useMemo(
+    () => vitalsToIntakeForm(patient?.vitals || timeline?.vitals),
+    [patient?.vitals, timeline?.vitals]
+  );
+
   return (
     <div className="space-y-4">
+      <NurseReadOnlyIntakeCards form={intakeForm} idPrefix="eu-doc" />
       <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} />
       <ClinicDiagnosisSection
         diagnosis={form.diagnosis}

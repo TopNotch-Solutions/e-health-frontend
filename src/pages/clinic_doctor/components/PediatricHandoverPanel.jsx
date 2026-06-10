@@ -6,7 +6,7 @@ function displayValue(value) {
   return s || '—';
 }
 
-export default function PediatricHandoverPanel({ assessment }) {
+export default function PediatricHandoverPanel({ assessment, hideStaff = false }) {
   if (!assessment) return null;
 
   const recorder = assessment.assessedBy
@@ -19,7 +19,7 @@ export default function PediatricHandoverPanel({ assessment }) {
         <h3 className={c.readOnlyGroupTitle}>Pediatric Corner handover</h3>
         <span className={c.readOnlyBadge}>Read only</span>
       </div>
-      {recorder ? (
+      {!hideStaff && recorder ? (
         <p className="mt-1 text-xs text-slate-500">Assessed by {recorder}</p>
       ) : null}
 
