@@ -6,9 +6,7 @@ export default function ActiveSessionQueueAside({
   badge,
   title,
   message,
-  patientName,
-  patientMeta,
-  patientIdLabel,
+  
 }) {
   return (
     <div className={c.queueActivePanel} role="status" aria-live="polite">
