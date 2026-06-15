@@ -2,13 +2,33 @@
 import { topbar } from '../../nurse/styles/nurseClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
-export default function ClinicDoctorTopbar({ doctorLabel, initials, live }) {
+export default function ClinicDoctorTopbar({ doctorLabel, initials, live, viewMode, onViewModeChange }) {
 
   return (
     <header className={`${topbar.root} shrink-0`}>
-      <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-        <span className={topbar.brand}>E-Health Management system</span>
-        <span className="text-sm font-medium text-slate-500">Master Doctor · Consultation</span>
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
+          <span className={topbar.brand}>E-Health Management system</span>
+          <span className="text-sm font-medium text-slate-500">Master Doctor · Consultation</span>
+        </div>
+        {onViewModeChange ? (
+          <nav className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold" aria-label="Workspace mode">
+            <button
+              type="button"
+              className={`rounded-md px-3 py-1.5 ${viewMode === 'queue' ? 'bg-white text-teal-800 shadow-sm' : 'text-slate-600'}`}
+              onClick={() => onViewModeChange('queue')}
+            >
+              Consultation queue
+            </button>
+            <button
+              type="button"
+              className={`rounded-md px-3 py-1.5 ${viewMode === 'records' ? 'bg-white text-teal-800 shadow-sm' : 'text-slate-600'}`}
+              onClick={() => onViewModeChange('records')}
+            >
+              Patient records
+            </button>
+          </nav>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">

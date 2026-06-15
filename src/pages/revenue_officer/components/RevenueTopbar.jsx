@@ -2,13 +2,14 @@
 import { topbar } from '../../doctor/styles/doctorLayoutClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
-export default function RevenueTopbar({ officerLabel, initials }) {
-
+export default function RevenueTopbar({ officerLabel, facilityLabel, initials }) {
   return (
     <header className={`${topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
         <span className={topbar.brand}>E-Health Management system</span>
-        <span className="text-sm font-medium text-slate-500">Revenue office</span>
+        <span className="text-sm font-medium text-slate-500">
+          Revenue office{facilityLabel ? ` · ${facilityLabel}` : ''}
+        </span>
       </div>
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
@@ -19,7 +20,7 @@ export default function RevenueTopbar({ officerLabel, initials }) {
             {officerLabel}
           </span>
         </div>
-        <TopbarSignOutButton moduleLabel='Revenue office' className={topbar.signOut} />
+        <TopbarSignOutButton moduleLabel="Revenue office" className={topbar.signOut} />
       </div>
     </header>
   );

@@ -22,6 +22,7 @@ import {
 } from '../../../constants/admitTransportChecklist';
 import { DIET_TYPES } from '../../../constants/dietTypes';
 import { confirmAction } from '../../../utils/confirmAction';
+import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 
 function parseStoredDiagnoses(diagnosisText) {
   if (!diagnosisText || typeof diagnosisText !== 'string') return [];
@@ -313,26 +314,19 @@ export default function DoctorWorkspace({
       return;
     }
     const qty = Number(medLine.quantity) || 1;
-    const stockSnapshot = liveStock || {
-      stock_status: 'out_of_stock',
-      stock_label: 'Out of stock',
-      quantity_in_stock: 0,
-    };
 
     setPrescriptionLines((lines) => [
       ...lines,
-      {
-        ...medLine,
-        medication_name: name,
-        generic_name: medLine.generic_name?.trim() || '',
-        dosage: dose,
-        quantity: qty,
-        stock_status: stockSnapshot.stock_status,
-        stock_label: stockSnapshot.stock_label,
-        quantity_in_stock: stockSnapshot.quantity_in_stock,
-        reorder_level: stockSnapshot.reorder_level,
-        can_dispense: stockSnapshot.can_dispense,
-      },
+      buildDoctorPrescriptionLine(
+        {
+          ...medLine,
+          medication_name: name,
+          generic_name: medLine.generic_name?.trim() || '',
+          dosage: dose,
+          quantity: qty,
+        },
+        liveStock
+      ),
     ]);
     setMedLine(emptyMedLine());
     setLiveStock(null);

@@ -11,7 +11,9 @@ import { submitButtonClass } from '../../nurse/utils/submitButtonClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
 import NurseReadOnlyIntakeCards from '../../doctor/components/NurseReadOnlyIntakeCards';
 import { emptyMedLine, vitalsToIntakeForm } from '../../doctor/doctorConsultForm';
+import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 import ClinicalTimelinePanel from '../../clinic_doctor/components/ClinicalTimelinePanel';
+import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
 import ClinicDiagnosisSection from '../../clinic_doctor/components/ClinicDiagnosisSection';
 import {
   emptyEmergencyDoctorForm,
@@ -23,6 +25,7 @@ import {
   dispositionShowsPrescription,
   dispositionRequiresPrescription,
 } from '../emergencyUnitDoctorForm';
+import { formatDiagnosisForSave } from '../../../utils/icd10Diagnosis';
 
 const DISPOSITION_BTN_VARIANT = {
   pharmacy: 'primary',
@@ -103,6 +106,21 @@ export default function EmergencyUnitDoctorWorkspace({
     }));
   }
 
+  function handleIcd10Select({ code, description }) {
+    setForm((prev) => ({
+      ...prev,
+      icd10Code: code,
+      icd10Description: description,
+    }));
+    setFieldErrors((prev) => {
+      if (!prev.icd10Code) return prev;
+      const next = { ...prev };
+      delete next.icd10Code;
+      return next;
+    });
+    onActionError('');
+  }
+
   async function handleSubmitDisposition() {
     if (!patient || actionLoading || !form.disposition) return;
 
@@ -135,7 +153,7 @@ export default function EmergencyUnitDoctorWorkspace({
     const payload = {
       visit_id: patient.visitId,
       queue_entry_id: patient.entryId,
-      diagnosis: form.diagnosis.trim(),
+      diagnosis: formatDiagnosisForSave(form.icd10Code, form.icd10Description),
       notes: form.notes.trim() || null,
     };
 
@@ -172,13 +190,18 @@ export default function EmergencyUnitDoctorWorkspace({
 
   return (
     <div className="space-y-4">
+      <ConsultationMedicalHistoryPanel
+        patientId={patient?.patient?.id}
+        showStatSummaryButton
+      />
       <NurseReadOnlyIntakeCards form={intakeForm} idPrefix="eu-doc" />
       <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} />
       <ClinicDiagnosisSection
-        diagnosis={form.diagnosis}
+        icd10Code={form.icd10Code}
+        icd10Description={form.icd10Description}
         notes={form.notes}
         fieldErrors={fieldErrors}
-        onDiagnosisChange={(v) => setForm((prev) => ({ ...prev, diagnosis: v }))}
+        onIcd10Select={handleIcd10Select}
         onNotesChange={(v) => setForm((prev) => ({ ...prev, notes: v }))}
       />
 
@@ -192,7 +215,7 @@ export default function EmergencyUnitDoctorWorkspace({
         {!diagnosisUnlocked ? (
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <LockIcon />
-            <span>Complete the diagnosis field above to unlock disposition controls.</span>
+            <span>Complete the ICD-10 diagnosis above to unlock disposition controls.</span>
           </div>
         ) : null}
 
@@ -243,8 +266,12 @@ export default function EmergencyUnitDoctorWorkspace({
                     setMedFieldErrors({ medication_name: 'Required' });
                     return;
                   }
-                  setPrescriptionLines((lines) => [...lines, { ...medLine, id: Date.now() }]);
+                  setPrescriptionLines((lines) => [
+                    ...lines,
+                    buildDoctorPrescriptionLine(medLine, liveStock),
+                  ]);
                   setMedLine(emptyMedLine());
+                  setLiveStock(null);
                 }}
                 onRemoveMedLine={(i) => setPrescriptionLines((lines) => lines.filter((_, idx) => idx !== i))}
                 actionLoading={actionLoading}

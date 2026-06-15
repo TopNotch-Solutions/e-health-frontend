@@ -5,6 +5,7 @@ import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptio
 import { confirmAction } from '../../../utils/confirmAction';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
 import { emptyMedLine } from '../../doctor/doctorConsultForm';
+import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 import {
   routeFamilyPlanningToPharmacy,
   completeFamilyPlanningSession,
@@ -123,22 +124,12 @@ export default function FamilyPlanningWorkspace({
       return;
     }
     const qty = Number(medLine.quantity) || 1;
-    const stockSnapshot = liveStock || {
-      stock_status: 'out_of_stock',
-      stock_label: 'Out of stock',
-      quantity_in_stock: 0,
-    };
     setPrescriptionLines((lines) => [
       ...lines,
-      {
-        ...medLine,
-        medication_name: name,
-        dosage: dose,
-        quantity: qty,
-        stock_status: stockSnapshot.stock_status,
-        stock_label: stockSnapshot.stock_label,
-        quantity_in_stock: stockSnapshot.quantity_in_stock,
-      },
+      buildDoctorPrescriptionLine(
+        { ...medLine, medication_name: name, dosage: dose, quantity: qty },
+        liveStock
+      ),
     ]);
     setMedLine(emptyMedLine());
     setLiveStock(null);

@@ -144,7 +144,7 @@ export default function EmergencyUnitNursePage() {
             <p className={c.queueSub}><span className={c.queueCount}>{queue.length}</span> patient{queue.length === 1 ? '' : 's'} waiting</p>
           )}
           {workspaceActive ? (
-            <ActiveSessionQueueAside classes={c} badge="In progress" title="Active emergency session" message="Log interventions and route the patient." />
+            <ActiveSessionQueueAside classes={c} badge="In progress" title="Active emergency session" message="Record vitals, screening assessment, interventions, then route." />
           ) : (
             <>
               <div className={c.searchWrap}>
@@ -169,7 +169,7 @@ export default function EmergencyUnitNursePage() {
         </aside>
         <div className={c.main}>
           {!workspaceActive ? (
-            <div className={c.idle}><QueueEmptyIcon /><h3 className={c.idleTitle}>No patient selected</h3><p className={c.idleText}>Patients from Front Office, Parameter Nurse, Screening, or Clinic Doctor appear here.</p></div>
+            <div className={c.idle}><QueueEmptyIcon /><h3 className={c.idleTitle}>No patient selected</h3><p className={c.idleText}>Combines parameter nurse, screening nurse, and emergency triage. Patients arrive from Front Office or other clinic routes.</p></div>
           ) : (
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <div className={`${c.banner} shrink-0`}>

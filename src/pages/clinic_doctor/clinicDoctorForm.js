@@ -7,7 +7,8 @@ export const CLINIC_DISPOSITIONS = [
 
 export function emptyClinicDoctorForm() {
   return {
-    diagnosis: '',
+    icd10Code: '',
+    icd10Description: '',
     notes: '',
     disposition: '',
     follow_up_date: '',
@@ -15,11 +16,16 @@ export function emptyClinicDoctorForm() {
 }
 
 export function isDiagnosisComplete(form) {
-  return Boolean(form.diagnosis?.trim());
+  return Boolean(form.icd10Code?.trim() && form.icd10Description?.trim());
 }
 
 export function validateDiagnosisField(form) {
-  if (!form.diagnosis?.trim()) return { diagnosis: 'Diagnosis is required before disposition.' };
+  if (!form.icd10Code?.trim()) {
+    return { icd10Code: 'Select an ICD-10 code before disposition.' };
+  }
+  if (!form.icd10Description?.trim()) {
+    return { icd10Code: 'Choose a valid ICD-10 code from the catalog.' };
+  }
   return {};
 }
 

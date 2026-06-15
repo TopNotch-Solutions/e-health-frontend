@@ -7,6 +7,7 @@ import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import ClinicDoctorTopbar from './components/ClinicDoctorTopbar';
 import ClinicDoctorWorkspace from './components/ClinicDoctorWorkspace';
+import DoctorPatientRecordLookup from '../../components/patient/DoctorPatientRecordLookup';
 import {
   useClinicDoctorQueue,
   useClinicDoctorSession,
@@ -34,6 +35,7 @@ function LockIcon() {
 
 export default function ClinicDoctorPage() {
   const { doctorLabel, initials, userId } = useClinicDoctorSession();
+  const [viewMode, setViewMode] = useState('queue');
   const [queueSearch, setQueueSearch] = useState('');
   const [activeEntryId, setActiveEntryId] = useState(null);
   const [timeline, setTimeline] = useState(null);
@@ -205,13 +207,25 @@ export default function ClinicDoctorPage() {
 
   return (
     <div className={c.page}>
-      <ClinicDoctorTopbar doctorLabel={doctorLabel} initials={initials} live={live} />
+      <ClinicDoctorTopbar
+        doctorLabel={doctorLabel}
+        initials={initials}
+        live={live}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       {toast ? (
         <div className={c.toast} role="status">{toast}</div>
       ) : null}
 
       <div className={c.body}>
+        {viewMode === 'records' ? (
+          <div className={`${c.main} overflow-y-auto p-4`}>
+            <DoctorPatientRecordLookup showStatSummaryButton />
+          </div>
+        ) : (
+        <>
         <aside className={c.queueAside} aria-label="Consultation queue">
           <h2 className={c.queueTitle}>Consultation queue</h2>
           {workspaceActive ? (
@@ -354,6 +368,8 @@ export default function ClinicDoctorPage() {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
 
       <footer className={c.footer}>

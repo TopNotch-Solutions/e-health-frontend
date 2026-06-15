@@ -1,5 +1,58 @@
 /** Shared stock labels — aligned with backend pharmacyStockStatus.js */
 
+/** Doctor prescribing: only in stock vs out of stock (low stock counts as in stock). */
+export function doctorStockDisplayStatus(stock) {
+  const status = stock?.stock_status;
+  if (status === 'out_of_stock') return 'out_of_stock';
+  return 'in_stock';
+}
+
+export function doctorStockLabel(stock) {
+  return doctorStockDisplayStatus(stock) === 'out_of_stock' ? 'Out of stock' : 'In stock';
+}
+
+export function formatDoctorStockDetail(stock) {
+  if (!stock) return '';
+  const qty = stock.quantity_in_stock ?? 0;
+  const need = stock.required_quantity ?? 1;
+  const reorder = stock.reorder_level ?? 0;
+  return `${qty} on hand · need ${need} for this order · reorder at ${reorder}`;
+}
+
+export function formatAvailabilityElsewhere(locations) {
+  if (!Array.isArray(locations) || !locations.length) return null;
+  return locations.map((row) => (
+    row.location ? `${row.facility_name} (${row.location})` : row.facility_name
+  ));
+}
+
+export function buildDoctorPrescriptionLine(medLine, liveStock) {
+  const qty = Number(medLine.quantity) || 1;
+  const stockSnapshot = liveStock || {
+    stock_status: 'out_of_stock',
+    stock_label: 'Out of stock',
+    quantity_in_stock: 0,
+    reorder_level: 0,
+    required_quantity: qty,
+    availability_elsewhere: [],
+  };
+  const displayStatus = doctorStockDisplayStatus(stockSnapshot);
+  return {
+    ...medLine,
+    medication_name: medLine.medication_name.trim(),
+    generic_name: medLine.generic_name?.trim() || '',
+    dosage: medLine.dosage.trim(),
+    quantity: qty,
+    stock_status: displayStatus,
+    stock_label: doctorStockLabel(stockSnapshot),
+    quantity_in_stock: stockSnapshot.quantity_in_stock ?? 0,
+    reorder_level: stockSnapshot.reorder_level ?? 0,
+    required_quantity: stockSnapshot.required_quantity ?? qty,
+    availability_elsewhere: stockSnapshot.availability_elsewhere || [],
+    can_dispense: displayStatus === 'in_stock',
+  };
+}
+
 export function lineStockStatus(item) {
   if (item.stock_label && item.stock_status) {
     const tone =
@@ -57,10 +110,21 @@ export function isOutOfStock(item) {
 }
 
 export function prescriptionListSummary(lines) {
+  const normalized = (lines || []).map((l) => ({
+    ...l,
+    stock_status: doctorStockDisplayStatus(l),
+  }));
   return {
-    outOfStock: (lines || []).filter((l) => l.stock_status === 'out_of_stock').length,
-    lowStock: (lines || []).filter((l) => l.stock_status === 'low_stock').length,
-    inStock: (lines || []).filter((l) => l.stock_status === 'in_stock').length,
-    total: (lines || []).length,
+    outOfStock: normalized.filter((l) => l.stock_status === 'out_of_stock').length,
+    inStock: normalized.filter((l) => l.stock_status === 'in_stock').length,
+    total: normalized.length,
+  };
+}
+
+export function doctorLineStockStatus(item) {
+  const display = doctorStockDisplayStatus(item);
+  return {
+    label: display === 'out_of_stock' ? 'Out of stock' : 'In stock',
+    tone: display === 'out_of_stock' ? 'outOfStock' : 'inStock',
   };
 }

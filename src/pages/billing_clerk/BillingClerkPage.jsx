@@ -27,6 +27,7 @@ export default function BillingClerkPage() {
   const user = getStoredUser();
   const label =
     [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || 'Billing clerk';
+  const facilityLabel = user?.facility_name || null;
   const initials =
     label
       .split(/\s+/)
@@ -101,7 +102,7 @@ export default function BillingClerkPage() {
 
   return (
     <div className={c.page}>
-      <BillingTopbar clerkLabel={label} initials={initials} live={live} />
+      <BillingTopbar clerkLabel={label} facilityLabel={facilityLabel} initials={initials} live={live} />
       <BillingShiftBar />
 
       {toast ? (

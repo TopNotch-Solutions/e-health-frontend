@@ -2,13 +2,16 @@
 import { topbar } from '../../doctor/styles/doctorLayoutClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 
-export default function BillingTopbar({ clerkLabel, initials, live }) {
+export default function BillingTopbar({ clerkLabel, facilityLabel, initials, live }) {
 
   return (
     <header className={`${topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
         <span className={topbar.brand}>E-Health Management system</span>
-        <span className="text-sm font-medium text-slate-500">Billing · Private patients only</span>
+        <span className="text-sm font-medium text-slate-500">
+          Billing · Private patients only
+          {facilityLabel ? ` · ${facilityLabel}` : ''}
+        </span>
       </div>
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <span className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 sm:inline-flex">

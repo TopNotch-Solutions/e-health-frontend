@@ -1,4 +1,10 @@
 import { admin as c } from '../styles/adminClasses';
+import {
+  auditUserLabel,
+  formatIcd10AuditSummary,
+  icd10ActionLabel,
+  parseAuditDetails,
+} from '../../../utils/icd10AuditFormat';
 
 function formatTs(ts) {
   if (!ts) return '—';
@@ -7,6 +13,25 @@ function formatTs(ts) {
   } catch {
     return String(ts);
   }
+}
+
+function formatDetailsCell(log) {
+  if (log.resource === 'icd10') {
+    return formatIcd10AuditSummary(log);
+  }
+  const details = parseAuditDetails(log.details);
+  if (details?.performed_by) {
+    return typeof details === 'object' ? JSON.stringify(details) : String(details);
+  }
+  if (!log.details) return '—';
+  return typeof log.details === 'string' ? log.details : JSON.stringify(log.details);
+}
+
+function formatActionCell(log) {
+  if (log.resource === 'icd10') {
+    return icd10ActionLabel(log.action);
+  }
+  return log.action || '—';
 }
 
 export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
@@ -44,7 +69,7 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
               <th className={c.th}>User</th>
               <th className={c.th}>Action</th>
               <th className={c.th}>Resource</th>
-              <th className={c.th}>Resource ID</th>
+              <th className={c.th}>Details</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -64,10 +89,10 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
               auditLogs.map((log) => (
                 <tr key={log.id}>
                   <td className={`${c.td} whitespace-nowrap text-xs`}>{formatTs(log.timestamp)}</td>
-                  <td className={c.td}>{log.user_id?.slice(0, 8) || '—'}…</td>
-                  <td className={c.td}>{log.action}</td>
+                  <td className={c.td}>{auditUserLabel(log)}</td>
+                  <td className={c.td}>{formatActionCell(log)}</td>
                   <td className={c.td}>{log.resource}</td>
-                  <td className={`${c.td} font-mono text-xs`}>{log.resource_id || '—'}</td>
+                  <td className={`${c.td} text-xs`}>{formatDetailsCell(log)}</td>
                 </tr>
               ))
             )}

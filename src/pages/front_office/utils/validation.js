@@ -19,6 +19,18 @@ export function validateNationalId(value) {
   return null;
 }
 
+/** Returns an error message string, or null when valid. */
+export function validatePhone(value) {
+  const digits = String(value).replace(/\D/g, '');
+  if (!digits) {
+    return 'Enter the patient\'s primary phone number.';
+  }
+  if (digits.length < 7) {
+    return 'Enter a valid primary phone number.';
+  }
+  return null;
+}
+
 /** DOB + name search validation. */
 export function validateDobSearch({ dob, name }) {
   if (!dob) return 'Enter date of birth.';

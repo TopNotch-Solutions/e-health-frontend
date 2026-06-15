@@ -11,7 +11,7 @@ function formatRange(start, end) {
   return `${new Date(start).toLocaleString('en-GB', opts)} – ${new Date(end).toLocaleString('en-GB', opts)}`;
 }
 
-/** Read-only banner: fixed 12-hour shifts (08:00–20:00, 20:00–08:00). */
+/** Read-only banner: hospital 12-hour shifts or clinic 08:00–17:00 (from server). */
 export default function BillingShiftBar({ onShiftChange }) {
   const [shift, setShift] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +68,11 @@ export default function BillingShiftBar({ onShiftChange }) {
         {formatMoney(shift.facility_expected_eft)} ({shift.facility_payment_count ?? 0} payments).
         Revenue office verifies cash when the shift ends.
       </p>
+      {shift.is_active === false ? (
+        <p className="mt-2 rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">
+          Collections are only recorded during the active billing shift window.
+        </p>
+      ) : null}
     </div>
   );
 }

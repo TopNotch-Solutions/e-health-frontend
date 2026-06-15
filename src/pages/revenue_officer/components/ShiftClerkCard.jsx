@@ -1,4 +1,5 @@
 import { nurse as nc } from '../../nurse/styles/nurseClasses';
+import { revenue as rc } from '../styles/revenueClasses';
 
 function formatMoney(n) {
   return `N$ ${(parseFloat(n) || 0).toFixed(2)}`;
@@ -32,39 +33,39 @@ export default function ShiftClerkCard({ shift, onVerify, showPayments = true })
 
   return (
     <article
-      className={`rounded-xl border bg-white shadow-sm ${
+      className={`overflow-hidden rounded-xl border shadow-sm ${
         shift.status === 'discrepancy'
           ? 'border-rose-300'
           : shift.needs_verification
             ? 'border-amber-300'
-            : 'border-slate-200'
+            : 'border-emerald-200'
       }`}
     >
-      <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
+      <div className="border-b border-emerald-500/20 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 px-4 py-3 text-white">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-bold text-white">
               {clerk?.full_name || shift.clerk_name || 'Billing clerk'}
             </h3>
-            <p className="mt-0.5 text-xs font-medium text-violet-800">
-              This clerk collected {formatMoney(shift.expected_total)} in this shift
+            <p className="mt-0.5 text-xs font-medium text-emerald-100">
+              Collected {formatMoney(shift.expected_total)} this shift
             </p>
-            <dl className="mt-2 grid gap-1 text-sm text-slate-600 sm:grid-cols-2">
+            <dl className="mt-2 grid gap-1 text-sm text-emerald-50/95 sm:grid-cols-2">
               {clerk?.employee_id ? (
                 <div>
-                  <dt className="inline font-medium text-slate-500">Employee ID: </dt>
+                  <dt className="inline font-medium text-emerald-200/90">Employee ID: </dt>
                   <dd className="inline">{clerk.employee_id}</dd>
                 </div>
               ) : null}
               {clerk?.email ? (
                 <div>
-                  <dt className="inline font-medium text-slate-500">Email: </dt>
+                  <dt className="inline font-medium text-emerald-200/90">Email: </dt>
                   <dd className="inline break-all">{clerk.email}</dd>
                 </div>
               ) : null}
               {clerk?.phone ? (
                 <div>
-                  <dt className="inline font-medium text-slate-500">Phone: </dt>
+                  <dt className="inline font-medium text-emerald-200/90">Phone: </dt>
                   <dd className="inline">{clerk.phone}</dd>
                 </div>
               ) : null}
@@ -82,30 +83,30 @@ export default function ShiftClerkCard({ shift, onVerify, showPayments = true })
                 className={
                   shift.status === 'discrepancy'
                     ? `${nc.btnComplete} !bg-rose-700 hover:!bg-rose-800`
-                    : nc.btnComplete
+                    : `${nc.btnComplete} !bg-white !text-emerald-800 hover:!bg-emerald-50`
                 }
                 onClick={() => onVerify(shift.id)}
               >
                 {label}
               </button>
             ) : shift.is_verified ? (
-              <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-900">
+              <span className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
                 Verified
               </span>
             ) : null}
           </div>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-emerald-100/90">
           {shift.shift_label} · {formatWhen(shift.shift_start)} — {formatWhen(shift.shift_end)}
         </p>
       </div>
 
-      <div className="grid gap-3 px-4 py-3 sm:grid-cols-4">
+      <div className="grid gap-3 bg-white px-4 py-3 sm:grid-cols-4">
         <div>
           <p className="text-xs font-semibold uppercase text-slate-500">Total collected</p>
           <p className="text-lg font-bold text-slate-900">{formatMoney(shift.expected_total)}</p>
         </div>
-        <div className="rounded-lg bg-emerald-50/80 px-2 py-1">
+        <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/80 px-2 py-1">
           <p className="text-xs font-semibold uppercase text-emerald-800">Cash to verify</p>
           <p className="text-lg font-bold text-emerald-900">{formatMoney(shift.expected_cash)}</p>
         </div>
@@ -139,8 +140,8 @@ export default function ShiftClerkCard({ shift, onVerify, showPayments = true })
       ) : null}
 
       {showPayments && payments.length > 0 ? (
-        <div className="border-t border-slate-100 px-4 py-3">
-          <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
+        <div className="border-t border-emerald-100 bg-emerald-50/30 px-4 py-3">
+          <h4 className={`text-xs font-bold uppercase tracking-wide ${rc.sectionTitle}`}>
             Payments collected by this clerk
           </h4>
           <div className="mt-2 max-h-40 overflow-y-auto">

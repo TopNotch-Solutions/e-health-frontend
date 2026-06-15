@@ -1,6 +1,63 @@
 import { IntakeInput } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
-import { lineStockStatus, prescriptionListSummary, statusBadgeClass } from '../../../utils/pharmacyStockDisplay';
+import {
+  doctorLineStockStatus,
+  doctorStockDisplayStatus,
+  doctorStockLabel,
+  formatAvailabilityElsewhere,
+  prescriptionListSummary,
+  statusBadgeClass,
+} from '../../../utils/pharmacyStockDisplay';
+
+function DoctorStockStatusPanel({ stock, checking }) {
+  if (checking) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600" role="status">
+        Checking stock…
+      </div>
+    );
+  }
+  if (!stock) return null;
+
+  const isOut = doctorStockDisplayStatus(stock) === 'out_of_stock';
+  const elsewhere = formatAvailabilityElsewhere(stock.availability_elsewhere);
+
+  return (
+    <div
+      className={`rounded-lg border px-3 py-2 text-sm ${
+        isOut
+          ? 'border-rose-200 bg-rose-50 text-rose-900'
+          : 'border-teal-200 bg-teal-50 text-teal-900'
+      }`}
+      role="status"
+    >
+      <p>
+        <span className="font-bold">{doctorStockLabel(stock)}</span>
+      </p>
+      {isOut ? (
+        <>
+          <p className="mt-1 text-xs">
+            You can still add and send this prescription — the pharmacist will be notified.
+          </p>
+          {elsewhere?.length ? (
+            <div className="mt-2 rounded-md border border-rose-200/80 bg-white/60 px-2.5 py-2 text-xs">
+              <p className="font-semibold text-rose-900">Where to find this medication</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-rose-800">
+                {elsewhere.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-rose-800">
+              Not available at other facilities on the network — contact pharmacy to procure.
+            </p>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+}
 
 export default function DoctorPrescriptionSection({
   catalog,
@@ -28,8 +85,8 @@ export default function DoctorPrescriptionSection({
         Prescribe medication
       </h3>
       <p className="mt-1 text-sm text-slate-500">
-        Optional. You may prescribe any medication — pharmacy will see stock status. Out-of-stock
-        items are still sent to the pharmacy queue.
+        Stock is shown as in stock or out of stock at your facility. Out-of-stock items can still
+        be prescribed — the pharmacist will be notified.
       </p>
 
       {summary.total > 0 ? (
@@ -37,11 +94,6 @@ export default function DoctorPrescriptionSection({
           {summary.outOfStock > 0 ? (
             <span className="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-900">
               {summary.outOfStock} out of stock on list
-            </span>
-          ) : null}
-          {summary.lowStock > 0 ? (
-            <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">
-              {summary.lowStock} low stock on list
             </span>
           ) : null}
           {summary.inStock > 0 ? (
@@ -142,36 +194,7 @@ export default function DoctorPrescriptionSection({
         </div>
 
         {medLine.medication_name ? (
-          <div
-            className={`rounded-lg border px-3 py-2 text-sm ${
-              liveStock?.stock_status === 'out_of_stock'
-                ? 'border-rose-200 bg-rose-50 text-rose-900'
-                : liveStock?.stock_status === 'low_stock'
-                  ? 'border-amber-200 bg-amber-50 text-amber-900'
-                  : 'border-teal-200 bg-teal-50 text-teal-900'
-            }`}
-            role="status"
-          >
-            {stockChecking ? (
-              <span>Checking stock…</span>
-            ) : liveStock ? (
-              <>
-                <span className="font-bold">{liveStock.stock_label}</span>
-                <span className="ml-2 text-xs">
-                  {liveStock.quantity_in_stock} on hand
-                  {liveStock.required_quantity != null
-                    ? ` · need ${liveStock.required_quantity} for this order`
-                    : ''}
-                  {liveStock.reorder_level != null ? ` · reorder at ${liveStock.reorder_level}` : ''}
-                </span>
-                {liveStock.stock_status === 'out_of_stock' ? (
-                  <p className="mt-1 text-xs">
-                    You can still add and send this prescription — the pharmacist will be notified.
-                  </p>
-                ) : null}
-              </>
-            ) : null}
-          </div>
+          <DoctorStockStatusPanel stock={liveStock} checking={stockChecking} />
         ) : null}
 
         <IntakeInput
@@ -192,48 +215,51 @@ export default function DoctorPrescriptionSection({
         {prescriptionLines.length > 0 ? (
           <ul className="space-y-2">
             {prescriptionLines.map((line, i) => {
-              const status = lineStockStatus(line);
+              const status = doctorLineStockStatus(line);
+              const isOut = status.tone === 'outOfStock';
+              const elsewhere = formatAvailabilityElsewhere(line.availability_elsewhere);
               return (
                 <li
                   key={`${line.medication_name}-${i}`}
-                  className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm ${
-                    line.stock_status === 'out_of_stock'
+                  className={`rounded-lg border px-3 py-2 text-sm ${
+                    isOut
                       ? 'border-rose-200 bg-rose-50/80'
-                      : line.stock_status === 'low_stock'
-                        ? 'border-amber-200 bg-amber-50/80'
-                        : 'border-slate-200 bg-slate-50'
+                      : 'border-teal-200 bg-teal-50/60'
                   }`}
                 >
-                  <div>
-                    <span>
-                      <strong>{line.medication_name}</strong>
-                      {line.generic_name ? (
-                        <span className="text-slate-600"> ({line.generic_name})</span>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span>
+                        <strong>{line.medication_name}</strong>
+                        {line.generic_name ? (
+                          <span className="text-slate-600"> ({line.generic_name})</span>
+                        ) : null}
+                        {' '}
+                        — {line.dosage}
+                        {line.frequency ? ` (${line.frequency})` : ''} ×{line.quantity}
+                      </span>
+                      {isOut && elsewhere?.length ? (
+                        <p className="mt-1 text-xs text-rose-800">
+                          <span className="font-semibold">Where to find: </span>
+                          {elsewhere.join(' · ')}
+                        </p>
                       ) : null}
-                      {' '}
-                      — {line.dosage}
-                      {line.frequency ? ` (${line.frequency})` : ''} ×{line.quantity}
-                    </span>
-                    {line.quantity_in_stock != null ? (
-                      <p className="mt-0.5 text-xs text-slate-600">
-                        Pharmacy stock now: {line.quantity_in_stock}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${statusBadgeClass(status.tone)}`}
-                    >
-                      {status.label}
-                    </span>
-                    <button
-                      type="button"
-                      className="text-slate-500 hover:text-red-600"
-                      onClick={() => onRemoveMedLine(i)}
-                      aria-label="Remove medication"
-                    >
-                      ×
-                    </button>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${statusBadgeClass(status.tone)}`}
+                      >
+                        {status.label}
+                      </span>
+                      <button
+                        type="button"
+                        className="text-slate-500 hover:text-red-600"
+                        onClick={() => onRemoveMedLine(i)}
+                        aria-label="Remove medication"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
                 </li>
               );

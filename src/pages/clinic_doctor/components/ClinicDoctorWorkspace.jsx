@@ -10,9 +10,9 @@ import {
   clinicTransferEmergencyUnit,
 } from '../../../api/doctor';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
-import { getClinicalMedicalHistory } from '../../../api/patients';
-import PatientStopsMedicalHistoryPanel from '../../../components/patient/PatientStopsMedicalHistoryPanel';
+import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
 import { emptyMedLine } from '../../doctor/doctorConsultForm';
+import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 import ClinicalTimelinePanel from './ClinicalTimelinePanel';
 import ClinicDiagnosisSection from './ClinicDiagnosisSection';
 import ClinicDispositionSection from './ClinicDispositionSection';
@@ -23,6 +23,8 @@ import {
   validateFollowUpForm,
   validatePharmacyDisposition,
 } from '../clinicDoctorForm';
+import { getIcd10ByCode } from '../../../api/icd10';
+import { formatDiagnosisForSave, parseStoredDiagnosis } from '../../../utils/icd10Diagnosis';
 
 export default function ClinicDoctorWorkspace({
   patient,
@@ -47,35 +49,6 @@ export default function ClinicDoctorWorkspace({
   const [stockChecking, setStockChecking] = useState(false);
 
   const diagnosisUnlocked = isDiagnosisComplete(form);
-  const [medicalHistory, setMedicalHistory] = useState(null);
-  const [medicalHistoryLoading, setMedicalHistoryLoading] = useState(false);
-  const [medicalHistoryError, setMedicalHistoryError] = useState('');
-
-  useEffect(() => {
-    const patientId = patient?.patient?.id;
-    if (!patientId) {
-      setMedicalHistory(null);
-      setMedicalHistoryError('');
-      return undefined;
-    }
-    let cancelled = false;
-    setMedicalHistoryLoading(true);
-    setMedicalHistoryError('');
-    getClinicalMedicalHistory(patientId)
-      .then((data) => {
-        if (!cancelled) setMedicalHistory(data);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setMedicalHistoryError(err.message || 'Failed to load medical history');
-          setMedicalHistory(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setMedicalHistoryLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [patient?.patient?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,11 +96,25 @@ export default function ClinicDoctorWorkspace({
 
     if (!patient?.visitId) return;
     getConsultationsByVisit(patient.visitId)
-      .then((list) => {
+      .then(async (list) => {
         const latest = Array.isArray(list) ? list[0] : null;
         if (latest?.id) setConsultationId(latest.id);
         if (latest?.diagnosis) {
-          setForm((prev) => ({ ...prev, diagnosis: latest.diagnosis }));
+          const parsed = parseStoredDiagnosis(latest.diagnosis);
+          let description = parsed.description;
+          if (parsed.code && !description) {
+            try {
+              const row = await getIcd10ByCode(parsed.code);
+              description = row?.description || '';
+            } catch {
+              description = '';
+            }
+          }
+          setForm((prev) => ({
+            ...prev,
+            icd10Code: parsed.code,
+            icd10Description: description,
+          }));
         }
         if (latest?.notes) {
           setForm((prev) => ({ ...prev, notes: latest.notes }));
@@ -179,22 +166,12 @@ export default function ClinicDoctorWorkspace({
       return;
     }
     const qty = Number(medLine.quantity) || 1;
-    const stockSnapshot = liveStock || {
-      stock_status: 'out_of_stock',
-      stock_label: 'Out of stock',
-      quantity_in_stock: 0,
-    };
     setPrescriptionLines((lines) => [
       ...lines,
-      {
-        ...medLine,
-        medication_name: name,
-        dosage: dose,
-        quantity: qty,
-        stock_status: stockSnapshot.stock_status,
-        stock_label: stockSnapshot.stock_label,
-        quantity_in_stock: stockSnapshot.quantity_in_stock,
-      },
+      buildDoctorPrescriptionLine(
+        { ...medLine, medication_name: name, dosage: dose, quantity: qty },
+        liveStock
+      ),
     ]);
     setMedLine(emptyMedLine());
     setLiveStock(null);
@@ -210,9 +187,24 @@ export default function ClinicDoctorWorkspace({
     setPrescriptionLines((lines) => lines.filter((_, i) => i !== index));
   }
 
+  function handleIcd10Select({ code, description }) {
+    setForm((prev) => ({
+      ...prev,
+      icd10Code: code,
+      icd10Description: description,
+    }));
+    setFieldErrors((prev) => {
+      if (!prev.icd10Code) return prev;
+      const next = { ...prev };
+      delete next.icd10Code;
+      return next;
+    });
+    onActionError('');
+  }
+
   async function ensureConsultation() {
     const payload = {
-      diagnosis: form.diagnosis.trim(),
+      diagnosis: formatDiagnosisForSave(form.icd10Code, form.icd10Description),
       notes: form.notes.trim() || null,
     };
     if (consultationId) {
@@ -281,6 +273,8 @@ export default function ClinicDoctorWorkspace({
 
     const items = prescriptionLines.length > 0 ? buildPrescriptionItems() : undefined;
 
+    const diagnosisText = formatDiagnosisForSave(form.icd10Code, form.icd10Description);
+
     try {
       if (form.disposition === 'pharmacy') {
         const cid = await ensureConsultation();
@@ -299,7 +293,7 @@ export default function ClinicDoctorWorkspace({
         await clinicScheduleFollowUp({
           visit_id: patient.visitId,
           queue_entry_id: patient.entryId,
-          diagnosis: form.diagnosis.trim(),
+          diagnosis: diagnosisText,
           follow_up_date: form.follow_up_date,
           notes: form.notes.trim() || null,
           items,
@@ -317,7 +311,7 @@ export default function ClinicDoctorWorkspace({
         await clinicTransferBookingRoom({
           visit_id: patient.visitId,
           queue_entry_id: patient.entryId,
-          diagnosis: form.diagnosis.trim(),
+          diagnosis: diagnosisText,
           notes: form.notes.trim() || null,
           items,
         });
@@ -334,7 +328,7 @@ export default function ClinicDoctorWorkspace({
         await clinicTransferEmergencyUnit({
           visit_id: patient.visitId,
           queue_entry_id: patient.entryId,
-          diagnosis: form.diagnosis.trim(),
+          diagnosis: diagnosisText,
           notes: form.notes.trim() || null,
         });
         onToast(`${patient.name} transferred to Emergency Unit`);
@@ -359,18 +353,18 @@ export default function ClinicDoctorWorkspace({
 
   return (
     <div className="space-y-4">
-      <PatientStopsMedicalHistoryPanel
-        history={medicalHistory}
-        loading={medicalHistoryLoading}
-        error={medicalHistoryError}
+      <ConsultationMedicalHistoryPanel
+        patientId={patient?.patient?.id}
+        showStatSummaryButton
       />
       <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} hideStaff />
 
       <ClinicDiagnosisSection
-        diagnosis={form.diagnosis}
+        icd10Code={form.icd10Code}
+        icd10Description={form.icd10Description}
         notes={form.notes}
         fieldErrors={fieldErrors}
-        onDiagnosisChange={(value) => handleFieldChange('diagnosis', value)}
+        onIcd10Select={handleIcd10Select}
         onNotesChange={(value) => handleFieldChange('notes', value)}
       />
 

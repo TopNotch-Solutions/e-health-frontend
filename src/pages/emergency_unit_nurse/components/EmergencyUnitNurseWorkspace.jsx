@@ -6,13 +6,16 @@ import { IntakeSelect, IntakeTextarea } from '../../nurse/components/IntakeField
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
 import { emptyMedLine } from '../../doctor/doctorConsultForm';
+import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 import ClinicalTimelinePanel from '../../clinic_doctor/components/ClinicalTimelinePanel';
+import EmergencyUnitNurseIntakeForm from './EmergencyUnitNurseIntakeForm';
 import {
   emptyEmergencyNurseForm,
   NURSE_ROUTING_DESTINATIONS,
   routeButtonClass,
   routeButtonLabel,
   validateEmergencyNurseForm,
+  buildEmergencyNursePayload,
 } from '../emergencyUnitNurseForm';
 
 export default function EmergencyUnitNurseWorkspace({
@@ -68,6 +71,10 @@ export default function EmergencyUnitNurseWorkspace({
   const hasPrescription = prescriptionLines.length > 0;
   const showRx = form.routing_destination === 'pharmacy';
 
+  function onFieldChange(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
   async function handleSubmit() {
     if (!patient || actionLoading) return;
     const validation = validateEmergencyNurseForm(form, hasPrescription);
@@ -79,7 +86,7 @@ export default function EmergencyUnitNurseWorkspace({
     const dest = NURSE_ROUTING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
     if (!(await confirmAction({
       title: 'Route patient?',
-      text: `Submit interventions and route ${patient.name} to ${dest || form.routing_destination}?`,
+      text: `Submit vitals, screening, and interventions — route ${patient.name} to ${dest || form.routing_destination}?`,
       icon: 'question',
       confirmButtonText: 'Submit & route',
     }))) return;
@@ -98,16 +105,14 @@ export default function EmergencyUnitNurseWorkspace({
         }))
         : undefined;
 
-      await submitEmergencyNurseRoute({
-        visit_id: patient.visitId,
-        queue_entry_id: patient.entryId,
-        next_department: form.routing_destination,
-        interventions: form.interventions.trim(),
-        notes: form.notes.trim() || null,
-        items,
-      });
+      await submitEmergencyNurseRoute(
+        buildEmergencyNursePayload(form, {
+          visitId: patient.visitId,
+          queueEntryId: patient.entryId,
+          items,
+        })
+      );
 
-      const dest = NURSE_ROUTING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
       onToast(`${patient.name} routed to ${dest || form.routing_destination}`);
       onDone();
     } catch (err) {
@@ -121,8 +126,14 @@ export default function EmergencyUnitNurseWorkspace({
     <div className="space-y-4">
       <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} />
 
+      <EmergencyUnitNurseIntakeForm
+        form={form}
+        fieldErrors={fieldErrors}
+        onFieldChange={onFieldChange}
+      />
+
       <section className={c.sectionPanel}>
-        <h3 className={c.sectionTitle}>Clinical interventions</h3>
+        <h3 className={c.sectionTitle}>Emergency interventions</h3>
         <p className="mt-1 text-sm text-slate-500">Document immediate emergency care provided.</p>
         <div className="mt-4">
           <IntakeTextarea
@@ -132,7 +143,7 @@ export default function EmergencyUnitNurseWorkspace({
             className={c.textarea}
             rows={4}
             value={form.interventions}
-            onChange={(e) => setForm((prev) => ({ ...prev, interventions: e.target.value }))}
+            onChange={(e) => onFieldChange('interventions', e.target.value)}
           />
           <IntakeTextarea
             id="eu-notes"
@@ -140,20 +151,23 @@ export default function EmergencyUnitNurseWorkspace({
             className={`${c.textarea} mt-4`}
             rows={2}
             value={form.notes}
-            onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+            onChange={(e) => onFieldChange('notes', e.target.value)}
           />
         </div>
       </section>
 
       <section className={c.sectionPanel}>
         <h3 className={c.sectionTitle}>Route patient</h3>
+        <p className="mt-1 text-sm text-slate-500">
+          Send to the pharmacist or Emergency Unit doctor when triage is complete.
+        </p>
         <IntakeSelect
           id="eu-route"
           label="Destination"
           error={fieldErrors.routing_destination}
           className={`${c.select} mt-4`}
           value={form.routing_destination}
-          onChange={(e) => setForm((prev) => ({ ...prev, routing_destination: e.target.value }))}
+          onChange={(e) => onFieldChange('routing_destination', e.target.value)}
         >
           <option value="">Select destination…</option>
           {NURSE_ROUTING_DESTINATIONS.map((d) => (
@@ -187,8 +201,12 @@ export default function EmergencyUnitNurseWorkspace({
                   setMedFieldErrors({ medication_name: 'Required' });
                   return;
                 }
-                setPrescriptionLines((lines) => [...lines, { ...medLine, id: Date.now() }]);
+                setPrescriptionLines((lines) => [
+                  ...lines,
+                  buildDoctorPrescriptionLine(medLine, liveStock),
+                ]);
                 setMedLine(emptyMedLine());
+                setLiveStock(null);
               }}
               onRemoveMedLine={(i) => setPrescriptionLines((lines) => lines.filter((_, idx) => idx !== i))}
               actionLoading={actionLoading}

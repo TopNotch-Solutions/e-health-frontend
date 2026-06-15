@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import { useNavigate } from 'react-router-dom';
 import { registerPatient } from '../../api/patients';
 import { mapSexToApi, REGISTRATION_ALLOWED_KEY, REGISTRATION_STORAGE_KEY } from './patientUtils';
+import { validateNationalId, validatePhone } from './utils/validation';
 
 const defaultDraft = () => ({
   first_name: '',
@@ -103,6 +104,12 @@ export function RegistrationProvider({ children }) {
       }
       if (!payload.immediate_triage && !payload.routing_destination) {
         throw new Error('Select a routing destination before finishing registration.');
+      }
+      if (!payload.immediate_triage) {
+        const idError = validateNationalId(payload.id_number || '');
+        if (idError) throw new Error(idError);
+        const phoneError = validatePhone(payload.phone || '');
+        if (phoneError) throw new Error(phoneError);
       }
       const data = await registerPatient(payload);
       clearDraft();

@@ -7,6 +7,7 @@ import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import EmergencyUnitDoctorTopbar from './components/EmergencyUnitDoctorTopbar';
 import EmergencyUnitDoctorWorkspace from './components/EmergencyUnitDoctorWorkspace';
+import DoctorPatientRecordLookup from '../../components/patient/DoctorPatientRecordLookup';
 import {
   useEmergencyUnitDoctorQueue,
   useEmergencyUnitDoctorSession,
@@ -34,6 +35,7 @@ function LockIcon() {
 
 export default function EmergencyUnitDoctorPage() {
   const { doctorLabel, initials, userId } = useEmergencyUnitDoctorSession();
+  const [viewMode, setViewMode] = useState('queue');
   const [queueSearch, setQueueSearch] = useState('');
   const [activeEntryId, setActiveEntryId] = useState(null);
   const [timeline, setTimeline] = useState(null);
@@ -205,13 +207,25 @@ export default function EmergencyUnitDoctorPage() {
 
   return (
     <div className={c.page}>
-      <EmergencyUnitDoctorTopbar doctorLabel={doctorLabel} initials={initials} live={live} />
+      <EmergencyUnitDoctorTopbar
+        doctorLabel={doctorLabel}
+        initials={initials}
+        live={live}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       {toast ? (
         <div className={c.toast} role="status">{toast}</div>
       ) : null}
 
       <div className={c.body}>
+        {viewMode === 'records' ? (
+          <div className={`${c.main} overflow-y-auto p-4`}>
+            <DoctorPatientRecordLookup showStatSummaryButton />
+          </div>
+        ) : (
+        <>
         <aside className={c.queueAside} aria-label="Emergency doctor queue">
           <h2 className={c.queueTitle}>Emergency doctor queue</h2>
           {workspaceActive ? (
@@ -354,6 +368,8 @@ export default function EmergencyUnitDoctorPage() {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
 
       <footer className={c.footer}>

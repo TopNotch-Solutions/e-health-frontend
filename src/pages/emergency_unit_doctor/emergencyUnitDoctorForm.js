@@ -4,15 +4,20 @@ export const EU_DOCTOR_DISPOSITIONS = [
 ];
 
 export function emptyEmergencyDoctorForm() {
-  return { diagnosis: '', notes: '', disposition: '' };
+  return { icd10Code: '', icd10Description: '', notes: '', disposition: '' };
 }
 
 export function isDiagnosisComplete(form) {
-  return Boolean(form.diagnosis?.trim());
+  return Boolean(form.icd10Code?.trim() && form.icd10Description?.trim());
 }
 
 export function validateDiagnosisField(form) {
-  if (!form.diagnosis?.trim()) return { diagnosis: 'Diagnosis / assessment is required.' };
+  if (!form.icd10Code?.trim()) {
+    return { icd10Code: 'Select an ICD-10 code before disposition.' };
+  }
+  if (!form.icd10Description?.trim()) {
+    return { icd10Code: 'Choose a valid ICD-10 code from the catalog.' };
+  }
   return {};
 }
 

@@ -42,6 +42,12 @@ export const admin = {
   metricValue: 'text-2xl font-bold text-teal-800 tabular-nums',
   metricLabel: 'mt-1 text-sm font-semibold text-slate-700',
   metricHint: 'mt-0.5 text-xs text-slate-500',
+  icd10StatGrid: 'grid gap-3 sm:grid-cols-2 max-w-2xl',
+  icd10StatCard:
+    'rounded-xl border border-teal-500/40 bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 p-4 text-white shadow-md shadow-teal-900/20',
+  icd10StatValue: 'text-2xl font-bold tabular-nums text-white sm:text-3xl',
+  icd10StatLabel: 'mt-1 text-sm font-semibold text-white',
+  icd10StatHint: 'mt-0.5 text-xs text-teal-100',
   btnPrimary:
     'inline-flex min-h-[2.25rem] items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-60 sm:text-sm sm:min-h-[2.5rem]',
   btnSecondary:
@@ -99,5 +105,6 @@ export const ADMIN_SECTIONS = [
   { id: 'facilities', label: 'Facility Management', icon: 'facility' },
   { id: 'employees', label: 'Employee Management', icon: 'employees' },
   { id: 'admins', label: 'System Administrators', icon: 'admins' },
+  { id: 'icd10', label: 'ICD-10 Catalog', icon: 'icd10' },
   { id: 'settings', label: 'System Settings', icon: 'settings' },
 ];
