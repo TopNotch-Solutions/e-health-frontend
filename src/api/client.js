@@ -1,8 +1,7 @@
 import { getAccessToken, handleSessionExpired, refreshAccessToken } from './authSession';
 import { disconnectSocket } from './socket';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
-//const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
+const API_BASE = 'https://api-health.kopanovertex.com';
 
 export function getApiBase() {
   return API_BASE;

@@ -20,7 +20,7 @@ export const auth = {
   formPanel:
     'flex w-full items-center justify-center bg-slate-50 px-4 py-8 sm:px-8 lg:w-[40%] lg:py-12',
   formInner: 'w-full max-w-md',
-  card: 'rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl shadow-slate-200/40 sm:p-8',
+  card: 'rounded-2xl border border-slate-200/80 bg-white/95 p-6 shadow-xl shadow-slate-300/30 backdrop-blur-sm sm:p-8',
   cardTitle: 'text-center text-lg font-bold text-slate-900',
   cardSubtitle: 'mb-6 text-center text-sm text-slate-500',
   coat: 'mx-auto mb-4 h-20 w-20 object-contain',
@@ -32,7 +32,7 @@ export const auth = {
   passwordToggle:
     'absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700',
   submit:
-    'w-full rounded-lg bg-teal-600 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
+    'w-full rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 py-3 text-sm font-semibold text-white shadow-md shadow-teal-600/25 transition hover:from-teal-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
   error: 'rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800',
   devHint:
     'mb-4 rounded-lg border border-teal-100 bg-teal-50 px-3 py-2 text-center text-xs text-teal-900',

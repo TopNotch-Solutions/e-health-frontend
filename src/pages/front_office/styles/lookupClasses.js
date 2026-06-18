@@ -58,9 +58,39 @@ export const lookup = {
   actionTitle: fo.actionTitle,
   actionText: fo.actionText,
   returningCard:
-    'rounded-2xl border-2 border-teal-200 bg-gradient-to-br from-teal-50/80 to-white p-5 shadow-sm',
+    'overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xl shadow-slate-200/40 ring-1 ring-slate-100',
+  returningHeader:
+    'relative bg-gradient-to-br from-teal-600 via-teal-700 to-slate-900 px-5 pb-5 pt-5 text-white sm:px-6',
+  returningHeaderGlow:
+    'pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl',
   returningBadge:
-    'inline-flex rounded-full bg-teal-600 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white',
+    'inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white ring-1 ring-white/25 backdrop-blur-sm',
+  returningAvatar:
+    'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-lg font-bold text-white ring-2 ring-white/25 backdrop-blur-sm',
+  returningMetaGrid: 'mt-4 grid gap-2 sm:grid-cols-2',
+  returningMetaItem:
+    'rounded-xl bg-white/10 px-3 py-2 ring-1 ring-white/10 backdrop-blur-sm',
+  returningMetaLabel: 'text-[10px] font-semibold uppercase tracking-wide text-teal-100/80',
+  returningMetaValue: 'mt-0.5 text-sm font-semibold text-white',
+  returningBody: 'space-y-4 p-5 sm:p-6',
+  returningSection:
+    'rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 shadow-sm',
+  returningSectionTitle:
+    'mb-3 text-xs font-bold uppercase tracking-wide text-slate-500',
+  returningAlert:
+    'flex gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed',
+  returningAlertWarning: 'border-amber-200/80 bg-amber-50 text-amber-950',
+  returningAlertError: 'border-rose-200/80 bg-rose-50 text-rose-950',
+  returningAlertIcon:
+    'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base font-bold',
+  returningAlertIconWarning: 'bg-amber-100 text-amber-800',
+  returningAlertIconError: 'bg-rose-100 text-rose-800',
+  returningFooter:
+    'flex flex-col gap-2 border-t border-slate-100 bg-slate-50/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6',
+  returningFooterPrimary:
+    'w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-teal-600/20 transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto',
+  returningFooterSecondary:
+    'w-full rounded-xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:bg-white sm:w-auto',
   intakeSection: 'mt-5 rounded-xl border border-teal-100 bg-white/90 p-4 shadow-inner',
   intakeTitle: 'text-sm font-bold uppercase tracking-wide text-teal-800',
   select:

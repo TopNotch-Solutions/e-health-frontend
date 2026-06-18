@@ -3,6 +3,7 @@ import { clearSession, getStoredUser } from '../../api/authSession';
 import { disconnectSocket } from '../../api/socket';
 import { authRoleSlug, roleDisplayName } from '../../utils/homePathForRole';
 import { nurse as c, topbar } from '../nurse/styles/nurseClasses';
+import AppBrand from '../../components/brand/AppBrand';
 
 const KOPANO = 'https://kopanovertex.com/';
 
@@ -34,7 +35,7 @@ export default function ClinicStationPlaceholderPage({ subtitle }) {
     <div className={c.page}>
       <header className={`${topbar.root} shrink-0`}>
         <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-          <span className={topbar.brand}>E-Health Management system</span>
+          <AppBrand className={topbar.brand} />
           <span className="text-sm font-medium text-slate-500">
             {moduleTitle}
             {subtitle ? ` · ${subtitle}` : ''}

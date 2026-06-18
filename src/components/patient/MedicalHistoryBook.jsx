@@ -423,6 +423,9 @@ export default function MedicalHistoryBook({
   showStatSummaryButton = true,
   compact = false,
   interactive = false,
+  bookLabel = 'Medical history book',
+  emptyMessage = 'No medical history on file for this patient.',
+  pageHint = null,
 }) {
   const [spreadIndex, setSpreadIndex] = useState(0);
   const [statOpen, setStatOpen] = useState(false);
@@ -490,7 +493,7 @@ export default function MedicalHistoryBook({
   }
 
   if (!bookModel) {
-    return <p className="text-sm text-slate-500">No medical history on file for this patient.</p>;
+    return <p className="text-sm text-slate-500">{emptyMessage}</p>;
   }
 
   const leftPageNumber = currentSpread?.left?.pageNumber;
@@ -550,7 +553,7 @@ export default function MedicalHistoryBook({
         <div className={styles.bookStage}>
           <div className={styles.bookWrap}>
             <div className={styles.bookOuter}>
-              <div className={styles.bookBody} aria-label="Medical history book">
+              <div className={styles.bookBody} aria-label={bookLabel}>
                 <div className={styles.bookSpine} aria-hidden />
                 <div key={spreadIndex} className={`${styles.bookSpread} ${animClass}`}>
                   {renderSpreadPage(currentSpread?.left, patient, bookModel.identity, styles)}
@@ -567,9 +570,9 @@ export default function MedicalHistoryBook({
         </div>
 
         <p className={styles.hint}>
-          {totalPages > 1
+          {pageHint || (totalPages > 1
             ? `The book has ${totalPages} page${totalPages !== 1 ? 's' : ''} — identity plus one page per consultation. Use Prev/Next or arrow keys to turn pages.`
-            : 'Page 1 shows patient identity. Additional pages appear as consultations are recorded.'}
+            : 'Page 1 shows patient identity. Additional pages appear as consultations are recorded.')}
         </p>
 
         {statOpen ? (

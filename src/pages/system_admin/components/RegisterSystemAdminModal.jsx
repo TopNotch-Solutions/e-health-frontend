@@ -41,7 +41,7 @@ export default function RegisterSystemAdminModal({
         </h2>
         <p className={c.modalSub}>
           National administrators manage every state hospital and clinic on the network — onboarding
-          staff, creating facilities, and transfers. A temporary password is generated automatically.
+          staff, creating facilities, and transfers. The initial password is Demo123! for all accounts.
           Accounts can only be inactivated, not deleted.
         </p>
 

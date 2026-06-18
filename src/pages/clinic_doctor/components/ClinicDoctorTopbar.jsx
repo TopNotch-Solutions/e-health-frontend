@@ -1,6 +1,7 @@
 /* topbar-signout-v2 */
 import { topbar } from '../../nurse/styles/nurseClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
+import AppBrand from '../../../components/brand/AppBrand';
 
 export default function ClinicDoctorTopbar({ doctorLabel, initials, live, viewMode, onViewModeChange }) {
 
@@ -8,7 +9,7 @@ export default function ClinicDoctorTopbar({ doctorLabel, initials, live, viewMo
     <header className={`${topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-          <span className={topbar.brand}>E-Health Management system</span>
+          <AppBrand className={topbar.brand} />
           <span className="text-sm font-medium text-slate-500">Master Doctor · Consultation</span>
         </div>
         {onViewModeChange ? (

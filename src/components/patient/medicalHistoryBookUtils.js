@@ -1,4 +1,5 @@
 import { formatDateTime, formatLabel, formatVitalsLine, patientAge } from '../../pages/front_office/utils/ehrUtils';
+import { formatMaternityStopDetails } from './maternityMedicalHistoryBookUtils';
 import { formatDob, patientName } from '../../pages/front_office/patientUtils';
 
 function displayValue(value) {
@@ -128,11 +129,15 @@ export function formatStopClinicalDetails(stop) {
   const handled = new Set([
     'vitals', 'consultations', 'prescriptions', 'screening_assessment',
     'lab_requests', 'imaging_requests', 'emergency_interventions',
+    'maternity_anc_sessions', 'maternity_anw_daily_records', 'maternity_pnw_daily_records',
+    'maternity_icu_daily_records', 'maternity_nicu_records', 'maternity_episode',
   ]);
   Object.entries(clinical).forEach(([key, value]) => {
     if (handled.has(key) || value == null || value === '') return;
     lines.push(...objectDetailLines({ [key]: value }));
   });
+
+  lines.push(...formatMaternityStopDetails(clinical));
 
   return lines;
 }

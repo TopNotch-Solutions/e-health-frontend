@@ -24,6 +24,7 @@ export function emptyParameterForm() {
     temperature: '',
     oxygen_saturation: '',
     routing_destination: '',
+    discharge_reason: '',
   };
 }
 
@@ -62,6 +63,29 @@ export function validateParameterForm(form) {
   }
 
   return errors;
+}
+
+export function buildParameterDischargePayload(form, { visitId, queueEntryId }) {
+  const payload = {
+    visit_id: visitId,
+    queue_entry_id: queueEntryId,
+    discharge_reason: form.discharge_reason.trim(),
+  };
+  if (form.visit_classification) {
+    payload.visit_classification = form.visit_classification;
+    if (form.visit_classification === 'follow_up') {
+      payload.blood_pressure_systolic = parseNum(form.blood_pressure_systolic);
+      payload.blood_pressure_diastolic = parseNum(form.blood_pressure_diastolic);
+      payload.pulse_rate = parseNum(form.pulse_rate);
+    }
+    if (form.visit_classification === 'sick') {
+      payload.temperature = parseNum(form.temperature);
+      payload.blood_pressure_systolic = parseNum(form.blood_pressure_systolic);
+      payload.blood_pressure_diastolic = parseNum(form.blood_pressure_diastolic);
+      payload.oxygen_saturation = parseNum(form.oxygen_saturation);
+    }
+  }
+  return payload;
 }
 
 export function buildParameterPayload(form, { visitId, queueEntryId }) {

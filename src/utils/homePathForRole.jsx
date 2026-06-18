@@ -43,6 +43,12 @@ const ROLE_HOME_PATHS = {
   booking_room: '/booking_room',
   master_doctor: '/clinic_doctor',
   dermatologist: '/dermatologist',
+  maternity_front_officer: '/maternity_front_officer',
+  maternity_anc_staff: '/maternity_anc_staff',
+  maternity_anw_staff: '/maternity_anw_staff',
+  maternity_pnw_staff: '/maternity_pnw_staff',
+  maternity_icu_staff: '/maternity_icu_staff',
+  maternity_nicu_staff: '/maternity_nicu_staff',
 };
 
 /** Legacy, informal, or queue-department slugs → canonical Role.name */
@@ -77,6 +83,12 @@ const ROLE_ALIASES = {
   booking: 'booking_room',
   mortuary_booking: 'booking_room',
   dermatology: 'dermatologist',
+  maternity_front: 'maternity_front_officer',
+  maternity_anc: 'maternity_anc_staff',
+  maternity_anw: 'maternity_anw_staff',
+  maternity_pnw: 'maternity_pnw_staff',
+  maternity_icu: 'maternity_icu_staff',
+  maternity_nicu: 'maternity_nicu_staff',
 };
 
 /** Display labels — mirrors backend config/clinicRoles.js + hospital roles */
@@ -119,6 +131,12 @@ const ROLE_DISPLAY_NAMES = {
   booking_room: 'Booking Room',
   master_doctor: 'Master Doctor',
   dermatologist: 'Dermatologist',
+  maternity_front_officer: 'Maternity Front Officer',
+  maternity_anc_staff: 'ANC Staff',
+  maternity_anw_staff: 'ANW Staff',
+  maternity_pnw_staff: 'PNW Staff',
+  maternity_icu_staff: 'Maternity ICU Staff',
+  maternity_nicu_staff: 'NICU Staff',
 };
 
 export function normalizeRoleSlug(roleName) {

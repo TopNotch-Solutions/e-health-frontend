@@ -2,6 +2,7 @@
 import { NavLink } from 'react-router-dom';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 import { topbar } from '../styles/frontOfficeClasses';
+import AppBrand from '../../../components/brand/AppBrand';
 
 const navLink =
   'rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-teal-50 hover:text-teal-800';
@@ -15,7 +16,7 @@ export default function FrontOfficeTopbar() {
   return (
     <header className={topbar.root}>
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4">
-        <span className={topbar.brand}>E-Health Management system</span>
+        <AppBrand className={topbar.brand} />
         <nav className="flex flex-wrap gap-1" aria-label="Front office">
           <NavLink
             to="/front_office"

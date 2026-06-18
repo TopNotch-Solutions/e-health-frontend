@@ -37,6 +37,12 @@ export default function TransferEmployeeModal({
     [roles, employee]
   );
 
+  const groupedRoles = useMemo(() => {
+    const maternity = roles.filter((r) => r.name?.startsWith('maternity_'));
+    const general = roles.filter((r) => !r.name?.startsWith('maternity_'));
+    return { maternity, general };
+  }, [roles]);
+
   useEffect(() => {
     if (!open || !employee) return;
     setFacilityId('');
@@ -174,11 +180,24 @@ export default function TransferEmployeeModal({
                 <option value="">
                   {rolesLoading ? 'Loading roles…' : 'Select role for this facility…'}
                 </option>
-                {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.display_name || r.name}
-                  </option>
-                ))}
+                {groupedRoles.maternity.length > 0 ? (
+                  <optgroup label="Maternity">
+                    {groupedRoles.maternity.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.display_name || r.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+                {groupedRoles.general.length > 0 ? (
+                  <optgroup label={targetFacility?.type === 'clinic' ? 'Clinic roles' : 'Hospital roles'}>
+                    {groupedRoles.general.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.display_name || r.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
               </select>
               {!rolesLoading && facilityId && !currentRoleAvailable ? (
                 <p className="mt-1 text-xs text-amber-700">

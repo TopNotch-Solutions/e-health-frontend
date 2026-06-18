@@ -32,3 +32,17 @@ export function recordScreeningNurseAssessmentAndPush(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function dischargeParameterNursePatient(body) {
+  return apiRequest('/api/v1/vitals/parameter-nurse/discharge', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function dischargeScreeningNursePatient(body) {
+  return apiRequest('/api/v1/vitals/screening-nurse/discharge', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

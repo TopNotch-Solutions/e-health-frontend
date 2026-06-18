@@ -49,6 +49,18 @@ import PediatricCornerPage from './pages/pediatric_corner';
 import DataAnalystPage from './pages/data_analyst';
 import SystemAdminPage from './pages/system_admin';
 import ExecutivePage from './pages/executive';
+import MaternityFrontOfficerLayout from './pages/maternity_front_officer';
+import MaternityFrontOfficeDashboardPage from './pages/maternity_front_officer/MaternityFrontOfficeDashboardPage';
+import MaternityRegistrationStep1Page from './pages/maternity_front_officer/MaternityRegistrationStep1Page';
+import MaternityRegistrationStep2Page from './pages/maternity_front_officer/MaternityRegistrationStep2Page';
+import MaternityRegistrationStep3Page from './pages/maternity_front_officer/MaternityRegistrationStep3Page';
+import MaternityRegistrationStep4Page from './pages/maternity_front_officer/MaternityRegistrationStep4Page';
+import MaternityTodaysRegistrationsPage from './pages/maternity_front_officer/MaternityTodaysRegistrationsPage';
+import MaternityAncStaffPage from './pages/maternity_anc_staff';
+import MaternityAnwStaffPage from './pages/maternity_anw_staff';
+import MaternityPnwStaffPage from './pages/maternity_pnw_staff';
+import MaternityIcuStaffPage from './pages/maternity_icu_staff';
+import MaternityNicuStaffPage from './pages/maternity_nicu_staff';
 
 function RoleRoute({ role, children }) {
   return <RequireAuth role={role}>{children}</RequireAuth>;
@@ -202,6 +214,61 @@ function App() {
           element={
             <RoleRoute role="dermatologist">
               <DermatologistPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/maternity_front_officer"
+          element={
+            <RoleRoute role="maternity_front_officer">
+              <MaternityFrontOfficerLayout />
+            </RoleRoute>
+          }
+        >
+          <Route index element={<MaternityFrontOfficeDashboardPage />} />
+          <Route path="today" element={<MaternityTodaysRegistrationsPage />} />
+          <Route path="registration/step-1" element={<MaternityRegistrationStep1Page />} />
+          <Route path="registration/step-2" element={<MaternityRegistrationStep2Page />} />
+          <Route path="registration/step-3" element={<MaternityRegistrationStep3Page />} />
+          <Route path="registration/step-4" element={<MaternityRegistrationStep4Page />} />
+        </Route>
+        <Route
+          path="/maternity_anc_staff"
+          element={
+            <RoleRoute role="maternity_anc_staff">
+              <MaternityAncStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/maternity_anw_staff"
+          element={
+            <RoleRoute role="maternity_anw_staff">
+              <MaternityAnwStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/maternity_pnw_staff"
+          element={
+            <RoleRoute role="maternity_pnw_staff">
+              <MaternityPnwStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/maternity_icu_staff"
+          element={
+            <RoleRoute role="maternity_icu_staff">
+              <MaternityIcuStaffPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/maternity_nicu_staff"
+          element={
+            <RoleRoute role="maternity_nicu_staff">
+              <MaternityNicuStaffPage />
             </RoleRoute>
           }
         />

@@ -1,13 +1,14 @@
 /* topbar-signout-v2 */
 import { ps } from '../styles/pharmacySupervisorClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
+import AppBrand from '../../../components/brand/AppBrand';
 
 export default function PharmacySupervisorTopbar({ supervisorLabel, initials }) {
 
   return (
     <header className={`${ps.topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-        <span className={ps.topbar.brand}>E-Health Management system</span>
+        <AppBrand className={ps.topbar.brand} />
         <span className="text-sm font-medium text-teal-700">Pharmacy supervisor · Inventory & analytics</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">

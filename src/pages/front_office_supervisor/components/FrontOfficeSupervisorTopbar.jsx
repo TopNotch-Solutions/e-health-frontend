@@ -1,13 +1,14 @@
 /* topbar-signout-v2 */
 import { fos } from '../styles/frontOfficeSupervisorClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
+import AppBrand from '../../../components/brand/AppBrand';
 
 export default function FrontOfficeSupervisorTopbar({ supervisorLabel, initials }) {
 
   return (
     <header className={`${fos.topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-        <span className={fos.topbar.brand}>E-Health Management system</span>
+        <AppBrand className={fos.topbar.brand} />
         <span className="text-sm font-medium text-teal-700">Front office supervisor · Staff analytics</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">

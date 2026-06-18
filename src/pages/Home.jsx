@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import AppBrand from '../components/brand/AppBrand';
 
 const ROLE_PATHS = [
   ['front_office', 'Front office'],
@@ -30,7 +31,7 @@ const ROLE_PATHS = [
 export default function HomePage() {
   return (
     <main className="max-w-xl p-6 font-sans">
-      <h1 className="mt-0 text-2xl font-bold text-slate-900">E-Health</h1>
+      <AppBrand className="mb-4" />
       <p className="text-gray-600">Open a role workspace (dev navigation). Sign in is at the app root.</p>
       <p>
         <Link to="/" className="font-semibold text-blue-600 hover:underline">

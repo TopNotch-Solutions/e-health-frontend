@@ -12,15 +12,12 @@ export default function IntakeDetailsForm({
   onAccompaniedChange,
   disabled = false,
   classNames,
+  embedded = false,
 }) {
   const ui = classNames || returningPanel;
 
-  return (
-    <section className={ui.intakeSection} aria-labelledby="fo-intake-heading">
-      <h4 id="fo-intake-heading" className={ui.intakeTitle}>
-        Intake details
-      </h4>
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+  const fields = (
+    <div className={`grid gap-4 sm:grid-cols-2 ${embedded ? '' : 'mt-3'}`}>
         <div className="space-y-1">
           <label htmlFor="fo-mode-arrival" className="text-sm font-medium text-slate-700">
             Mode of arrival
@@ -58,6 +55,16 @@ export default function IntakeDetailsForm({
           </select>
         </div>
       </div>
+  );
+
+  if (embedded) return fields;
+
+  return (
+    <section className={ui.intakeSection} aria-labelledby="fo-intake-heading">
+      <h4 id="fo-intake-heading" className={ui.intakeTitle}>
+        Intake details
+      </h4>
+      {fields}
     </section>
   );
 }

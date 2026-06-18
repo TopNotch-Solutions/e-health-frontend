@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
-import { getHandoverVitals, recordScreeningNurseAssessmentAndPush } from '../../api/vitals';
+import { getHandoverVitals, recordScreeningNurseAssessmentAndPush, dischargeScreeningNursePatient } from '../../api/vitals';
+import DischargePatientSection from '../../components/consultation/DischargePatientSection';
+import {
+  dischargeConfirmText,
+  DISCHARGE_CONFIRM_TITLE,
+  validateRefusalDischargeReason,
+} from '../../utils/dischargeDocumentation';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
@@ -17,6 +23,7 @@ import {
   emptyScreeningForm,
   validateScreeningForm,
   buildScreeningPayload,
+  buildScreeningDischargePayload,
   isScreeningFormComplete,
   SCREENING_DESTINATIONS,
 } from './screeningNurseForm';
@@ -209,6 +216,49 @@ export default function ScreeningNursePage() {
     }
   }
 
+  async function handleDischarge() {
+    if (!activePatient || actionLoading) return;
+
+    const validation = validateRefusalDischargeReason(form.discharge_reason);
+    if (Object.keys(validation).length > 0) {
+      setFieldErrors(validation);
+      return;
+    }
+
+    if (!(await confirmAction({
+      title: DISCHARGE_CONFIRM_TITLE,
+      text: dischargeConfirmText(activePatient.name),
+      icon: 'warning',
+      confirmButtonText: 'End consultation',
+    }))) return;
+
+    setActionLoading(true);
+    setSubmitError('');
+    setFieldErrors({});
+    try {
+      const body = buildScreeningDischargePayload(form, {
+        visitId: activePatient.visitId,
+        queueEntryId: activePatient.entryId,
+      });
+
+      const completedEntryId = activePatient.entryId;
+      skipAutoResumeRef.current = true;
+      setActiveEntryId(null);
+      setForm(emptyScreeningForm());
+      setHandoverVitals(null);
+
+      await dischargeScreeningNursePatient(body);
+
+      setQueue((prev) => prev.filter((p) => p.entryId !== completedEntryId));
+      setToast(`${activePatient.name} — refusal documented, consultation ended`);
+      await refresh();
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to discharge patient');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
     if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved assessment will be discarded.'))) {
@@ -392,6 +442,15 @@ export default function ScreeningNursePage() {
                   canSubmit={canSubmit}
                   onSubmit={handleSubmit}
                   actionLoading={actionLoading}
+                />
+
+                <DischargePatientSection
+                  idPrefix="sn"
+                  dischargeReason={form.discharge_reason}
+                  onDischargeReasonChange={(value) => handleFieldChange('discharge_reason', value)}
+                  error={fieldErrors.discharge_reason}
+                  actionLoading={actionLoading}
+                  onDischarge={handleDischarge}
                 />
 
                 <div className="mt-4 border-t border-slate-200 pt-4">

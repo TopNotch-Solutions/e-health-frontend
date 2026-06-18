@@ -7,6 +7,7 @@ import {
   roleAccessHint,
 } from '../../utils/homePathForRole';
 import { clearSession } from '../../api/authSession';
+import AppBrand from '../../components/brand/AppBrand';
 import AuthPageShell from './components/AuthPageShell';
 import { auth } from './styles/authClasses';
 
@@ -80,7 +81,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoginError('');
     setSubmitting(true);
-     const API_BASE = process.env.REACT_APP_API_URL || 'https://api-health.kopanovertex.com';
+     const API_BASE = 'https://api-health.kopanovertex.com';
       
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
@@ -130,10 +131,10 @@ export default function LoginPage() {
           style={{
             backgroundImage: `linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 118, 110, 0.72) 52%, rgba(15, 118, 110, 0.42) 100%), url(${LOGIN_HERO_IMAGE_SRC})`,
           }}
-          aria-label="Health Management System"
+          aria-label="E-Health Management System"
         >
           <div className={`${auth.heroInner} relative z-10`}>
-            <p className={auth.heroKicker}>E-Health Management System</p>
+            <AppBrand variant="light" className="mb-6" />
             <h1 className={auth.heroTitle}>Login</h1>
             <p className={auth.heroMeta}>
               {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -185,7 +186,8 @@ export default function LoginPage() {
                   <span className="font-mono">kitchen_manager@demo.ehealth.gov</span>,{' '}
                   <span className="font-mono">billing_clerk@demo.ehealth.gov</span>,{' '}
                   <span className="font-mono">revenue_officer@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">admin@ehealth.gov</span> / Demo123! (admin: admin123)
+                  <span className="font-mono">admin@ehealth.gov</span> — password for all demo accounts:{' '}
+                  <span className="font-mono">Demo123!</span>
                 </p>
               ) : null}
 

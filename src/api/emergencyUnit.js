@@ -28,3 +28,10 @@ export function emergencyDoctorPrescribePharmacy(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function emergencyDoctorDischargePatient(body) {
+  return apiRequest('/api/v1/emergency-unit/doctor/discharge', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

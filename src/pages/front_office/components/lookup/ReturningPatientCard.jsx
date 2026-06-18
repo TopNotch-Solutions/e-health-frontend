@@ -4,8 +4,9 @@ import IntakeDetailsForm from '../IntakeDetailsForm';
 import EmergencyPatientToggle from '../EmergencyPatientToggle';
 import ImmediateTriageToggle from '../ImmediateTriageToggle';
 import QueueRoutingForm, { routingButtonLabel } from '../QueueRoutingForm';
+import ReturningPatientCardShell from '../../../../components/patient/ReturningPatientCardShell';
 import { useToast } from '../../context/ToastContext';
-import { activeVisitLocation, formatDob, maskId, patientName } from '../../patientUtils';
+import { activeVisitLocation } from '../../patientUtils';
 import { lookup } from '../../styles/lookupClasses';
 
 export default function ReturningPatientCard({
@@ -70,85 +71,72 @@ export default function ReturningPatientCard({
   });
 
   return (
-    <article className={lookup.returningCard}>
-      <span className={lookup.returningBadge}>Returning patient</span>
-      <h3 className="mt-3 text-xl font-bold text-slate-900">{patientName(patient)}</h3>
-      <p className="mt-1 text-sm text-slate-600">
-        <span className="font-mono font-semibold">{patient.patient_number}</span>
-        {patient.id_number ? (
-          <>
-            {' '}
-            · ID <span className="font-mono">{maskId(patient.id_number)}</span>
-          </>
-        ) : null}
-      </p>
-      <p className="mt-1 text-sm text-slate-500">
-        DOB {formatDob(patient.date_of_birth)}
-        {patient.phone ? ` · ${patient.phone}` : ''}
-      </p>
-
-      {hasActiveVisit ? (
-        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" role="status">
-          Active visit in progress
-          {patient.active_visit?.visit_number ? (
-            <> (<span className="font-mono">{patient.active_visit.visit_number}</span>)</>
-          ) : null}
-          {activeLocation ? <> — currently in <span className="font-semibold">{activeLocation}</span></> : null}
-          . Check-in is disabled until this visit is completed or discharged.
-        </p>
-      ) : null}
-
+    <ReturningPatientCardShell
+      patient={patient}
+      hasActiveVisit={hasActiveVisit}
+      activeLocation={activeLocation}
+      activeVisitNumber={patient.active_visit?.visit_number}
+      footer={(
+        <>
+          <button
+            type="button"
+            className={lookup.returningFooterPrimary}
+            disabled={checkInLoading || checkInBlocked}
+            onClick={handleCheckIn}
+          >
+            {routeLabel}
+          </button>
+          <Link
+            to={`/front_office/patient/${patient.id}`}
+            className={lookup.returningFooterSecondary}
+          >
+            View EHR
+          </Link>
+        </>
+      )}
+    >
       {!immediateTriage ? (
-        <IntakeDetailsForm
-          modeOfArrival={modeOfArrival}
-          accompaniedBy={accompaniedBy}
-          onModeChange={setModeOfArrival}
-          onAccompaniedChange={setAccompaniedBy}
-          disabled={checkInLoading || checkInBlocked}
-          classNames={lookup}
-        />
+        <section className={lookup.returningSection}>
+          <h4 className={lookup.returningSectionTitle}>Arrival details</h4>
+          <IntakeDetailsForm
+            modeOfArrival={modeOfArrival}
+            accompaniedBy={accompaniedBy}
+            onModeChange={setModeOfArrival}
+            onAccompaniedChange={setAccompaniedBy}
+            disabled={checkInLoading || checkInBlocked}
+            classNames={lookup}
+            embedded
+          />
+        </section>
       ) : null}
 
-      <div className="mt-4 space-y-3">
-        <EmergencyPatientToggle
-          id={`fo-returning-emergency-${patient.id}`}
-          checked={isEmergency}
-          onChange={setIsEmergency}
-          disabled={checkInLoading || immediateTriage || checkInBlocked}
-        />
-        <ImmediateTriageToggle
-          id={`fo-returning-triage-${patient.id}`}
-          checked={immediateTriage}
-          onChange={handleImmediateTriageChange}
-          disabled={checkInLoading || checkInBlocked}
-        />
-      </div>
-
-      <QueueRoutingForm
-        destination={routingDestination}
-        onDestinationChange={setRoutingDestination}
-        disabled={checkInLoading || immediateTriage || checkInBlocked}
-        immediateTriage={immediateTriage}
-        hideWhenImmediateTriage
-        classNames={lookup}
-      />
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className={lookup.btnPrimary}
-          disabled={checkInLoading || checkInBlocked}
-          onClick={handleCheckIn}
-        >
-          {routeLabel}
-        </button>
-        <Link
-          to={`/front_office/patient/${patient.id}`}
-          className={lookup.btnSecondary}
-        >
-          View EHR
-        </Link>
-      </div>
-    </article>
+      <section className={lookup.returningSection}>
+        <h4 className={lookup.returningSectionTitle}>Priority &amp; routing</h4>
+        <div className="space-y-3">
+          <EmergencyPatientToggle
+            id={`fo-returning-emergency-${patient.id}`}
+            checked={isEmergency}
+            onChange={setIsEmergency}
+            disabled={checkInLoading || immediateTriage || checkInBlocked}
+          />
+          <ImmediateTriageToggle
+            id={`fo-returning-triage-${patient.id}`}
+            checked={immediateTriage}
+            onChange={handleImmediateTriageChange}
+            disabled={checkInLoading || checkInBlocked}
+          />
+        </div>
+        <div className="mt-4">
+          <QueueRoutingForm
+            destination={routingDestination}
+            onDestinationChange={setRoutingDestination}
+            disabled={checkInLoading || immediateTriage || checkInBlocked}
+            immediateTriage={immediateTriage}
+            hideWhenImmediateTriage
+            classNames={lookup}
+          />
+        </div>
+      </section>
+    </ReturningPatientCardShell>
   );
 }

@@ -1,3 +1,5 @@
+import { validateRefusalDischargeReason } from '../../utils/dischargeDocumentation';
+
 export const CLINIC_DISPOSITIONS = [
   { value: 'pharmacy', label: 'Pharmacy' },
   { value: 'follow_up', label: 'Follow-up appointment' },
@@ -12,6 +14,7 @@ export function emptyClinicDoctorForm() {
     notes: '',
     disposition: '',
     follow_up_date: '',
+    discharge_reason: '',
   };
 }
 
@@ -41,6 +44,10 @@ export function validatePharmacyDisposition(form, prescriptionLines) {
     errors.prescription = 'Add at least one medication to route to pharmacy.';
   }
   return errors;
+}
+
+export function validateDischargeDisposition(form) {
+  return validateRefusalDischargeReason(form.discharge_reason);
 }
 
 export function dispositionButtonLabel(form, loading, hasPrescription = false) {

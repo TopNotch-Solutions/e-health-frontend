@@ -22,6 +22,7 @@ export default function TodaysRegistrationsPanel({
   compact = false,
   limit,
   showHeaderLink = false,
+  todayPath = '/front_office/today',
 }) {
   const { showToast } = useToast();
   const [rows, setRows] = useState([]);
@@ -65,7 +66,7 @@ export default function TodaysRegistrationsPanel({
               Refresh
             </button>
             {showHeaderLink && rows.length > (limit || 0) ? (
-              <Link to="/front_office/today" className={lookup.btnPrimary}>
+              <Link to={todayPath} className={lookup.btnPrimary}>
                 View all
               </Link>
             ) : null}
@@ -132,7 +133,7 @@ export default function TodaysRegistrationsPanel({
         {compact && rows.length > (limit || 0) ? (
           <p className={`${lookup.hint} mt-4`}>
             Showing {displayRows.length} of {rows.length}.{' '}
-            <Link to="/front_office/today" className="font-semibold text-teal-700 hover:underline">
+            <Link to={todayPath} className="font-semibold text-teal-700 hover:underline">
               View full list
             </Link>
           </p>

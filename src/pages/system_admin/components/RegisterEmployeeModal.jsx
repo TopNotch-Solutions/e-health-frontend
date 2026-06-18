@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAdminRoles } from '../../../api/admin';
-import { admin as c, isOperationalFacility } from '../styles/adminClasses';
+import { getApiBase } from '../../../api/client';
+import { admin as c, facilityTypeLabel, isOperationalFacility } from '../styles/adminClasses';
 
 const EMPTY = {
   first_name: '',
@@ -20,12 +21,20 @@ export default function RegisterEmployeeModal({
   const [form, setForm] = useState(EMPTY);
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
+  const [rolesError, setRolesError] = useState('');
 
   const selectedFacility = useMemo(
     () => facilities.find((f) => f.id === form.facility_id),
     [facilities, form.facility_id]
   );
   const isClinic = selectedFacility?.type === 'clinic';
+  const isHospital = selectedFacility?.type === 'hospital' || selectedFacility?.type === 'health_center';
+
+  const groupedRoles = useMemo(() => {
+    const maternity = roles.filter((r) => r.name?.startsWith('maternity_'));
+    const general = roles.filter((r) => !r.name?.startsWith('maternity_'));
+    return { maternity, general };
+  }, [roles]);
 
   useEffect(() => {
     if (open) setForm(EMPTY);
@@ -37,14 +46,29 @@ export default function RegisterEmployeeModal({
     let cancelled = false;
     const loadRoles = async () => {
       setRolesLoading(true);
+      setRolesError('');
       try {
         const params = form.facility_id
           ? { facility_id: form.facility_id }
           : {};
         const list = await getAdminRoles(params);
-        if (!cancelled) setRoles(list || []);
-      } catch {
-        if (!cancelled) setRoles([]);
+        if (!cancelled) {
+          setRoles(list || []);
+          if (form.facility_id && isHospital) {
+            const hasMaternity = (list || []).some((r) => r.name?.startsWith('maternity_'));
+            if (!hasMaternity) {
+              setRolesError(
+                `Maternity roles are missing from the API (${getApiBase()}). `
+                + 'Use a local backend with the latest code, or deploy the updated backend to production.'
+              );
+            }
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setRoles([]);
+          setRolesError(err.message || 'Could not load roles for this facility');
+        }
       } finally {
         if (!cancelled) setRolesLoading(false);
       }
@@ -52,7 +76,7 @@ export default function RegisterEmployeeModal({
 
     loadRoles();
     return () => { cancelled = true; };
-  }, [open, form.facility_id]);
+  }, [open, form.facility_id, isHospital]);
 
   if (!open) return null;
 
@@ -79,8 +103,10 @@ export default function RegisterEmployeeModal({
         </h2>
         <p className={c.modalSub}>
           {isClinic
-            ? 'Clinic employees receive the temporary password Demo123! and must be assigned an authorized clinic role.'
-            : 'A temporary password is generated if none is set. Share it securely with the employee.'}
+            ? 'All new employees receive the temporary password Demo123! (clinic roles only at clinic facilities). Maternity roles are hospital-only.'
+            : isHospital
+              ? 'All new employees receive the temporary password Demo123! Hospital and maternity roles are available here.'
+              : 'Select a facility first. All new employees receive the temporary password Demo123!'}
         </p>
 
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
@@ -118,7 +144,7 @@ export default function RegisterEmployeeModal({
               <option value="">Select facility…</option>
               {facilities.filter(isOperationalFacility).map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.name}{f.type === 'clinic' ? ' (Clinic)' : ''}
+                  {f.name} ({facilityTypeLabel(f.type)})
                 </option>
               ))}
             </select>
@@ -142,12 +168,31 @@ export default function RegisterEmployeeModal({
                     ? 'Loading roles…'
                     : 'Select role…'}
               </option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.display_name || r.name}
-                </option>
-              ))}
+              {groupedRoles.maternity.length > 0 ? (
+                <optgroup label="Maternity">
+                  {groupedRoles.maternity.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.display_name || r.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
+              {groupedRoles.general.length > 0 ? (
+                <optgroup label={isClinic ? 'Clinic roles' : 'Hospital roles'}>
+                  {groupedRoles.general.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.display_name || r.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
+              {!rolesLoading && form.facility_id && roles.length === 0 ? (
+                <option value="" disabled>No roles available for this facility</option>
+              ) : null}
             </select>
+            {rolesError ? (
+              <p className="mt-2 text-sm font-medium text-amber-800" role="alert">{rolesError}</p>
+            ) : null}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className={c.btnSecondary} onClick={onClose} disabled={submitting}>

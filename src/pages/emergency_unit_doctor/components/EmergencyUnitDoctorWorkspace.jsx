@@ -4,6 +4,7 @@ import { getMedicationCatalog, checkMedicationStock } from '../../../api/invento
 import {
   emergencyDoctorTransferBookingRoom,
   emergencyDoctorPrescribePharmacy,
+  emergencyDoctorDischargePatient,
 } from '../../../api/emergencyUnit';
 import { IntakeSelect } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
@@ -14,6 +15,7 @@ import { emptyMedLine, vitalsToIntakeForm } from '../../doctor/doctorConsultForm
 import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 import ClinicalTimelinePanel from '../../clinic_doctor/components/ClinicalTimelinePanel';
 import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
+import DischargePatientSection from '../../../components/consultation/DischargePatientSection';
 import ClinicDiagnosisSection from '../../clinic_doctor/components/ClinicDiagnosisSection';
 import {
   emptyEmergencyDoctorForm,
@@ -21,11 +23,17 @@ import {
   isDiagnosisComplete,
   validateDiagnosisField,
   validatePharmacyDisposition,
+  validateDischargeDisposition,
   dispositionButtonLabel,
   dispositionShowsPrescription,
   dispositionRequiresPrescription,
 } from '../emergencyUnitDoctorForm';
 import { formatDiagnosisForSave } from '../../../utils/icd10Diagnosis';
+import {
+  dischargeConfirmText,
+  DISCHARGE_CONFIRM_TITLE,
+  resolveDischargeDiagnosisForSave,
+} from '../../../utils/dischargeDocumentation';
 
 const DISPOSITION_BTN_VARIANT = {
   pharmacy: 'primary',
@@ -119,6 +127,47 @@ export default function EmergencyUnitDoctorWorkspace({
       return next;
     });
     onActionError('');
+  }
+
+  async function handleDischarge() {
+    if (!patient || actionLoading) return;
+
+    const validation = validateDischargeDisposition(form);
+    if (Object.keys(validation).length) {
+      setFieldErrors(validation);
+      return;
+    }
+
+    if (!(await confirmAction({
+      title: DISCHARGE_CONFIRM_TITLE,
+      text: dischargeConfirmText(patient.name),
+      icon: 'warning',
+      confirmButtonText: 'End consultation',
+    }))) return;
+
+    setActionLoading(true);
+    onActionError('');
+    setFieldErrors({});
+
+    try {
+      await emergencyDoctorDischargePatient({
+        visit_id: patient.visitId,
+        queue_entry_id: patient.entryId,
+        diagnosis: resolveDischargeDiagnosisForSave(
+          form.icd10Code,
+          form.icd10Description,
+          formatDiagnosisForSave
+        ),
+        discharge_reason: form.discharge_reason.trim(),
+        notes: form.notes.trim() || null,
+      });
+      onToast(`${patient.name} — refusal documented, consultation ended`);
+      onDone();
+    } catch (err) {
+      onActionError(err.message || 'Failed to end consultation');
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   async function handleSubmitDisposition() {
@@ -299,6 +348,15 @@ export default function EmergencyUnitDoctorWorkspace({
           )}
         </div>
       </section>
+
+      <DischargePatientSection
+        idPrefix="eud"
+        dischargeReason={form.discharge_reason}
+        onDischargeReasonChange={(value) => setForm((prev) => ({ ...prev, discharge_reason: value }))}
+        error={fieldErrors.discharge_reason}
+        actionLoading={actionLoading}
+        onDischarge={handleDischarge}
+      />
     </div>
   );
 }

@@ -53,7 +53,7 @@ export default function LookupResultsView({
         ) : null}
 
         {completeMatches.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className={`grid gap-5 ${completeMatches.length === 1 ? 'max-w-3xl' : 'md:grid-cols-2'}`}>
             {completeMatches.map((p) => (
               <ReturningPatientCard
                 key={p.id}

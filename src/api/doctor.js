@@ -87,3 +87,10 @@ export function clinicTransferBookingRoom(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function clinicDischargePatient(body) {
+  return apiRequest(`${BASE}/clinic/discharge`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

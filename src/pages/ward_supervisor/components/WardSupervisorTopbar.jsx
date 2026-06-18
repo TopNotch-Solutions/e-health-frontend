@@ -1,13 +1,14 @@
 /* topbar-signout-v2 */
 import { ws } from '../styles/wardSupervisorClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
+import AppBrand from '../../../components/brand/AppBrand';
 
 export default function WardSupervisorTopbar({ supervisorLabel, initials }) {
 
   return (
     <header className={`${ws.topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-        <span className={ws.topbar.brand}>E-Health Management system</span>
+        <AppBrand className={ws.topbar.brand} />
         <span className="text-sm font-medium text-teal-700">Ward supervisor · Live dashboard</span>
       </div>
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">

@@ -3,6 +3,23 @@ export function patientName(p) {
   return [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Unknown';
 }
 
+export function patientInitials(p) {
+  const name = patientName(p);
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '?';
+}
+
+export function formatSexLabel(sex) {
+  if (!sex) return '—';
+  const s = String(sex);
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function formatDob(iso) {
   if (!iso) return '—';
   try {

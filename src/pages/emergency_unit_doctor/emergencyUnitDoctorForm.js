@@ -1,10 +1,18 @@
+import { validateRefusalDischargeReason } from '../../utils/dischargeDocumentation';
+
 export const EU_DOCTOR_DISPOSITIONS = [
   { value: 'pharmacy', label: 'Pharmacy' },
   { value: 'booking_room', label: 'Booking Room' },
 ];
 
 export function emptyEmergencyDoctorForm() {
-  return { icd10Code: '', icd10Description: '', notes: '', disposition: '' };
+  return {
+    icd10Code: '',
+    icd10Description: '',
+    notes: '',
+    disposition: '',
+    discharge_reason: '',
+  };
 }
 
 export function isDiagnosisComplete(form) {
@@ -27,6 +35,10 @@ export function validatePharmacyDisposition(form, prescriptionLines) {
     errors.prescription = 'Add at least one medication to route to pharmacy.';
   }
   return errors;
+}
+
+export function validateDischargeDisposition(form) {
+  return validateRefusalDischargeReason(form.discharge_reason);
 }
 
 export function dispositionButtonLabel(form, loading, hasPrescription = false) {

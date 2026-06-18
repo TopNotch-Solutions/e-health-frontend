@@ -8,9 +8,11 @@ import {
   clinicScheduleFollowUp,
   clinicTransferBookingRoom,
   clinicTransferEmergencyUnit,
+  clinicDischargePatient,
 } from '../../../api/doctor';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
 import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
+import DischargePatientSection from '../../../components/consultation/DischargePatientSection';
 import { emptyMedLine } from '../../doctor/doctorConsultForm';
 import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
 import ClinicalTimelinePanel from './ClinicalTimelinePanel';
@@ -22,9 +24,15 @@ import {
   validateDiagnosisField,
   validateFollowUpForm,
   validatePharmacyDisposition,
+  validateDischargeDisposition,
 } from '../clinicDoctorForm';
 import { getIcd10ByCode } from '../../../api/icd10';
 import { formatDiagnosisForSave, parseStoredDiagnosis } from '../../../utils/icd10Diagnosis';
+import {
+  dischargeConfirmText,
+  DISCHARGE_CONFIRM_TITLE,
+  resolveDischargeDiagnosisForSave,
+} from '../../../utils/dischargeDocumentation';
 
 export default function ClinicDoctorWorkspace({
   patient,
@@ -341,6 +349,47 @@ export default function ClinicDoctorWorkspace({
     }
   }
 
+  async function handleDischarge() {
+    if (!patient || actionLoading) return;
+
+    const validation = validateDischargeDisposition(form);
+    if (Object.keys(validation).length) {
+      setFieldErrors(validation);
+      return;
+    }
+
+    if (!(await confirmAction({
+      title: DISCHARGE_CONFIRM_TITLE,
+      text: dischargeConfirmText(patient.name),
+      icon: 'warning',
+      confirmButtonText: 'End consultation',
+    }))) return;
+
+    setActionLoading(true);
+    onActionError('');
+    setFieldErrors({});
+
+    try {
+      await clinicDischargePatient({
+        visit_id: patient.visitId,
+        queue_entry_id: patient.entryId,
+        diagnosis: resolveDischargeDiagnosisForSave(
+          form.icd10Code,
+          form.icd10Description,
+          formatDiagnosisForSave
+        ),
+        discharge_reason: form.discharge_reason.trim(),
+        notes: form.notes.trim() || null,
+      });
+      onToast(`${patient.name} — refusal documented, consultation ended`);
+      onDone();
+    } catch (err) {
+      onActionError(err.message || 'Failed to discharge patient');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   const hasPrescription = prescriptionLines.length > 0;
 
   const canSubmitDisposition =
@@ -390,6 +439,15 @@ export default function ClinicDoctorWorkspace({
         prescriptionLines={prescriptionLines}
         onAddMedToList={addMedToList}
         onRemoveMedLine={removeMedLine}
+      />
+
+      <DischargePatientSection
+        idPrefix="cd"
+        dischargeReason={form.discharge_reason}
+        onDischargeReasonChange={(value) => handleFieldChange('discharge_reason', value)}
+        error={fieldErrors.discharge_reason}
+        actionLoading={actionLoading}
+        onDischarge={handleDischarge}
       />
     </div>
   );

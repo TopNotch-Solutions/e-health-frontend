@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
-import { recordParameterNurseVitalsAndPush } from '../../api/vitals';
+import { recordParameterNurseVitalsAndPush, dischargeParameterNursePatient } from '../../api/vitals';
+import DischargePatientSection from '../../components/consultation/DischargePatientSection';
+import {
+  dischargeConfirmText,
+  DISCHARGE_CONFIRM_TITLE,
+  validateRefusalDischargeReason,
+} from '../../utils/dischargeDocumentation';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
@@ -16,6 +22,7 @@ import {
   emptyParameterForm,
   validateParameterForm,
   buildParameterPayload,
+  buildParameterDischargePayload,
   routingButtonLabel,
   isParameterFormComplete,
   PARAMETER_NURSE_CLASSIFICATIONS,
@@ -206,6 +213,48 @@ export default function ParameterNursePage() {
     setSubmitError('');
   }
 
+  async function handleDischarge() {
+    if (!activePatient || actionLoading) return;
+
+    const validation = validateRefusalDischargeReason(form.discharge_reason);
+    if (Object.keys(validation).length > 0) {
+      setFieldErrors(validation);
+      return;
+    }
+
+    if (!(await confirmAction({
+      title: DISCHARGE_CONFIRM_TITLE,
+      text: dischargeConfirmText(activePatient.name),
+      icon: 'warning',
+      confirmButtonText: 'End consultation',
+    }))) return;
+
+    setActionLoading(true);
+    setSubmitError('');
+    setFieldErrors({});
+    try {
+      const body = buildParameterDischargePayload(form, {
+        visitId: activePatient.visitId,
+        queueEntryId: activePatient.entryId,
+      });
+
+      const completedEntryId = activePatient.entryId;
+      skipAutoResumeRef.current = true;
+      setActiveEntryId(null);
+      setForm(emptyParameterForm());
+
+      await dischargeParameterNursePatient(body);
+
+      setQueue((prev) => prev.filter((p) => p.entryId !== completedEntryId));
+      setToast(`${activePatient.name} — refusal documented, consultation ended`);
+      await refresh();
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to discharge patient');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
     if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved vitals will be discarded.'))) {
@@ -376,6 +425,15 @@ export default function ParameterNursePage() {
                   fieldErrors={fieldErrors}
                   onFieldChange={handleFieldChange}
                   onClassificationChange={handleClassificationChange}
+                />
+
+                <DischargePatientSection
+                  idPrefix="pn"
+                  dischargeReason={form.discharge_reason}
+                  onDischargeReasonChange={(value) => handleFieldChange('discharge_reason', value)}
+                  error={fieldErrors.discharge_reason}
+                  actionLoading={actionLoading}
+                  onDischarge={handleDischarge}
                 />
 
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:flex-wrap sm:items-center">

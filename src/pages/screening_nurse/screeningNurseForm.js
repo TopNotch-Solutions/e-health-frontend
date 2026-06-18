@@ -11,6 +11,7 @@ export function emptyScreeningForm() {
     reason: '',
     diagnosis: '',
     routing_destination: '',
+    discharge_reason: '',
   };
 }
 
@@ -30,6 +31,17 @@ export function validateScreeningForm(form) {
 export function isScreeningFormComplete(form) {
   if (!form.routing_destination) return false;
   return Object.keys(validateScreeningForm(form)).length === 0;
+}
+
+export function buildScreeningDischargePayload(form, { visitId, queueEntryId }) {
+  return {
+    visit_id: visitId,
+    queue_entry_id: queueEntryId,
+    discharge_reason: form.discharge_reason.trim(),
+    symptoms: form.symptoms.trim() || undefined,
+    reason: form.reason.trim() || undefined,
+    diagnosis: form.diagnosis.trim() || undefined,
+  };
 }
 
 export function buildScreeningPayload(form, { visitId, queueEntryId }) {

@@ -1,13 +1,14 @@
 /* topbar-signout-v2 */
 import { admin as c } from '../styles/adminClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
+import AppBrand from '../../../components/brand/AppBrand';
 
 export default function AdminTopbar({ adminLabel, initials }) {
 
   return (
     <header className={`${c.topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-        <span className={c.topbar.brand}>E-Health Management system</span>
+        <AppBrand className={c.topbar.brand} />
         <span className="text-sm font-medium text-teal-700">
           National administrator · all hospitals &amp; clinics
         </span>
