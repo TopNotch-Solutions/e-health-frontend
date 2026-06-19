@@ -88,9 +88,9 @@ export default function Icd10ManagementView({
       </div>
 
       <div className={`${c.card} mb-3`}>
-        <p className="text-sm text-slate-600">
-          Excel upload expects columns <span className="font-mono font-semibold">ICD10_Code</span> and{' '}
-          <span className="font-mono font-semibold">description</span>. Existing codes are updated;
+        <p className={c.cardBody}>
+          Excel upload expects columns <span className="font-mono font-semibold text-white">ICD10_Code</span> and{' '}
+          <span className="font-mono font-semibold text-white">description</span>. Existing codes are updated;
           new codes are added and set active.
         </p>
       </div>
@@ -114,14 +114,14 @@ export default function Icd10ManagementView({
           <option value="active">Active only</option>
           <option value="inactive">Inactive only</option>
         </select>
-        <span className="text-sm text-slate-500 tabular-nums">{total} code{total !== 1 ? 's' : ''}</span>
+        <span className="text-sm text-emerald-100 tabular-nums">{total} code{total !== 1 ? 's' : ''}</span>
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-500">Loading ICD-10 catalog…</p>
+        <p className={c.cardBody}>Loading ICD-10 catalog…</p>
       ) : rows.length === 0 ? (
         <div className={c.card}>
-          <p className="text-sm text-slate-600">No ICD-10 codes match your filters.</p>
+          <p className={c.cardBody}>No ICD-10 codes match your filters.</p>
         </div>
       ) : (
         <div className={c.tableWrap}>
@@ -134,7 +134,7 @@ export default function Icd10ManagementView({
                 <th className={c.th}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/10">
               {rows.map((row) => (
                 <tr key={row.id} className={row.is_active ? '' : c.rowInactive}>
                   <td className={`${c.td} font-mono font-semibold`}>{row.code}</td>
@@ -175,10 +175,10 @@ export default function Icd10ManagementView({
       )}
 
       <div className={`${c.sectionPanel} mt-6`}>
-        <div className={c.panelHeader}>
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-white/20 pb-3">
           <div>
-            <h3 className={c.sectionTitle}>ICD-10 audit trail</h3>
-            <p className={c.sectionDesc}>
+            <h3 className={c.cardTitle}>ICD-10 audit trail</h3>
+            <p className={c.cardDesc}>
               Who added, activated, or inactivated codes — including bulk spreadsheet imports.
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function Icd10ManagementView({
             Refresh
           </button>
         </div>
-        <div className={`${c.tableWrap} mt-3`}>
+        <div className={`${c.tableWrap} mt-3 border-0 bg-white/10 shadow-none`}>
           <table className={c.table}>
             <thead>
               <tr>
@@ -196,7 +196,7 @@ export default function Icd10ManagementView({
                 <th className={c.th}>ICD-10 / details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/10">
               {auditLoading ? (
                 <tr>
                   <td colSpan={4} className={c.tdMuted}>Loading audit trail…</td>

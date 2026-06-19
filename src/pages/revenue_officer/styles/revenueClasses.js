@@ -1,4 +1,5 @@
 import { nurse as base } from '../../nurse/styles/nurseClasses';
+import { greenCard, greenOn, greenTable } from '../../styles/cardSurfaces';
 
 /** Revenue office — emerald / teal financial theme. */
 export const revenue = {
@@ -14,22 +15,21 @@ export const revenue = {
   kpiLabelAlert: 'text-xs font-semibold uppercase tracking-wide text-amber-100',
   kpiHint: 'mt-2 text-sm text-emerald-50/90',
   kpiHintAlert: 'mt-1 text-xs text-amber-50/90',
-  sectionPanel:
-    'rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-5',
-  sectionTitle: 'text-base font-bold text-emerald-900',
-  sectionDesc: 'mt-1 text-sm text-slate-600',
-  sectionHeader: 'flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 pb-3',
+  sectionPanel: `${greenCard} p-4 sm:p-5`,
+  sectionTitle: greenOn.title,
+  sectionDesc: greenOn.desc,
+  sectionHeader: 'flex flex-wrap items-center justify-between gap-3 border-b border-white/20 pb-3',
   select:
     'rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2 text-sm font-medium text-emerald-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/25',
-  tableWrap: 'mt-4 overflow-x-auto rounded-lg border border-slate-200',
-  table: 'w-full min-w-[480px] text-left text-sm',
-  tableHead: 'bg-emerald-50 text-xs font-bold uppercase tracking-wide text-emerald-900',
+  tableWrap: greenTable.wrap,
+  table: greenTable.table,
+  tableHead: 'bg-white/10 text-xs font-bold uppercase tracking-wide text-emerald-100',
   tableHeadCell: 'px-3 py-2.5',
-  tableRow: 'border-t border-slate-100 transition hover:bg-emerald-50/40',
-  tableCell: 'px-3 py-2.5 text-slate-700',
-  tableCellStrong: 'px-3 py-2.5 font-semibold text-slate-900',
+  tableRow: 'border-t border-white/10 transition hover:bg-white/5',
+  tableCell: `${greenTable.tdMuted} px-3 py-2.5`,
+  tableCellStrong: `${greenTable.td} px-3 py-2.5 font-semibold`,
   summaryBar:
-    'mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900',
-  emptyState: 'py-8 text-center text-sm text-slate-500',
+    'mt-3 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-emerald-50',
+  emptyState: `py-8 text-center ${greenOn.muted}`,
   shiftList: 'mt-4 space-y-4',
 };

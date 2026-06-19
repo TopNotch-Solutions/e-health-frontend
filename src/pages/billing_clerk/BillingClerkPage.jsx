@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../utils/confirmAction';
 import { getStoredUser } from '../../api/authSession';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import BillingPaymentPanel from './components/BillingPaymentPanel';
 import BillingTopbar from './components/BillingTopbar';
@@ -68,8 +69,7 @@ export default function BillingClerkPage() {
   const totalCount = queue.length;
   const sessionActive = Boolean(activeBillId);
 
-  function handleGetStarted(row, e) {
-    e?.stopPropagation();
+  function handleGetStarted(row) {
     setQueueActionError('');
     setWorkspaceError('');
     if (activeBillId && activeBillId !== row.bill_id) {
@@ -169,26 +169,17 @@ export default function BillingClerkPage() {
                   </p>
                 ) : (
                   filteredQueue.map((row) => (
-                    <article
+                    <QueueEntryCard
                       key={row.bill_id}
-                      className={`${c.queueCard} ${row.bill_id === activeBillId ? c.queueCardActive : ''}`}
-                    >
-                      <span className={c.badgePending}>Payment due</span>
-                      <p className={c.queueName}>{row.patient_name}</p>
-                      {row.patient_number ? (
-                        <p className={c.queueId}>ID: {row.patient_number}</p>
-                      ) : null}
-                      <p className="mt-1 text-xs text-slate-600">
-                        Visit {row.visit_number} · {formatMoney(row.balance_due)}
-                      </p>
-                      <button
-                        type="button"
-                        className={c.btnCardPrimary}
-                        onClick={(e) => handleGetStarted(row, e)}
-                      >
-                        Get started
-                      </button>
-                    </article>
+                      classes={c}
+                      name={row.patient_name}
+                      idLabel={row.patient_number ? `ID: ${row.patient_number}` : undefined}
+                      subtitle={`Visit ${row.visit_number} · ${formatMoney(row.balance_due)}`}
+                      badge={<span className={c.badgePending}>Payment due</span>}
+                      active={row.bill_id === activeBillId}
+                      onClick={() => handleGetStarted(row)}
+                      openLabel="Get started"
+                    />
                   ))
                 )}
               </div>

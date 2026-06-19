@@ -1,4 +1,5 @@
 /** Tailwind class tokens for the EHR interface. */
+import { greenCard, greenCardLg, greenOn } from '../../styles/cardSurfaces';
 
 export const ehr = {
   page: 'mx-auto w-full max-w-6xl space-y-6',
@@ -19,27 +20,24 @@ export const ehr = {
   badgeDanger: 'bg-rose-500/25 text-rose-50 ring-1 ring-rose-400/30',
   badgeNeutral: 'bg-white/15 text-slate-100 ring-1 ring-white/20',
   statsGrid: 'grid gap-4 sm:grid-cols-3',
-  statCard:
-    'rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md',
-  statLabel: 'text-xs font-semibold uppercase tracking-wide text-slate-500',
-  statValue: 'mt-1 text-2xl font-bold text-slate-900',
+  statCard: `${greenCard} p-4 transition hover:shadow-lg`,
+  statLabel: `${greenOn.fieldLabel} text-xs font-semibold uppercase tracking-wide`,
+  statValue: 'mt-1 text-2xl font-bold text-white',
   layout: 'grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]',
-  panel:
-    'rounded-2xl border border-slate-200 bg-white p-5 shadow-sm',
-  panelTitle: 'text-sm font-bold uppercase tracking-wide text-teal-800',
-  fieldLabel: 'text-xs font-medium uppercase tracking-wide text-slate-400',
-  fieldValue: 'mt-0.5 text-sm font-semibold text-slate-900',
-  fieldValueMuted: 'mt-0.5 text-sm text-slate-700',
+  panel: `${greenCardLg} p-5`,
+  panelTitle: `${greenOn.titleSm} uppercase tracking-wide`,
+  fieldLabel: `${greenOn.fieldLabel} text-xs font-medium uppercase tracking-wide`,
+  fieldValue: `${greenOn.fieldValue} mt-0.5 text-sm`,
+  fieldValueMuted: `${greenOn.muted} mt-0.5 text-sm`,
   timelineHead: 'mb-4 flex flex-wrap items-center justify-between gap-2',
-  timelineTitle: 'text-lg font-bold text-slate-900',
-  visitCard:
-    'rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-teal-200',
-  visitCardOpen: 'border-teal-300 ring-1 ring-teal-100',
+  timelineTitle: greenOn.title,
+  visitCard: `${greenCard} shadow-sm transition hover:border-emerald-300`,
+  visitCardOpen: 'border-emerald-300 ring-1 ring-emerald-200/50',
   visitHeader:
-    'flex w-full flex-wrap items-start justify-between gap-3 p-4 text-left transition hover:bg-slate-50/80',
-  visitBody: 'border-t border-slate-100 bg-slate-50/50 px-4 py-4',
-  sectionBlock: 'rounded-lg border border-slate-200 bg-white p-3',
-  sectionTitle: 'text-xs font-bold uppercase tracking-wide text-slate-500',
+    'flex w-full flex-wrap items-start justify-between gap-3 p-4 text-left transition hover:bg-white/10',
+  visitBody: 'border-t border-white/20 bg-black/10 px-4 py-4',
+  sectionBlock: `${greenCard} p-3`,
+  sectionTitle: `${greenOn.fieldLabel} text-xs font-bold uppercase tracking-wide`,
   empty:
     'rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500',
   skeleton: 'animate-pulse rounded-lg bg-slate-200',

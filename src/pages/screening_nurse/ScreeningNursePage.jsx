@@ -9,6 +9,7 @@ import {
   validateRefusalDischargeReason,
 } from '../../utils/dischargeDocumentation';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import ParameterHandoverPanel from './components/ParameterHandoverPanel';
@@ -368,35 +369,19 @@ export default function ScreeningNursePage() {
                   </p>
                 ) : (
                   filteredQueue.map((p) => (
-                    <article
+                    <QueueEntryCard
                       key={p.entryId}
-                      role="button"
-                      tabIndex={isLockedToOther(p) ? -1 : 0}
-                      className={`${c.queueCard} cursor-pointer ${
-                        p.entryId === activeEntryId ? c.queueCardActive : ''
-                      } ${isLockedToOther(p) ? `${c.queueCardLocked} cursor-not-allowed` : ''} ${
-                        p.isEmergency ? c.queueCardEmergency : ''
-                      }`}
+                      classes={c}
+                      name={p.name}
+                      meta={p.sexAge}
+                      idLabel={p.patientIdLabel}
+                      badge={renderBadge(p)}
+                      active={p.entryId === activeEntryId}
+                      locked={isLockedToOther(p)}
+                      emergency={p.isEmergency}
                       onClick={() => handleSelectPatient(p)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleSelectPatient(p);
-                        }
-                      }}
-                    >
-                      <div>{renderBadge(p)}</div>
-                      <p className={c.queueName}>{p.name}</p>
-                      <p className={c.queueMeta}>{p.sexAge}</p>
-                      <p className={c.queueId}>{p.patientIdLabel}</p>
-                      {isLockedToOther(p) ? (
-                        <p className="mt-2 text-xs font-semibold text-slate-500">Locked by another nurse</p>
-                      ) : (
-                        <p className="mt-2 text-xs font-semibold text-teal-700">
-                          {p.entryId === activeEntryId ? 'Selected — detail view open' : 'Click to open'}
-                        </p>
-                      )}
-                    </article>
+                      lockedLabel="Locked by another nurse"
+                    />
                   ))
                 )}
               </div>

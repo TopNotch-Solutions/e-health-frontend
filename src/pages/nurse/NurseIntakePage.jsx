@@ -7,6 +7,7 @@ import { useNurseQueue, useNurseSession, pickAutoResumeEntry } from './hooks/use
 import NurseIntakeForm from './components/NurseIntakeForm';
 import { emptyIntakeForm, buildIntakePayload, validateIntakeForm } from './nurseIntakeForm';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from './styles/nurseClasses';
 
@@ -17,20 +18,6 @@ function QueueEmptyIcon() {
     <svg width="72" height="72" viewBox="0 0 24 24" fill="none" aria-hidden className="text-slate-300">
       <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
       <path d="M8 9h8M8 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M20 6L9 17l-5-5"
-        stroke="currentColor"
-        strokeWidth="2.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }
@@ -123,8 +110,7 @@ export default function NurseIntakePage() {
     return patient.status === 'in_progress' && patient.assignedToId === userId;
   }
 
-  async function handleStartVitals(patient, e) {
-    e.stopPropagation();
+  async function handleStartVitals(patient) {
     if (isLockedToOther(patient) || actionLoading) return;
 
     setActionLoading(true);
@@ -218,50 +204,6 @@ export default function NurseIntakePage() {
       return next;
     });
     setSubmitError('');
-  }
-
-  function renderCardAction(patient) {
-    if (patient.status === 'completed') {
-      return (
-        <div className={c.cardDone} aria-label="Vitals completed">
-          <CheckIcon />
-          <span>Completed</span>
-        </div>
-      );
-    }
-
-    if (isLockedToOther(patient)) {
-      return (
-        <button type="button" className={c.btnCardLocked} disabled>
-          <LockIcon />
-          Locked
-        </button>
-      );
-    }
-
-    if (patient.status === 'in_progress') {
-      return (
-        <button
-          type="button"
-          className={c.btnCardResume}
-          disabled={actionLoading}
-          onClick={(e) => handleStartVitals(patient, e)}
-        >
-          Resume
-        </button>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        className={c.btnCardPrimary}
-        disabled={actionLoading}
-        onClick={(e) => handleStartVitals(patient, e)}
-      >
-        Start Vitals
-      </button>
-    );
   }
 
   function renderBadge(patient) {
@@ -367,20 +309,21 @@ export default function NurseIntakePage() {
               </p>
             ) : (
               filteredQueue.map((p) => (
-                <article
+                <QueueEntryCard
                   key={p.entryId}
-                  className={`${c.queueCard} ${
-                    p.entryId === activeEntryId ? c.queueCardActive : ''
-                  } ${isLockedToOther(p) ? c.queueCardLocked : ''} ${
-                    p.isEmergency && p.status !== 'completed' ? c.queueCardEmergency : ''
-                  }`}
-                >
-                  <div>{renderBadge(p)}</div>
-                  <p className={c.queueName}>{p.name}</p>
-                  <p className={c.queueMeta}>{p.sexAge}</p>
-                  <p className={c.queueId}>{p.patientIdLabel}</p>
-                  {renderCardAction(p)}
-                </article>
+                  classes={c}
+                  name={p.name}
+                  meta={p.sexAge}
+                  idLabel={p.patientIdLabel}
+                  badge={renderBadge(p)}
+                  active={p.entryId === activeEntryId}
+                  locked={isLockedToOther(p)}
+                  emergency={p.isEmergency && p.status !== 'completed'}
+                  completed={p.status === 'completed'}
+                  disabled={actionLoading}
+                  onClick={() => handleStartVitals(p)}
+                  openLabel="Start vitals"
+                />
               ))
             )}
           </div>

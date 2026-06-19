@@ -7,6 +7,7 @@ import {
   escalatePapSmearToMasterDoctor,
 } from '../../api/papSmearSuite';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import PapSmearSuiteTopbar from './components/PapSmearSuiteTopbar';
@@ -299,26 +300,17 @@ export default function PapSmearSuitePage() {
                   <p className={c.hint}>No patients in the Pap Smear suite queue.</p>
                 ) : (
                   filteredQueue.map((p) => (
-                    <article
+                    <QueueEntryCard
                       key={p.entryId}
-                      role="button"
-                      tabIndex={isLockedToOther(p) ? -1 : 0}
-                      className={`${c.queueCard} cursor-pointer ${
-                        p.entryId === activeEntryId ? c.queueCardActive : ''
-                      } ${isLockedToOther(p) ? `${c.queueCardLocked} cursor-not-allowed` : ''}`}
+                      classes={c}
+                      name={p.name}
+                      meta={p.sexAge}
+                      idLabel={p.patientIdLabel}
+                      badge={renderBadge(p)}
+                      active={p.entryId === activeEntryId}
+                      locked={isLockedToOther(p)}
                       onClick={() => handleSelectPatient(p)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleSelectPatient(p);
-                        }
-                      }}
-                    >
-                      <div>{renderBadge(p)}</div>
-                      <p className={c.queueName}>{p.name}</p>
-                      <p className={c.queueMeta}>{p.sexAge}</p>
-                      <p className={c.queueId}>{p.patientIdLabel}</p>
-                    </article>
+                    />
                   ))
                 )}
               </div>

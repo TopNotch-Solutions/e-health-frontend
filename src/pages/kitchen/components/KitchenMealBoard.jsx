@@ -3,6 +3,7 @@ import { confirmAction } from '../../../utils/confirmAction';
 import { markMealDispensed, markMealPrepared } from '../../../api/kitchen';
 import { dietTypeLabel } from '../../../constants/dietTypes';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
+import { greenCard, greenOn } from '../../styles/cardSurfaces';
 
 const MEAL_TABS = [
   { id: 'breakfast', label: 'Breakfast' },
@@ -23,39 +24,39 @@ function statusPill(row) {
 
 function MealCard({ row, actionLoading, onPrepared, onDispensed }) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className={`${greenCard} p-4`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-bold text-slate-900">
+          <p className={greenOn.titleSm}>
             {row.patient_name}
-            <span className="ml-2 font-normal text-slate-500">{row.patient_number}</span>
+            <span className={`ml-2 font-normal ${greenOn.hint}`}>{row.patient_number}</span>
           </p>
-          <p className="mt-1 text-sm font-semibold text-teal-800">{row.location_label}</p>
-          <p className="mt-0.5 text-xs text-slate-500 capitalize">{row.meal_type}</p>
+          <p className={`mt-1 text-sm font-semibold ${greenOn.body}`}>{row.location_label}</p>
+          <p className={`mt-0.5 text-xs capitalize ${greenOn.hint}`}>{row.meal_type}</p>
         </div>
         {statusPill(row)}
       </div>
 
-      <dl className="mt-3 grid gap-1 text-sm text-slate-700">
+      <dl className={`mt-3 grid gap-1 text-sm ${greenOn.body}`}>
         <div>
-          <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Diet</dt>
+          <dt className={`text-xs font-bold uppercase tracking-wide ${greenOn.fieldLabel}`}>Diet</dt>
           <dd className="font-medium">{dietTypeLabel(row.diet_type)}</dd>
         </div>
         {row.diet_description ? (
           <div>
-            <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Notes</dt>
+            <dt className={`text-xs font-bold uppercase tracking-wide ${greenOn.fieldLabel}`}>Notes</dt>
             <dd>{row.diet_description}</dd>
           </div>
         ) : null}
         {row.diet_restrictions ? (
           <div>
-            <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Restrictions</dt>
+            <dt className={`text-xs font-bold uppercase tracking-wide ${greenOn.fieldLabel}`}>Restrictions</dt>
             <dd className="text-amber-900">{row.diet_restrictions}</dd>
           </div>
         ) : null}
         {row.diet_special_instructions ? (
           <div>
-            <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Special instructions</dt>
+            <dt className={`text-xs font-bold uppercase tracking-wide ${greenOn.fieldLabel}`}>Special instructions</dt>
             <dd>{row.diet_special_instructions}</dd>
           </div>
         ) : null}
@@ -146,9 +147,9 @@ export default function KitchenMealBoard({
             { label: 'Prepared', value: stats.prepared },
             { label: 'Served', value: stats.dispensed },
           ].map((k) => (
-            <div key={k.label} className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-              <p className="text-2xl font-bold text-slate-900">{k.value}</p>
-              <p className="text-xs text-slate-500">{k.label}</p>
+            <div key={k.label} className={`${greenCard} px-3 py-2`}>
+              <p className={`text-2xl font-bold ${greenOn.fieldValue}`}>{k.value}</p>
+              <p className={`text-xs ${greenOn.hint}`}>{k.label}</p>
             </div>
           ))}
         </div>

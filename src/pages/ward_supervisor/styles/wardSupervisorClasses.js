@@ -1,4 +1,5 @@
 import { nurse as base, topbar } from '../../nurse/styles/nurseClasses';
+import { greenCard, greenOn } from '../../styles/cardSurfaces';
 
 /** Ward supervisor — same shell as clinical modules, teal/green accent. */
 export const ws = {
@@ -14,9 +15,8 @@ export const ws = {
     'rounded-lg border border-white/20 bg-white/10 px-2.5 py-2 backdrop-blur-sm transition hover:bg-white/15',
   kpiValue: 'text-lg font-bold tabular-nums sm:text-xl',
   kpiLabel: 'mt-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-teal-100',
-  wardCard:
-    'w-full rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-teal-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500/30',
-  wardCardActive: 'border-teal-500 bg-teal-50/50 ring-2 ring-teal-500/20',
+  wardCard: `${greenCard} w-full p-4 text-left transition hover:border-emerald-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-500/30`,
+  wardCardActive: 'border-emerald-300 bg-emerald-700/40 ring-2 ring-emerald-300/40',
   wardTypePill:
     'inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-slate-600',
   miniStatRow: 'mt-3 flex flex-wrap gap-2',
@@ -32,10 +32,9 @@ export const ws = {
   bedNumber: 'mt-0.5 text-base font-bold text-slate-900',
   bedStatus:
     'mt-2 inline-flex w-fit rounded-full px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-wide',
-  sectionPanel:
-    'rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4',
-  sectionTitle: 'text-sm font-bold text-slate-900',
-  panelHeader: 'flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-3',
+  sectionPanel: `${greenCard} p-3 sm:p-4`,
+  sectionTitle: greenOn.titleSm,
+  panelHeader: 'flex flex-wrap items-start justify-between gap-2 border-b border-white/20 pb-3',
   tabGroup:
     'mb-3 flex shrink-0 gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm',
   tabBtn:
@@ -57,6 +56,6 @@ export const ws = {
   wardInfoHeader: 'shrink-0',
   workspaceScroll: 'min-h-0 flex-1 overflow-y-auto',
   chartGrid: 'grid grid-cols-1 gap-3 lg:grid-cols-2',
-  chartPanel: 'rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4',
+  chartPanel: `${greenCard} p-3 sm:p-4`,
   chartBox: 'mt-3 h-56 w-full sm:h-60',
 };

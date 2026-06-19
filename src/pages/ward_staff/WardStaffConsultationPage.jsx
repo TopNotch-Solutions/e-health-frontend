@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../utils/confirmAction';
 import { getWardAdmission } from '../../api/ward';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import WardStaffTopbar from './components/WardStaffTopbar';
 import WardStaffWorkspace from './components/WardStaffWorkspace';
@@ -111,8 +112,7 @@ export default function WardStaffConsultationPage() {
   const sessionActive = Boolean(activeAdmissionId);
   const showWorkspace = sessionActive && detail && !detailLoading && !detailError;
 
-  async function handleOpen(row, e) {
-    e?.stopPropagation();
+  async function handleOpen(row) {
     setQueueActionError('');
     setWorkspaceError('');
     if (activeAdmissionId && activeAdmissionId !== row.id) {
@@ -244,37 +244,30 @@ export default function WardStaffConsultationPage() {
                   </p>
                 ) : (
                   filteredQueue.map((row) => (
-                    <article
+                    <QueueEntryCard
                       key={row.id}
-                      className={`${c.queueCard} ${row.id === activeAdmissionId ? c.queueCardActive : ''}`}
-                    >
-                      <div className="flex flex-wrap items-center gap-1">
-                        <span className={c.badgePending}>Awaiting arrival</span>
-                        {row.isEmergency ? (
-                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[0.58rem] font-bold uppercase text-red-800">
-                            Emergency
-                          </span>
-                        ) : (
-                          priorityBadge(row.transportPriority)
-                        )}
-                      </div>
-                      <p className={c.queueName}>{row.patientName}</p>
-                      {row.patientNumber ? <p className={c.queueId}>ID: {row.patientNumber}</p> : null}
-                      <p className="mt-1 text-xs font-semibold text-teal-800">
-                        {row.wardName} ({row.wardNumber})
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-600">
-                        Room {row.roomNumber} · Bed {row.bedNumber}
-                      </p>
-                      <button
-                        type="button"
-                        className={c.btnCardPrimary}
-                        disabled={actionLoading}
-                        onClick={(e) => handleOpen(row, e)}
-                      >
-                        Open patient
-                      </button>
-                    </article>
+                      classes={c}
+                      name={row.patientName}
+                      idLabel={row.patientNumber ? `ID: ${row.patientNumber}` : undefined}
+                      subtitle={`${row.wardName} (${row.wardNumber}) · Room ${row.roomNumber} · Bed ${row.bedNumber}`}
+                      badge={(
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className={c.badgePending}>Awaiting arrival</span>
+                          {row.isEmergency ? (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[0.58rem] font-bold uppercase text-red-800">
+                              Emergency
+                            </span>
+                          ) : (
+                            priorityBadge(row.transportPriority)
+                          )}
+                        </div>
+                      )}
+                      active={row.id === activeAdmissionId}
+                      emergency={row.isEmergency}
+                      disabled={actionLoading}
+                      onClick={() => handleOpen(row)}
+                      openLabel="Open patient"
+                    />
                   ))
                 )}
               </div>

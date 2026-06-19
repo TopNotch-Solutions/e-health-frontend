@@ -48,8 +48,8 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
       </div>
 
       <div className={`${c.sectionPanel} mb-3`}>
-        <h3 className={c.sectionTitle}>Configuration</h3>
-        <ul className="mt-3 space-y-2 text-sm text-slate-600">
+        <h3 className={c.cardTitle}>Configuration</h3>
+        <ul className="mt-3 space-y-2 text-sm text-emerald-50">
           <li>
             System administrators operate nationally — they manage all state hospitals and clinics,
             including staff onboarding, transfers, and facility registration.
@@ -60,9 +60,10 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
         </ul>
       </div>
 
-      <h3 className="mb-3 text-sm font-semibold text-slate-800">Audit logs</h3>
-      <div className={c.tableWrap}>
-        <table className={c.table}>
+      <div className={c.sectionPanel}>
+        <h3 className={`${c.cardTitle} mb-3`}>Audit logs</h3>
+        <div className={`${c.tableWrap} border-0 bg-white/10 shadow-none`}>
+          <table className={c.table}>
           <thead>
             <tr>
               <th className={c.th}>Time</th>
@@ -72,7 +73,7 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
               <th className={c.th}>Details</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/10">
             {loading ? (
               <tr>
                 <td colSpan={5} className={c.tdMuted}>
@@ -98,6 +99,7 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -67,12 +67,12 @@ function VisitAttendeeTable({ visits }) {
             const stops = visit.stops || [];
             if (!stops.length) {
               return [(
-                <tr key={visit.id} className="border-t-2 border-slate-200">
+                <tr key={visit.id} className="border-t-2 border-white/20">
                   <td className={c.tdMuted}>{visit.facility_name || '—'}</td>
                   <td className={c.td}>
                     <div className="font-mono text-xs font-semibold">{visit.visit_number || '—'}</div>
                     {visit.created_at ? (
-                      <div className="mt-0.5 text-[0.65rem] text-slate-500">
+                      <div className="mt-0.5 text-[0.65rem] text-emerald-100/80">
                         {formatDateTime(visit.created_at)}
                       </div>
                     ) : null}
@@ -87,7 +87,7 @@ function VisitAttendeeTable({ visits }) {
             return stops.map((stop, idx) => (
               <tr
                 key={`${visit.id}-${stop.department}-${idx}`}
-                className={idx === 0 ? 'border-t-2 border-slate-200' : ''}
+                className={idx === 0 ? 'border-t-2 border-white/20' : ''}
               >
                 {idx === 0 ? (
                   <>
@@ -97,12 +97,12 @@ function VisitAttendeeTable({ visits }) {
                     <td className={`${c.td} align-top`} rowSpan={stops.length}>
                       <div className="font-mono text-xs font-semibold">{visit.visit_number || '—'}</div>
                       {visit.created_at ? (
-                        <div className="mt-0.5 text-[0.65rem] text-slate-500">
+                        <div className="mt-0.5 text-[0.65rem] text-emerald-100/80">
                           {formatDateTime(visit.created_at)}
                         </div>
                       ) : null}
                       {visit.visit_type ? (
-                        <div className="mt-0.5 text-[0.65rem] capitalize text-slate-500">
+                        <div className="mt-0.5 text-[0.65rem] capitalize text-emerald-100/80">
                           {visit.visit_type.replace(/_/g, ' ')}
                         </div>
                       ) : null}
@@ -291,8 +291,8 @@ export default function PatientRecordsView() {
         <div className={`${c.sectionPanel} mt-4`}>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Matching patients</h3>
-              <p className="text-sm text-slate-500">{results.length} matches — select a patient to open records.</p>
+              <h3 className={c.cardTitle}>Matching patients</h3>
+              <p className={c.cardDesc}>{results.length} matches — select a patient to open records.</p>
             </div>
             <button type="button" className={c.btnSecondary} onClick={handleBackToSearch}>
               Back to search
@@ -319,10 +319,10 @@ export default function PatientRecordsView() {
               <button type="button" className={`${c.btnSecondary} mb-3`} onClick={handleBackFromRecord}>
                 ← {results.length > 1 ? 'Back to patient list' : 'Back to search'}
               </button>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className={c.cardTitle}>
                 {patient ? patientName(patient) : 'Loading…'}
               </h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className={`${c.cardDesc} mt-1`}>
                 {patient?.patient_number ? (
                   <span className="font-mono">{patient.patient_number}</span>
                 ) : null}

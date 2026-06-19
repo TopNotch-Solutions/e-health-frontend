@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../utils/confirmAction';
 import { getTransportRequest } from '../../api/transport';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import PorterTopbar from './components/PorterTopbar';
 import PorterWorkspace from './components/PorterWorkspace';
@@ -108,8 +109,7 @@ export default function PorterConsultationPage() {
   const sessionActive = Boolean(activeTransportId);
   const showWorkspace = sessionActive && detail && !detailLoading && !detailError;
 
-  async function handleOpen(row, e) {
-    e?.stopPropagation();
+  async function handleOpen(row) {
     setQueueActionError('');
     setWorkspaceError('');
     if (activeTransportId && activeTransportId !== row.id) {
@@ -239,29 +239,23 @@ export default function PorterConsultationPage() {
                   </p>
                 ) : (
                   filteredQueue.map((row) => (
-                    <article
+                    <QueueEntryCard
                       key={row.id}
-                      className={`${c.queueCard} ${row.id === activeTransportId ? c.queueCardActive : ''}`}
-                    >
-                      <div className="flex flex-wrap items-center gap-1">
-                        {statusBadge(row.status)}
-                        {priorityBadge(row.priority)}
-                      </div>
-                      <p className={c.queueName}>{row.patientName}</p>
-                      {row.patientNumber ? <p className={c.queueId}>ID: {row.patientNumber}</p> : null}
-                      <p className="mt-1 text-xs font-semibold text-slate-700">
-                        {row.fromLocation} → {row.toLocation}
-                      </p>
-                      <p className="mt-0.5 text-xs capitalize text-slate-600">Mode: {row.equipmentRequired}</p>
-                      <button
-                        type="button"
-                        className={c.btnCardPrimary}
-                        disabled={actionLoading}
-                        onClick={(e) => handleOpen(row, e)}
-                      >
-                        Open job
-                      </button>
-                    </article>
+                      classes={c}
+                      name={row.patientName}
+                      idLabel={row.patientNumber ? `ID: ${row.patientNumber}` : undefined}
+                      subtitle={`${row.fromLocation} → ${row.toLocation} · Mode: ${row.equipmentRequired}`}
+                      badge={(
+                        <div className="flex flex-wrap items-center gap-1">
+                          {statusBadge(row.status)}
+                          {priorityBadge(row.priority)}
+                        </div>
+                      )}
+                      active={row.id === activeTransportId}
+                      disabled={actionLoading}
+                      onClick={() => handleOpen(row)}
+                      openLabel="Open job"
+                    />
                   ))
                 )}
               </div>

@@ -14,6 +14,7 @@ import {
   getMaternityStateHospitals,
 } from '../../../api/maternity';
 import ActiveSessionQueueAside from '../../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../../components/queue/QueueEntryCard';
 import MaternityMedicalHistoryPanel from '../../../components/patient/MaternityMedicalHistoryPanel';
 import { sortQueueEmergencyFirst } from '../../../utils/queueDisplay';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
@@ -510,18 +511,15 @@ export default function MaternityStationPage({ stationConfig }) {
                   <p className={c.hint}>No patients in queue.</p>
                 ) : (
                   filteredQueue.map((p) => (
-                    <article
+                    <QueueEntryCard
                       key={p.entryId}
-                      role="button"
-                      tabIndex={0}
-                      className={`${c.queueCard} cursor-pointer ${p.entryId === activeEntryId ? c.queueCardActive : ''}`}
+                      classes={c}
+                      name={p.name}
+                      meta={p.sexAge}
+                      idLabel={p.patientIdLabel}
+                      active={p.entryId === activeEntryId}
                       onClick={() => handleSelectPatient(p)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectPatient(p); } }}
-                    >
-                      <p className={c.queueName}>{p.name}</p>
-                      <p className={c.queueMeta}>{p.sexAge}</p>
-                      <p className={c.queueId}>{p.patientIdLabel}</p>
-                    </article>
+                    />
                   ))
                 )}
               </div>

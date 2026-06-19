@@ -4,6 +4,7 @@ import DoctorTopbar from './components/DoctorTopbar';
 import DoctorWorkspace from './components/DoctorWorkspace';
 import { useDoctorQueue, useDoctorSession, pickAutoResumeEntry } from './hooks/useDoctorQueue';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { confirmStartPatientSession } from '../../utils/confirmAction';
 import { layout as c } from './styles/doctorLayoutClasses';
@@ -15,20 +16,6 @@ function QueueEmptyIcon() {
     <svg width="72" height="72" viewBox="0 0 24 24" fill="none" aria-hidden className="text-slate-300">
       <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
       <path d="M8 9h8M8 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M20 6L9 17l-5-5"
-        stroke="currentColor"
-        strokeWidth="2.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }
@@ -114,8 +101,7 @@ export default function DoctorConsultationPage() {
     return patient.status === 'in_progress' && patient.assignedToId === userId;
   }
 
-  async function handleStartConsultation(patient, e) {
-    e.stopPropagation();
+  async function handleStartConsultation(patient) {
     if (patient.status === 'completed' || isLockedToOther(patient) || actionLoading) return;
 
     const starting = patient.status === 'pending';
@@ -141,50 +127,6 @@ export default function DoctorConsultationPage() {
     setActiveEntryId(null);
     setWorkspaceError('');
     refresh();
-  }
-
-  function renderCardAction(patient) {
-    if (patient.status === 'completed') {
-      return (
-        <div className={c.cardDone} aria-label="Consultation completed">
-          <CheckIcon />
-          <span>Completed</span>
-        </div>
-      );
-    }
-
-    if (isLockedToOther(patient)) {
-      return (
-        <button type="button" className={c.btnCardLocked} disabled>
-          <LockIcon />
-          Locked
-        </button>
-      );
-    }
-
-    if (patient.status === 'in_progress') {
-      return (
-        <button
-          type="button"
-          className={c.btnCardResume}
-          disabled={actionLoading}
-          onClick={(e) => handleStartConsultation(patient, e)}
-        >
-          Resume
-        </button>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        className={c.btnCardPrimary}
-        disabled={actionLoading}
-        onClick={(e) => handleStartConsultation(patient, e)}
-      >
-        Start Consultation
-      </button>
-    );
   }
 
   function renderBadge(patient) {
@@ -290,20 +232,22 @@ export default function DoctorConsultationPage() {
                   </p>
                 ) : (
                   filteredQueue.map((p) => (
-                    <article
+                    <QueueEntryCard
                       key={p.entryId}
-                      className={`${c.queueCard} ${
-                        p.entryId === activeEntryId ? c.queueCardActive : ''
-                      } ${isLockedToOther(p) ? c.queueCardLocked : ''} ${
-                        p.isEmergency && p.status !== 'completed' ? c.queueCardEmergency : ''
-                      }`}
-                    >
-                      <div>{renderBadge(p)}</div>
-                      <p className={c.queueName}>{p.name}</p>
-                      <p className={c.queueMeta}>{p.sexAge}</p>
-                      <p className={c.queueId}>{p.patientIdLabel}</p>
-                      {renderCardAction(p)}
-                    </article>
+                      classes={c}
+                      name={p.name}
+                      meta={p.sexAge}
+                      idLabel={p.patientIdLabel}
+                      badge={renderBadge(p)}
+                      active={p.entryId === activeEntryId}
+                      locked={isLockedToOther(p)}
+                      emergency={p.isEmergency && p.status !== 'completed'}
+                      completed={p.status === 'completed'}
+                      disabled={actionLoading}
+                      onClick={() => handleStartConsultation(p)}
+                      openLabel="Start consultation"
+                      activeLabel="Consultation open"
+                    />
                   ))
                 )}
               </div>
@@ -317,8 +261,7 @@ export default function DoctorConsultationPage() {
               <QueueEmptyIcon />
               <h3 className={c.idleTitle}>No patient selected</h3>
               <p className={c.idleText}>
-                Select a patient from the queue and click &lsquo;Start Consultation&rsquo; to open
-                their record.
+                Select a patient from the queue — click their card to start or resume a consultation.
               </p>
             </div>
           ) : (

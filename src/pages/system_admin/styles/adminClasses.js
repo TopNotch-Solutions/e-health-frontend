@@ -1,6 +1,8 @@
 import { nurse as base, topbar } from '../../nurse/styles/nurseClasses';
 import { searchCard } from '../../front_office/styles/frontOfficeClasses';
+import { greenCard, greenOn, greenTable } from '../../styles/cardSurfaces';
 
+/** Shared green card surface for admin panels, tables, and metrics. */
 /** System admin — same shell as clinical/supervisor modules (teal primary, slate neutrals). */
 export const admin = {
   ...base,
@@ -22,32 +24,34 @@ export const admin = {
   mainScroll: 'min-h-0 flex-1 overflow-y-auto pr-1',
   sectionTitle: 'text-base font-bold text-slate-900',
   sectionDesc: 'mt-0.5 text-sm text-slate-500',
-  hero:
+  cardTitle: greenOn.title,
+  cardDesc: greenOn.desc,
+  cardBody: greenOn.body,
+  cardFieldLabel: greenOn.fieldLabel,
+  cardFieldValue: greenOn.fieldValue,
+  cardLink: greenOn.link,  hero:
     'relative overflow-hidden rounded-xl border border-teal-200/80 bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 p-4 text-white shadow-lg shadow-teal-900/15 sm:p-5',
   heroTitle: 'text-lg font-bold tracking-tight sm:text-xl',
   heroSub: 'mt-1 max-w-xl text-xs leading-snug text-teal-100',
   kpiGrid: 'mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4',
   kpiCard:
-    'rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur-sm transition hover:bg-white/15',
+    'rounded-lg border border-emerald-400/30 bg-emerald-900/25 px-3 py-2.5 backdrop-blur-sm transition hover:bg-emerald-900/35',
   kpiValue: 'text-xl font-bold tabular-nums sm:text-2xl',
   kpiLabel: 'mt-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-teal-100',
   kpiHint: 'mt-0.5 text-[0.6rem] text-teal-100/80',
-  sectionPanel:
-    'rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4',
+  sectionPanel: `${greenCard} p-3 sm:p-4`,
   panelHeader: 'flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-3',
-  card: 'rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5',
+  card: `${greenCard} p-4 sm:p-5`,
   metricGrid: 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3',
-  metricCard:
-    'rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-teal-200',
-  metricValue: 'text-2xl font-bold text-teal-800 tabular-nums',
-  metricLabel: 'mt-1 text-sm font-semibold text-slate-700',
-  metricHint: 'mt-0.5 text-xs text-slate-500',
+  metricCard: `${greenCard} p-4 transition hover:border-emerald-300 hover:shadow-lg`,
+  metricValue: 'text-2xl font-bold text-white tabular-nums',
+  metricLabel: 'mt-1 text-sm font-semibold text-emerald-50',
+  metricHint: 'mt-0.5 text-xs text-emerald-100',
   icd10StatGrid: 'grid gap-3 sm:grid-cols-2 max-w-2xl',
-  icd10StatCard:
-    'rounded-xl border border-teal-500/40 bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 p-4 text-white shadow-md shadow-teal-900/20',
+  icd10StatCard: `${greenCard} p-4`,
   icd10StatValue: 'text-2xl font-bold tabular-nums text-white sm:text-3xl',
   icd10StatLabel: 'mt-1 text-sm font-semibold text-white',
-  icd10StatHint: 'mt-0.5 text-xs text-teal-100',
+  icd10StatHint: 'mt-0.5 text-xs text-emerald-100',
   btnPrimary:
     'inline-flex min-h-[2.25rem] items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-60 sm:text-sm sm:min-h-[2.5rem]',
   btnSecondary:
@@ -56,13 +60,12 @@ export const admin = {
     'inline-flex min-h-[2rem] items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 disabled:opacity-60',
   btnSuccess:
     'inline-flex min-h-[2rem] items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100 disabled:opacity-60',
-  tableWrap: 'overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-sm',
-  table: 'min-w-full divide-y divide-slate-200 text-sm',
-  th: 'bg-slate-50 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500',
-  td: 'px-4 py-3 text-slate-700',
-  tdMuted: 'px-4 py-3 text-sm text-slate-500',
-  rowInactive: 'bg-slate-50/90 text-slate-400',
-  badgeActive:
+  tableWrap: greenTable.wrap,
+  table: greenTable.table,
+  th: greenTable.th,
+  td: greenTable.td,
+  tdMuted: greenTable.tdMuted,
+  rowInactive: greenTable.rowInactive,  badgeActive:
     'inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-emerald-800',
   badgeInactive:
     'inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-slate-600',
@@ -74,13 +77,12 @@ export const admin = {
   modalTitle: 'text-lg font-bold text-slate-900',
   modalSub: 'mt-1 text-sm text-slate-500',
   facilityGrid: 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3',
-  facilityCard:
-    'rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-teal-300 hover:shadow-md',
+  facilityCard: `${greenCard} p-4 transition hover:border-emerald-300 hover:shadow-lg`,
   toolbar: 'mb-3 flex flex-wrap items-center gap-3 justify-between',
   filters: 'mb-3 flex flex-wrap items-center gap-2',
   footerLink: 'font-semibold text-teal-700 hover:underline',
   chartGrid: 'grid grid-cols-1 gap-3 lg:grid-cols-2',
-  chartPanel: 'rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4',
+  chartPanel: `${greenCard} p-3 sm:p-4`,
   chartBox: 'mt-3 h-56 w-full sm:h-60',
 };
 

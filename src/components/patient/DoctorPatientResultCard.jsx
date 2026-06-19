@@ -18,8 +18,8 @@ export default function DoctorPatientResultCard({
       }`}
     >
       <span className={lookup.returningBadge}>Patient record</span>
-      <h3 className="mt-3 text-xl font-bold text-slate-900">{patientName(patient)}</h3>
-      <p className="mt-1 text-sm text-slate-600">
+      <h3 className={`mt-3 text-xl ${lookup.resultsTitle}`}>{patientName(patient)}</h3>
+      <p className={`mt-1 ${lookup.resultsSubtitle}`}>
         <span className="font-mono font-semibold">{patient.patient_number || '—'}</span>
         {patient.id_number ? (
           <>
@@ -28,7 +28,7 @@ export default function DoctorPatientResultCard({
           </>
         ) : null}
       </p>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className={`mt-1 ${lookup.resultsSubtitle}`}>
         {patient.sex ? `${patient.sex.charAt(0).toUpperCase()}${patient.sex.slice(1)}` : '—'}
         {patient.date_of_birth ? ` · DOB ${formatDob(patient.date_of_birth)}` : ''}
         {age != null ? ` · Age ${age}` : ''}

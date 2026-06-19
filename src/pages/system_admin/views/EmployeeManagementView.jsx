@@ -106,7 +106,7 @@ export default function EmployeeManagementView({
               <th className={c.th}>Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/10">
             {loading ? (
               <tr>
                 <td colSpan={8} className={c.tdMuted}>

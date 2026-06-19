@@ -3,6 +3,7 @@ import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from 
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getClinicalTimeline } from '../../api/vitals';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import EmergencyUnitNurseTopbar from './components/EmergencyUnitNurseTopbar';
@@ -156,12 +157,17 @@ export default function EmergencyUnitNursePage() {
                 {loading ? <p className={c.hint}>Loading…</p> : filteredQueue.length === 0 ? (
                   <p className={c.hint}>No patients in the emergency queue.</p>
                 ) : filteredQueue.map((p) => (
-                  <article key={p.entryId} role="button" tabIndex={0} className={`${c.queueCard} cursor-pointer ${p.entryId === activeEntryId ? c.queueCardActive : ''} ${p.isEmergency ? c.queueCardEmergency : ''}`} onClick={() => handleSelectPatient(p)} onKeyDown={(e) => { if (e.key === 'Enter') handleSelectPatient(p); }}>
-                    <div>{renderBadge(p)}</div>
-                    <p className={c.queueName}>{p.name}</p>
-                    <p className={c.queueMeta}>{p.sexAge}</p>
-                    <p className={c.queueId}>{p.patientIdLabel}</p>
-                  </article>
+                  <QueueEntryCard
+                    key={p.entryId}
+                    classes={c}
+                    name={p.name}
+                    meta={p.sexAge}
+                    idLabel={p.patientIdLabel}
+                    badge={renderBadge(p)}
+                    active={p.entryId === activeEntryId}
+                    emergency={p.isEmergency}
+                    onClick={() => handleSelectPatient(p)}
+                  />
                 ))}
               </div>
             </>

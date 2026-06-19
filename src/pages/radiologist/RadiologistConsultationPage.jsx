@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../utils/confirmAction';
 import { getSonarRequest, startSonarScan } from '../../api/sonar';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import RadiologistTopbar from './components/RadiologistTopbar';
 import RadiologistWorkspace from './components/RadiologistWorkspace';
@@ -97,8 +98,7 @@ export default function RadiologistConsultationPage() {
   const showWorkspace =
     sessionActive && requestDetail && !detailLoading && !detailError;
 
-  async function handleOpenRequest(row, e) {
-    e?.stopPropagation();
+  async function handleOpenRequest(row) {
     setQueueActionError('');
     setWorkspaceError('');
     if (activeRequestId && activeRequestId !== row.id) {
@@ -229,37 +229,32 @@ export default function RadiologistConsultationPage() {
                   </p>
                 ) : (
                   filteredQueue.map((row) => (
-                    <article
+                    <QueueEntryCard
                       key={row.id}
-                      className={`${c.queueCard} ${row.id === activeRequestId ? c.queueCardActive : ''}`}
-                    >
-                      <div className="flex flex-wrap items-center gap-1">
-                        {statusBadge(row.status)}
-                        {row.isEmergency ? (
-                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[0.58rem] font-bold uppercase text-red-800">
-                            Emergency
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className={c.queueName}>{row.patientName}</p>
-                      {row.patientNumber ? (
-                        <p className={c.queueId}>ID: {row.patientNumber}</p>
-                      ) : null}
-                      <p className="mt-1 text-xs text-slate-600 line-clamp-2">{row.scanType}</p>
-                      {row.prepInstructions ? (
-                        <p className="mt-1 text-[0.65rem] text-amber-800 line-clamp-2">
-                          Prep: {row.prepInstructions}
-                        </p>
-                      ) : null}
-                      <button
-                        type="button"
-                        className={c.btnCardPrimary}
-                        disabled={actionLoading}
-                        onClick={(e) => handleOpenRequest(row, e)}
-                      >
-                        Open referral
-                      </button>
-                    </article>
+                      classes={c}
+                      name={row.patientName}
+                      idLabel={row.patientNumber ? `ID: ${row.patientNumber}` : undefined}
+                      subtitle={
+                        row.prepInstructions
+                          ? `${row.scanType} · Prep: ${row.prepInstructions}`
+                          : row.scanType
+                      }
+                      badge={(
+                        <div className="flex flex-wrap items-center gap-1">
+                          {statusBadge(row.status)}
+                          {row.isEmergency ? (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[0.58rem] font-bold uppercase text-red-800">
+                              Emergency
+                            </span>
+                          ) : null}
+                        </div>
+                      )}
+                      active={row.id === activeRequestId}
+                      emergency={row.isEmergency}
+                      disabled={actionLoading}
+                      onClick={() => handleOpenRequest(row)}
+                      openLabel="Open referral"
+                    />
                   ))
                 )}
               </div>

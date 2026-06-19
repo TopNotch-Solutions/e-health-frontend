@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../utils/confirmAction';
 import { getPharmacyPrescription } from '../../api/pharmacy';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import PharmacistTopbar from './components/PharmacistTopbar';
 import PharmacistWorkspace from './components/PharmacistWorkspace';
@@ -112,8 +113,7 @@ export default function PharmacistConsultationPage() {
     }
   }, [activePrescriptionId, refresh]);
 
-  function handleOpenPrescription(rx, e) {
-    e?.stopPropagation();
+  function handleOpenPrescription(rx) {
     setQueueActionError('');
     setWorkspaceError('');
     if (activePrescriptionId && activePrescriptionId !== rx.id) {
@@ -260,22 +260,17 @@ export default function PharmacistConsultationPage() {
                   filteredQueue.map((rx) => {
                     const { name, patientIdLabel } = patientLabel(rx);
                     return (
-                      <article
+                      <QueueEntryCard
                         key={rx.id}
-                        className={`${c.queueCard} ${rx.id === activePrescriptionId ? c.queueCardActive : ''}`}
-                      >
-                        <div>{renderRxBadge(rx)}</div>
-                        <p className={c.queueName}>{name}</p>
-                        {patientIdLabel ? <p className={c.queueId}>{patientIdLabel}</p> : null}
-                        <button
-                          type="button"
-                          className={c.btnCardPrimary}
-                          disabled={actionLoading}
-                          onClick={(e) => handleOpenPrescription(rx, e)}
-                        >
-                          Open prescription
-                        </button>
-                      </article>
+                        classes={c}
+                        name={name}
+                        idLabel={patientIdLabel || undefined}
+                        badge={renderRxBadge(rx)}
+                        active={rx.id === activePrescriptionId}
+                        disabled={actionLoading}
+                        onClick={() => handleOpenPrescription(rx)}
+                        openLabel="Open prescription"
+                      />
                     );
                   })
                 )}

@@ -1,5 +1,6 @@
 import { nurse as base, topbar } from '../../nurse/styles/nurseClasses';
 import { searchCard } from '../../front_office/styles/frontOfficeClasses';
+import { greenCard, greenOn } from '../../styles/cardSurfaces';
 
 export const ex = {
   ...base,
@@ -25,15 +26,14 @@ export const ex = {
   heroTitle: 'text-lg font-bold tracking-tight sm:text-xl',
   heroSub: 'mt-1 max-w-2xl text-xs leading-snug text-teal-100',
   kpiGrid: 'grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6',
-  kpiCard:
-    'rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm',
-  kpiValue: 'text-lg font-bold tabular-nums text-teal-800 sm:text-xl',
-  kpiLabel: 'mt-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500',
+  kpiCard: `${greenCard} px-3 py-2.5`,
+  kpiValue: 'text-lg font-bold tabular-nums text-white sm:text-xl',
+  kpiLabel: `mt-0.5 text-[0.65rem] font-semibold uppercase tracking-wide ${greenOn.fieldLabel}`,
   chartGrid: 'mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-2',
-  chartPanel: 'rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4',
+  chartPanel: `${greenCard} p-3 sm:p-4`,
   chartBox: 'mt-3 h-56 w-full sm:h-60',
-  sectionTitle: 'text-sm font-bold text-slate-900',
-  sectionDesc: 'mt-0.5 text-xs text-slate-500',
+  sectionTitle: greenOn.titleSm,
+  sectionDesc: greenOn.desc,
   footerLink: 'font-semibold text-teal-700 hover:underline',
 };
 

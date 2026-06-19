@@ -69,7 +69,7 @@ export default function SystemAdminManagementView({
               <th className={c.th}>Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/10">
             {loading ? (
               <tr>
                 <td colSpan={6} className={c.tdMuted}>
@@ -91,7 +91,7 @@ export default function SystemAdminManagementView({
                     <td className={`${c.td} font-medium`}>
                       {fullName(row)}
                       {isSelf ? (
-                        <span className="ml-2 text-xs font-normal text-slate-500">(you)</span>
+                        <span className="ml-2 text-xs font-normal text-emerald-100/80">(you)</span>
                       ) : null}
                     </td>
                     <td className={c.td}>{row.email}</td>

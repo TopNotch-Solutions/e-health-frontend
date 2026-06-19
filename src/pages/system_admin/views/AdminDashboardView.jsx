@@ -82,11 +82,11 @@ export default function AdminDashboardView({
 
       {!isFacilityScope && summaries.length > 0 ? (
         <div className={c.sectionPanel}>
-          <h3 className={c.sectionTitle}>Facilities at a glance</h3>
-          <p className={c.sectionDesc}>
+          <h3 className={c.cardTitle}>Facilities at a glance</h3>
+          <p className={c.cardDesc}>
             Click a row to open that facility&apos;s dashboard. Metrics reflect the last 14 days where noted.
           </p>
-          <div className={`${c.tableWrap} mt-3`}>
+          <div className={`${c.tableWrap} mt-3 border-0 bg-white/10 shadow-none`}>
             <table className={c.table}>
               <thead>
                 <tr>
@@ -98,13 +98,13 @@ export default function AdminDashboardView({
                   <th className={c.th}>Queue waiting</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/10">
                 {summaries.map((row) => (
                   <tr key={row.id}>
                     <td className={`${c.td} font-medium`}>
                       <button
                         type="button"
-                        className="text-left font-semibold text-teal-700 hover:underline"
+                        className={c.cardLink}
                         onClick={() => onSelectFacility(row.id)}
                       >
                         {row.name}
@@ -130,8 +130,8 @@ export default function AdminDashboardView({
       />
 
       <div className={c.sectionPanel}>
-        <h3 className={c.sectionTitle}>Quick actions</h3>
-        <p className={c.sectionDesc}>Manage facilities and staff across the network.</p>
+        <h3 className={c.cardTitle}>Quick actions</h3>
+        <p className={c.cardDesc}>Manage facilities and staff across the network.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" className={c.btnPrimary} onClick={() => onNavigate('facilities')}>
             Manage facilities
@@ -147,8 +147,8 @@ export default function AdminDashboardView({
           </button>
         </div>
         {dashboard.inactiveEmployees > 0 ? (
-          <p className="mt-4 text-xs text-slate-500">
-            <span className="font-semibold text-teal-700">{dashboard.inactiveEmployees}</span> inactive
+          <p className="mt-4 text-xs text-emerald-100">
+            <span className="font-semibold text-white">{dashboard.inactiveEmployees}</span> inactive
             employee{dashboard.inactiveEmployees === 1 ? '' : 's'} remain visible in the directory and
             audit trail.
           </p>

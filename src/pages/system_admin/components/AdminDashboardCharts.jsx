@@ -16,8 +16,8 @@ import {
 import { admin as c } from '../styles/adminClasses';
 
 const COLORS = ['#0d9488', '#0284c7', '#059669', '#e11d48', '#7c3aed', '#475569'];
-const axisTick = { fontSize: 10, fill: '#475569' };
-const gridStroke = '#e2e8f0';
+const axisTick = { fontSize: 10, fill: '#ecfdf5' };
+const gridStroke = 'rgba(255,255,255,0.15)';
 const tooltipStyle = {
   contentStyle: { borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 },
 };
@@ -69,7 +69,7 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
   if (!hasCharts) {
     return (
       <div className={c.sectionPanel}>
-        <p className={c.hint}>
+        <p className={c.cardBody}>
           Analytics will appear once there is visit and staff data
           {facilityScope ? ' at this facility' : ' across facilities'}.
         </p>
@@ -88,8 +88,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
 
       <div className={c.chartGrid}>
         <section className={c.chartPanel}>
-          <h4 className={c.sectionTitle}>Patient visits (14 days)</h4>
-          <p className={c.sectionDesc}>Daily volume at {scopeLabel}</p>
+          <h4 className={c.cardTitle}>Patient visits (14 days)</h4>
+          <p className={c.cardDesc}>Daily volume at {scopeLabel}</p>
           <div className={c.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={visitsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -116,8 +116,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
 
         {!facilityScope && visitsByFacility.length > 0 ? (
           <section className={c.chartPanel}>
-            <h4 className={c.sectionTitle}>Visits by facility (14 days)</h4>
-            <p className={c.sectionDesc}>Which locations are busiest</p>
+            <h4 className={c.cardTitle}>Visits by facility (14 days)</h4>
+            <p className={c.cardDesc}>Which locations are busiest</p>
             <div className={c.chartBox}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={visitsByFacility.slice(0, 12)} layout="vertical" margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
@@ -133,8 +133,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
         ) : null}
 
         <section className={c.chartPanel}>
-          <h4 className={c.sectionTitle}>Active staff by role</h4>
-          <p className={c.sectionDesc}>{facilityScope ? 'At this facility' : 'Across all facilities'}</p>
+          <h4 className={c.cardTitle}>Active staff by role</h4>
+          <p className={c.cardDesc}>{facilityScope ? 'At this facility' : 'Across all facilities'}</p>
           <div className={c.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={staffData.slice(0, 10)} layout="vertical" margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
@@ -150,8 +150,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
 
         {categoryData.length > 0 ? (
           <section className={c.chartPanel}>
-            <h4 className={c.sectionTitle}>Patients by category</h4>
-            <p className={c.sectionDesc}>
+            <h4 className={c.cardTitle}>Patients by category</h4>
+            <p className={c.cardDesc}>
               {facilityScope ? 'Patients with visits at this facility' : 'Registered patient population'}
             </p>
             <div className={c.chartBox}>
@@ -172,7 +172,7 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle.contentStyle} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend wrapperStyle={{ fontSize: 11, color: '#ecfdf5' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -181,8 +181,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
 
         {paymentData.length > 0 ? (
           <section className={c.chartPanel}>
-            <h4 className={c.sectionTitle}>Patients by payment type</h4>
-            <p className={c.sectionDesc}>State vs private schemes</p>
+            <h4 className={c.cardTitle}>Patients by payment type</h4>
+            <p className={c.cardDesc}>State vs private schemes</p>
             <div className={c.chartBox}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={paymentData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -199,8 +199,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
 
         {!facilityScope && facilityTypeData.length > 0 ? (
           <section className={c.chartPanel}>
-            <h4 className={c.sectionTitle}>Facilities by type</h4>
-            <p className={c.sectionDesc}>Hospitals, clinics, and health centers</p>
+            <h4 className={c.cardTitle}>Facilities by type</h4>
+            <p className={c.cardDesc}>Hospitals, clinics, and health centers</p>
             <div className={c.chartBox}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={facilityTypeData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -217,8 +217,8 @@ export default function AdminDashboardCharts({ analytics, facilityScope, selecte
 
         {queueData.length > 0 ? (
           <section className={c.chartPanel}>
-            <h4 className={c.sectionTitle}>Queue — waiting now</h4>
-            <p className={c.sectionDesc}>
+            <h4 className={c.cardTitle}>Queue — waiting now</h4>
+            <p className={c.cardDesc}>
               {facilityScope ? `At ${selectedFacilityName}` : 'Across all facilities'}
             </p>
             <div className={c.chartBox}>

@@ -13,7 +13,7 @@ export const nurse = {
   queueTitle: 'text-lg font-bold tracking-tight text-slate-900',
   queueSub: 'mt-0.5 text-sm text-slate-500',
   queueCount: 'font-bold text-teal-700',
-  queueList: 'mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto',
+  queueList: 'mt-3 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto',
   queueActivePanel:
     'mt-3 flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-teal-200 bg-teal-50/40 px-4 py-8 text-center',
   queueActiveBadge:
@@ -25,15 +25,27 @@ export const nurse = {
   queueActivePatientName: 'text-sm font-bold text-slate-900',
   queueActivePatientMeta: 'mt-0.5 text-xs text-slate-500',
   queueCard:
-    'rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-teal-200',
-  queueCardActive: 'border-teal-500 ring-1 ring-teal-500/25',
-  queueCardLocked: 'opacity-75 bg-slate-50',
-  queueCardEmergency: 'border-rose-300 bg-rose-50/40 ring-1 ring-rose-200/60',
+    'group relative w-full rounded-lg border border-slate-200/90 bg-white p-0 text-left shadow-sm transition-all duration-200 hover:border-teal-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-1 disabled:cursor-not-allowed',
+  queueCardActive: 'border-teal-500 bg-gradient-to-br from-teal-50/90 to-white ring-1 ring-teal-500/30 shadow-sm',
+  queueCardLocked: 'opacity-65 hover:border-slate-200/90 hover:shadow-sm',
+  queueCardEmergency: 'border-rose-300/90 bg-gradient-to-br from-rose-50/70 to-white hover:border-rose-400',
+  queueCardCompleted: 'opacity-70 hover:border-slate-200/90 hover:shadow-sm',
+  queueCardInner: 'flex gap-2 p-2',
+  queueCardAvatar:
+    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-100 to-slate-200/80 text-[0.65rem] font-bold text-slate-700 shadow-inner',
+  queueCardAvatarActive: 'from-teal-500 to-teal-700 text-white shadow-teal-900/20',
+  queueCardAvatarEmergency: 'from-rose-400 to-rose-600 text-white',
+  queueCardBody: 'min-w-0 flex-1',
+  queueCardBadgeRow: 'mb-0.5 flex flex-wrap items-center gap-0.5',
+  queueCardSubtitle: 'mt-0.5 text-[0.65rem] leading-snug text-slate-600 line-clamp-2',
+  queueCardFooter: 'mt-1 flex items-center justify-between gap-1.5 text-[0.65rem] font-semibold text-teal-700',
+  queueCardFooterMuted: 'text-slate-400',
+  queueCardChevron: 'text-teal-600 opacity-70 transition group-hover:opacity-100 group-focus-visible:opacity-100',
   badgeEmergency:
-    'inline-flex rounded px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-rose-900 bg-rose-100',
-  queueName: 'mt-1 text-sm font-bold leading-tight text-slate-900',
-  queueMeta: 'text-xs leading-snug text-slate-500',
-  queueId: 'text-[0.65rem] font-semibold leading-tight text-slate-600',
+    'inline-flex rounded px-1 py-0.5 text-[0.55rem] font-bold uppercase tracking-wide text-rose-900 bg-rose-100',
+  queueName: 'text-xs font-bold leading-tight text-slate-900',
+  queueMeta: 'text-[0.65rem] leading-snug text-slate-500',
+  queueId: 'text-[0.6rem] font-semibold leading-tight text-slate-600',
   searchInput: searchCard.input,
   searchWrap: 'mt-4',
   hint: 'text-sm text-slate-500',
@@ -108,11 +120,11 @@ export const nurse = {
   cardDone:
     'mt-2 flex items-center justify-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 py-1.5 text-xs font-semibold text-emerald-800',
   badgePending:
-    'inline-flex rounded px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-amber-800 bg-amber-100',
+    'inline-flex rounded px-1 py-0.5 text-[0.55rem] font-bold uppercase tracking-wide text-amber-800 bg-amber-100',
   badgeProgress:
-    'inline-flex flex-wrap items-center gap-0.5 rounded px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-teal-800 bg-teal-100',
+    'inline-flex flex-wrap items-center gap-0.5 rounded px-1 py-0.5 text-[0.55rem] font-bold uppercase tracking-wide text-teal-800 bg-teal-100',
   badgeCompleted:
-    'inline-flex rounded px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-emerald-800 bg-emerald-100',
+    'inline-flex rounded px-1 py-0.5 text-[0.55rem] font-bold uppercase tracking-wide text-emerald-800 bg-emerald-100',
   fieldError: 'mt-1 text-xs font-medium text-red-600',
   inputError: 'border-red-400 focus:border-red-500 focus:ring-red-500/30',
   submitError: 'mt-2 text-center text-sm font-medium text-red-600',
