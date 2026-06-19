@@ -1,16 +1,124 @@
 import { formatDateTime, formatLabel, formatVitalsLine, patientAge } from '../../pages/front_office/utils/ehrUtils';
 import { formatMaternityStopDetails } from './maternityMedicalHistoryBookUtils';
 import { formatDob, patientName } from '../../pages/front_office/patientUtils';
+import {
+  displayValue,
+  formatClinicalObjectLines,
+  formatScalarValue,
+  parseJsonValue,
+  pushDetail,
+} from './clinicalDetailFormatters';
 
-function displayValue(value) {
-  if (value == null) return '—';
-  const s = String(value).trim();
-  return s || '—';
+const DEPARTMENT_LABELS = {
+  nurse: 'Nurse',
+  doctor: 'Doctor',
+  master_doctor: 'Master Doctor',
+  pharmacy: 'Pharmacy',
+  lab: 'Lab',
+  sonar: 'Sonar',
+  billing: 'Billing',
+  transport: 'Transport',
+  emergency_unit: 'Emergency Unit',
+  emergency_unit_doctor: 'Emergency Unit Doctor',
+  parameter_nurse: 'Parameter Nurse',
+  anc_nurse: 'ANC Nurse',
+  pediatric: 'Pediatric',
+  prep: 'PrEP',
+  pap_smear: 'Pap Smear',
+  social_worker: 'Social Worker',
+  screening_nurse: 'Screening Nurse',
+  hiv_tester: 'HIV Testing Room',
+  art_nurse: 'ART — Antiretroviral Therapy',
+  family_planning: 'Family Planning',
+  booking_room: 'Booking Room',
+  dermatologist: 'Dermatologist',
+};
+
+const DISPOSITION_LABELS = {
+  follow_up: 'Follow-up scheduled',
+  emergency_unit: 'Transferred to Emergency Unit',
+  booking_room: 'Transferred to Booking Room',
+  discharge: 'Discharged',
+  pharmacy: 'Prescription sent to pharmacy',
+};
+
+const ACTIONS_TAKEN_SKIP_KEYS = new Set([
+  'emergency_unit_nurse',
+  'emergency_unit_doctor',
+  'source',
+]);
+
+function departmentLabel(value) {
+  if (!value) return '—';
+  return DEPARTMENT_LABELS[value] || formatLabel(value);
 }
 
-function pushDetail(lines, label, value) {
-  const text = displayValue(value);
-  if (text !== '—') lines.push({ label, value: text });
+function formatActionsTakenLines(raw) {
+  const parsed = parseJsonValue(raw);
+  if (parsed == null) return [];
+  if (typeof parsed === 'string') {
+    return [{ label: 'Actions taken', value: parsed }];
+  }
+  if (Array.isArray(parsed)) {
+    return [{ label: 'Actions taken', value: parsed.map((item) => formatScalarValue(item) || String(item)).join('; ') }];
+  }
+
+  const lines = [];
+  const disposition = parsed.clinic_disposition || parsed.disposition;
+  if (disposition) {
+    let outcome = DISPOSITION_LABELS[disposition] || formatLabel(disposition);
+    if (parsed.documentation_type === 'patient_refused_care') {
+      outcome = 'Patient declined care';
+    }
+    pushDetail(lines, 'Outcome', outcome);
+  }
+
+  pushDetail(lines, 'Discharge reason', parsed.discharge_reason);
+  if (parsed.follow_up_date) {
+    pushDetail(lines, 'Follow-up date', formatDateTime(parsed.follow_up_date));
+  }
+  if (parsed.prescribed != null) {
+    pushDetail(lines, 'Prescription issued', formatScalarValue(parsed.prescribed));
+  }
+  if (parsed.visit_classification) {
+    pushDetail(lines, 'Visit classification', formatLabel(parsed.visit_classification));
+  }
+  if (parsed.routed_to) {
+    pushDetail(lines, 'Routed to', departmentLabel(parsed.routed_to));
+  }
+  if (parsed.nurse_intake) {
+    formatClinicalObjectLines(parsed.nurse_intake).forEach((line) => {
+      pushDetail(lines, `Intake · ${line.label}`, line.value);
+    });
+  }
+
+  const handled = new Set([
+    'clinic_disposition',
+    'disposition',
+    'documentation_type',
+    'discharge_reason',
+    'follow_up_date',
+    'prescribed',
+    'visit_classification',
+    'routed_to',
+    'nurse_intake',
+    ...ACTIONS_TAKEN_SKIP_KEYS,
+  ]);
+
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (handled.has(key) || ACTIONS_TAKEN_SKIP_KEYS.has(key)) return;
+    if (value === true) return;
+    if (value == null || value === '') return;
+    if (typeof value === 'object') {
+      formatClinicalObjectLines({ [key]: value }).forEach((line) => {
+        pushDetail(lines, line.label, line.value);
+      });
+      return;
+    }
+    pushDetail(lines, formatLabel(key), formatScalarValue(value));
+  });
+
+  return lines;
 }
 
 function vitalsDetailLines(vitals) {
@@ -36,10 +144,7 @@ function consultationDetailLines(rows) {
     pushDetail(lines, 'Diagnosis', row.diagnosis);
     pushDetail(lines, 'Notes', row.notes);
     if (row.actions_taken) {
-      const actions = typeof row.actions_taken === 'string'
-        ? row.actions_taken
-        : JSON.stringify(row.actions_taken);
-      pushDetail(lines, 'Actions taken', actions);
+      lines.push(...formatActionsTakenLines(row.actions_taken));
     }
     if (row.created_at) pushDetail(lines, 'Recorded', formatDateTime(row.created_at));
   });
@@ -64,25 +169,6 @@ function prescriptionDetailLines(prescriptions) {
   return lines;
 }
 
-function objectDetailLines(obj, skipKeys = []) {
-  if (!obj || typeof obj !== 'object') return [];
-  const lines = [];
-  Object.entries(obj).forEach(([key, value]) => {
-    if (skipKeys.includes(key) || value == null || value === '') return;
-    if (Array.isArray(value)) {
-      if (!value.length) return;
-      pushDetail(lines, formatLabel(key), value.map((v) => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join('; '));
-      return;
-    }
-    if (typeof value === 'object') {
-      pushDetail(lines, formatLabel(key), JSON.stringify(value));
-      return;
-    }
-    pushDetail(lines, formatLabel(key), value);
-  });
-  return lines;
-}
-
 const EXCLUDED_BOOK_DEPARTMENTS = new Set(['front_office', 'billing']);
 
 export function isBookDepartment(department) {
@@ -99,7 +185,7 @@ export function formatStopClinicalDetails(stop) {
   if (clinical.consultations?.length) lines.push(...consultationDetailLines(clinical.consultations));
   if (clinical.prescriptions?.length) lines.push(...prescriptionDetailLines(clinical.prescriptions));
   if (clinical.screening_assessment) {
-    lines.push(...objectDetailLines(clinical.screening_assessment));
+    lines.push(...formatClinicalObjectLines(clinical.screening_assessment));
   }
   if (clinical.lab_requests?.length) {
     clinical.lab_requests.forEach((lab) => {
@@ -119,7 +205,7 @@ export function formatStopClinicalDetails(stop) {
   }
   if (clinical.emergency_interventions?.length) {
     clinical.emergency_interventions.forEach((row, idx) => {
-      lines.push(...objectDetailLines(row, []).map((line) => ({
+      lines.push(...formatClinicalObjectLines(row, []).map((line) => ({
         ...line,
         label: `Intervention ${idx + 1}${line.label !== 'Notes' ? ` · ${line.label}` : ''}`,
       })));
@@ -131,10 +217,12 @@ export function formatStopClinicalDetails(stop) {
     'lab_requests', 'imaging_requests', 'emergency_interventions',
     'maternity_anc_sessions', 'maternity_anw_daily_records', 'maternity_pnw_daily_records',
     'maternity_icu_daily_records', 'maternity_nicu_records', 'maternity_episode',
+    'current_ward', 'status', 'admitted_at', 'discharged_at', 'front_office_visits',
+    'anw_days', 'pnw_days', 'icu_days', 'feeding_counselling_done', 'six_week_follow_up_date',
   ]);
   Object.entries(clinical).forEach(([key, value]) => {
     if (handled.has(key) || value == null || value === '') return;
-    lines.push(...objectDetailLines({ [key]: value }));
+    lines.push(...formatClinicalObjectLines({ [key]: value }));
   });
 
   lines.push(...formatMaternityStopDetails(clinical));

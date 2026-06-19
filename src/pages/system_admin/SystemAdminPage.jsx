@@ -33,6 +33,7 @@ import EmployeeManagementView from './views/EmployeeManagementView';
 import FacilityManagementView from './views/FacilityManagementView';
 import SystemAdminManagementView from './views/SystemAdminManagementView';
 import Icd10ManagementView from './views/Icd10ManagementView';
+import PatientRecordsView from './views/PatientRecordsView';
 import SystemSettingsView from './views/SystemSettingsView';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -473,6 +474,8 @@ export default function SystemAdminPage() {
         currentUserId={user?.id}
       />
     );
+  } else if (section === 'patient-records') {
+    content = <PatientRecordsView />;
   } else if (section === 'icd10') {
     content = (
       <Icd10ManagementView

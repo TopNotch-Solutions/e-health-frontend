@@ -101,3 +101,40 @@ export async function getAdminAuditLogs(params = {}) {
   const json = await apiRequestFull(`/api/v1/admin/audit-logs${qs ? `?${qs}` : ''}`);
   return { rows: json.data || [], pagination: json.pagination };
 }
+
+export function searchAdminPatients(params = {}) {
+  const q = new URLSearchParams();
+  if (params.id_number) q.set('id_number', params.id_number);
+  if (params.date_of_birth) q.set('date_of_birth', params.date_of_birth);
+  if (params.name) q.set('name', params.name);
+  return apiRequest(`/api/v1/admin/patients/search?${q}`);
+}
+
+export function getAdminPatientMedicalHistory(patientId, { facility_id, scope = 'all' } = {}) {
+  const q = new URLSearchParams();
+  if (facility_id) q.set('facility_id', String(facility_id));
+  if (scope) q.set('scope', scope);
+  return apiRequest(`/api/v1/admin/patients/${patientId}/medical-history?${q}`);
+}
+
+export async function downloadAdminMedicalHistoryExport(patientId, { facility_id, scope = 'all' } = {}) {
+  const token = getAccessToken();
+  const q = new URLSearchParams();
+  if (facility_id) q.set('facility_id', String(facility_id));
+  if (scope) q.set('scope', scope);
+  const res = await fetch(
+    `${getApiBase()}/api/v1/admin/patients/${patientId}/medical-history/export?${q}`,
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    }
+  );
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || `Export failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = disposition.match(/filename="?([^"]+)"?/i);
+  const filename = match?.[1] || `medical-card-${scope}.xlsx`;
+  return { blob, filename };
+}

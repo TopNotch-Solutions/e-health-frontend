@@ -105,6 +105,7 @@ export const ADMIN_SECTIONS = [
   { id: 'facilities', label: 'Facility Management', icon: 'facility' },
   { id: 'employees', label: 'Employee Management', icon: 'employees' },
   { id: 'admins', label: 'System Administrators', icon: 'admins' },
+  { id: 'patient-records', label: 'Patient Records', icon: 'records' },
   { id: 'icd10', label: 'ICD-10 Catalog', icon: 'icd10' },
   { id: 'settings', label: 'System Settings', icon: 'settings' },
 ];
