@@ -21,8 +21,8 @@ export default function LookupNoMatchActions({ onRegisterNew, onEmergency, emerg
         <div className={`${fo.actionIcon} ${fo.actionIconDanger}`} aria-hidden>
           !
         </div>
-        <h3 className={fo.actionTitle}>Unknown patient (emergency)</h3>
-        <p className={fo.actionText}>
+        <h3 className={fo.actionTitleEmergency}>Unknown patient (emergency)</h3>
+        <p className={fo.actionTextEmergency}>
           One-click unknown patient — emergency priority at the top of the nurse queue.
         </p>
       </button>

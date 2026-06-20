@@ -31,7 +31,10 @@ export default function LookupResultsView({
     <>
       <LookupStatsCards stats={stats} />
 
-      <section className={lookup.resultsPanel} aria-labelledby="lookup-results-title">
+      <section
+        className={results.length === 0 ? lookup.resultsPanelNoMatch : lookup.resultsPanel}
+        aria-labelledby="lookup-results-title"
+      >
         <header className={lookup.resultsHead}>
           <div>
             <h2 id="lookup-results-title" className={lookup.resultsTitle}>

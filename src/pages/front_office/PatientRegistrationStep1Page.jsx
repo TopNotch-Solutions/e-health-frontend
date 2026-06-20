@@ -17,12 +17,14 @@ function Step1Form() {
 
   return (
     <div className={fo.page}>
-      <header className={fo.header}>
-        <p className={fo.kicker}>New admission</p>
-        <h1 className={fo.title}>New patient registration</h1>
-        <p className={fo.sub}>Step 1: Personal information</p>
-      </header>
-      <RegistrationStepper activeStep={1} />
+      <div className={fo.registrationIntro}>
+        <header className={fo.header}>
+          <p className={fo.kicker}>New admission</p>
+          <h1 className={fo.title}>New patient registration</h1>
+          <p className={fo.sub}>Step 1: Personal information</p>
+        </header>
+        <RegistrationStepper activeStep={1} />
+      </div>
       <form onSubmit={onNext} className={fo.form}>
         <article className={fo.sectionPanel}>
           <h3 className={fo.sectionTitle}>Personal details</h3>

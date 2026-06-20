@@ -15,17 +15,19 @@ function Step3Form() {
 
   return (
     <div className={fo.page}>
-      <header className={fo.header}>
-        <p className={fo.kicker}>New admission</p>
-        <h1 className={fo.title}>Patient registration</h1>
-        <p className={fo.sub}>Step 3: Contact &amp; next of kin</p>
-      </header>
-      <RegistrationStepper activeStep={3} />
-      <div className={fo.progressWrap}>
-        <div className={fo.progressTrack} aria-hidden>
-          <div className={fo.progressFill} style={{ width: '75%' }} />
+      <div className={fo.registrationIntro}>
+        <header className={fo.header}>
+          <p className={fo.kicker}>New admission</p>
+          <h1 className={fo.title}>Patient registration</h1>
+          <p className={fo.sub}>Step 3: Contact &amp; next of kin</p>
+        </header>
+        <RegistrationStepper activeStep={3} />
+        <div className={fo.progressWrap}>
+          <div className={fo.progressTrack} aria-hidden>
+            <div className={fo.progressFill} style={{ width: '75%' }} />
+          </div>
+          <span className={fo.progressLabel}>75% complete</span>
         </div>
-        <span className={fo.progressLabel}>75% complete</span>
       </div>
       <form onSubmit={onNext} className={fo.form}>
         <article className={fo.sectionPanel}>

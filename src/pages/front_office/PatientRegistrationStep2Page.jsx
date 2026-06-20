@@ -15,11 +15,13 @@ function Step2Form() {
 
   return (
     <div className={fo.page}>
-      <header className={fo.header}>
-        <h1 className={fo.title}>Patient registration</h1>
-        <p className={fo.sub}>Step 2: Identity &amp; payment</p>
-      </header>
-      <RegistrationStepper activeStep={2} />
+      <div className={fo.registrationIntro}>
+        <header className={fo.header}>
+          <h1 className={fo.title}>Patient registration</h1>
+          <p className={fo.sub}>Step 2: Identity &amp; payment</p>
+        </header>
+        <RegistrationStepper activeStep={2} />
+      </div>
       <form onSubmit={onNext} className={fo.form}>
         <article className={fo.sectionPanel}>
           <h3 className={fo.sectionTitle}>Official identification</h3>

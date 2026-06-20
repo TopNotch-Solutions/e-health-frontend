@@ -1,4 +1,5 @@
-import { ROUTING_DESTINATIONS, routingLabel } from '../constants/routingOptions';
+import { useEffect, useMemo } from 'react';
+import { getRoutingDestinationsForPatient, routingLabel } from '../constants/routingOptions';
 import { lookup } from '../styles/lookupClasses';
 
 /**
@@ -7,12 +8,24 @@ import { lookup } from '../styles/lookupClasses';
 export default function QueueRoutingForm({
   destination,
   onDestinationChange,
+  patientSex,
+  patientDateOfBirth,
   disabled = false,
   classNames,
   hideWhenImmediateTriage = false,
   immediateTriage = false,
 }) {
   const ui = classNames || lookup;
+  const destinations = useMemo(
+    () => getRoutingDestinationsForPatient({ sex: patientSex, dateOfBirth: patientDateOfBirth }),
+    [patientSex, patientDateOfBirth]
+  );
+
+  useEffect(() => {
+    if (destination && !destinations.some((opt) => opt.value === destination)) {
+      onDestinationChange('');
+    }
+  }, [destination, destinations, onDestinationChange]);
 
   if (hideWhenImmediateTriage && immediateTriage) {
     return (
@@ -45,7 +58,7 @@ export default function QueueRoutingForm({
           onChange={(e) => onDestinationChange(e.target.value)}
         >
           <option value="">Select destination…</option>
-          {ROUTING_DESTINATIONS.map((opt) => (
+          {destinations.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>

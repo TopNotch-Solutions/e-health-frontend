@@ -49,16 +49,18 @@ function Step4Form() {
 
   return (
     <div className={fo.page}>
-      <header className={fo.header}>
-        <h1 className={fo.title}>Patient registration</h1>
-        <p className={fo.sub}>Step 4: Review, route &amp; submit</p>
-      </header>
-      <RegistrationStepper activeStep={4} />
-      <div className={fo.progressWrap}>
-        <div className={fo.progressTrack} aria-hidden>
-          <div className={fo.progressFill} style={{ width: '100%' }} />
+      <div className={fo.registrationIntro}>
+        <header className={fo.header}>
+          <h1 className={fo.title}>Patient registration</h1>
+          <p className={fo.sub}>Step 4: Review, route &amp; submit</p>
+        </header>
+        <RegistrationStepper activeStep={4} />
+        <div className={fo.progressWrap}>
+          <div className={fo.progressTrack} aria-hidden>
+            <div className={fo.progressFill} style={{ width: '100%' }} />
+          </div>
+          <span className={fo.progressLabel}>Ready to submit</span>
         </div>
-        <span className={fo.progressLabel}>Ready to submit</span>
       </div>
 
       <article className={fo.sectionPanel}>
@@ -110,6 +112,8 @@ function Step4Form() {
         <QueueRoutingForm
           destination={draft.routing_destination}
           onDestinationChange={(v) => updateField('routing_destination', v)}
+          patientSex={draft.sex}
+          patientDateOfBirth={draft.date_of_birth}
           disabled={submitting || draft.immediate_triage}
           immediateTriage={draft.immediate_triage}
           hideWhenImmediateTriage

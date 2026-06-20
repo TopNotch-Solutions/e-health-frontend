@@ -130,6 +130,8 @@ export default function ReturningPatientCard({
           <QueueRoutingForm
             destination={routingDestination}
             onDestinationChange={setRoutingDestination}
+            patientSex={patient.sex}
+            patientDateOfBirth={patient.date_of_birth}
             disabled={checkInLoading || immediateTriage || checkInBlocked}
             immediateTriage={immediateTriage}
             hideWhenImmediateTriage

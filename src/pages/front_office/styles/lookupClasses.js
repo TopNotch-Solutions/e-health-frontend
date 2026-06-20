@@ -40,10 +40,12 @@ export const lookup = {
   emergencyBanner:
     'rounded-xl border border-rose-200 bg-gradient-to-r from-rose-50 to-white px-4 py-3 text-center text-sm text-slate-600 shadow-sm',
   emergencyBtn: 'font-semibold text-rose-700 hover:text-rose-800 hover:underline disabled:opacity-50',
-  resultsPanel: `${greenCardLg} p-5 sm:p-6`,
+  resultsPanel: 'rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6',
+  resultsPanelNoMatch:
+    'rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 via-red-50 to-white p-5 shadow-sm sm:p-6',
   resultsHead: 'mb-5 flex flex-wrap items-start justify-between gap-4',
-  resultsTitle: greenOn.title,
-  resultsSubtitle: greenOn.desc,
+  resultsTitle: 'text-base font-bold text-slate-900',
+  resultsSubtitle: 'mt-0.5 text-sm text-slate-600',
   btnSecondary:
     'rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:bg-slate-50',
   btnPrimary:
@@ -58,7 +60,7 @@ export const lookup = {
   actionTitle: fo.actionTitle,
   actionText: fo.actionText,
   returningCard:
-    `${greenCardLg} overflow-hidden shadow-xl shadow-emerald-900/20 ring-1 ring-emerald-500/30`,
+    'overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg',
   returningHeader:
     'relative bg-gradient-to-br from-teal-600 via-teal-700 to-slate-900 px-5 pb-5 pt-5 text-white sm:px-6',
   returningHeaderGlow:
@@ -72,11 +74,11 @@ export const lookup = {
     'rounded-xl bg-white/10 px-3 py-2 ring-1 ring-white/10 backdrop-blur-sm',
   returningMetaLabel: 'text-[10px] font-semibold uppercase tracking-wide text-teal-100/80',
   returningMetaValue: 'mt-0.5 text-sm font-semibold text-white',
-  returningBody: `${greenOn.body} space-y-4 p-5 sm:p-6`,
+  returningBody: 'space-y-4 bg-white p-5 text-sm text-slate-700 sm:p-6',
   returningSection:
-    'rounded-xl border border-white/20 bg-white/10 p-4 shadow-sm',
+    'rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm',
   returningSectionTitle:
-    `${greenOn.fieldLabel} mb-3 text-xs font-bold uppercase tracking-wide`,
+    'mb-3 text-xs font-bold uppercase tracking-wide text-slate-600',
   returningAlert:
     'flex gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed',
   returningAlertWarning: 'border-amber-200/80 bg-amber-50 text-amber-950',
@@ -91,8 +93,8 @@ export const lookup = {
     'w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-teal-600/20 transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto',
   returningFooterSecondary:
     'w-full rounded-xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:bg-white sm:w-auto',
-  intakeSection: `${greenCard} mt-5 p-4 shadow-inner`,
-  intakeTitle: `${greenOn.titleSm} uppercase tracking-wide`,
+  intakeSection: 'mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4',
+  intakeTitle: 'text-sm font-bold uppercase tracking-wide text-slate-700',
   select:
     'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30',
   partialRow:
@@ -100,12 +102,12 @@ export const lookup = {
   hint: 'rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600',
   empty: 'rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center text-sm text-slate-500',
   emergencyToggle:
-    `${greenCard} flex items-center gap-3 p-4 transition hover:border-emerald-300`,
+    'flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300',
   emergencyToggleOn: 'border-rose-300 bg-rose-50/80 ring-1 ring-rose-200/50',
   emergencyToggleIcon:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-lg font-bold text-rose-700',
-  emergencyToggleTitle: `block ${greenOn.titleSm}`,
-  emergencyToggleHint: `block text-xs ${greenOn.hint}`,
+  emergencyToggleTitle: 'block text-sm font-bold text-slate-900',
+  emergencyToggleHint: 'block text-xs text-slate-500',
   emergencyToggleSwitch:
     'relative h-6 w-11 shrink-0 rounded-full bg-slate-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition',
   emergencyToggleSwitchOn: 'bg-rose-600 after:translate-x-5',
