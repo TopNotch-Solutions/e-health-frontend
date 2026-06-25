@@ -7,7 +7,7 @@ import {
   emergencyDoctorDischargePatient,
 } from '../../../api/emergencyUnit';
 import { IntakeSelect } from '../../nurse/components/IntakeField';
-import { nurse as c } from '../../nurse/styles/nurseClasses';
+import HospitalReferralFields from '../../../components/hospital/HospitalReferralFields';
 import { submitButtonClass } from '../../nurse/utils/submitButtonClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
 import NurseReadOnlyIntakeCards from '../../doctor/components/NurseReadOnlyIntakeCards';
@@ -204,6 +204,11 @@ export default function EmergencyUnitDoctorWorkspace({
       queue_entry_id: patient.entryId,
       diagnosis: formatDiagnosisForSave(form.icd10Code, form.icd10Description),
       notes: form.notes.trim() || null,
+      destination_department: form.destination_department || undefined,
+      equipment_required: form.equipment_required,
+      critical_notes: form.critical_notes?.trim() || null,
+      external_porter_notes: form.external_porter_notes?.trim() || null,
+      internal_porter_notes: form.internal_porter_notes?.trim() || null,
     };
 
     try {
@@ -283,6 +288,16 @@ export default function EmergencyUnitDoctorWorkspace({
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </IntakeSelect>
+
+          {form.disposition === 'booking_room' ? (
+            <HospitalReferralFields
+              visitId={patient?.visitId}
+              sourceRole="emergency_unit_doctor"
+              form={form}
+              onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
+              fieldErrors={fieldErrors}
+            />
+          ) : null}
 
           {showPrescription ? (
             <>

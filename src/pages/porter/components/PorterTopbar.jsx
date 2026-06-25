@@ -3,13 +3,16 @@ import { topbar } from '../../doctor/styles/doctorLayoutClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 import AppBrand from '../../../components/brand/AppBrand';
 
-export default function PorterTopbar({ porterLabel, initials, live }) {
+export default function PorterTopbar({ porterLabel, roleTitle, queueHint, initials, live }) {
 
   return (
     <header className={`${topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
         <AppBrand className={topbar.brand} />
-        <span className="text-sm font-medium text-slate-500">Porter · Transport</span>
+        <span className="text-sm font-medium text-slate-500">
+          {roleTitle || 'Porter'}
+          {queueHint ? ` · ${queueHint}` : ' · Transport'}
+        </span>
       </div>
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <span
@@ -27,7 +30,7 @@ export default function PorterTopbar({ porterLabel, initials, live }) {
             {porterLabel}
           </span>
         </div>
-        <TopbarSignOutButton moduleLabel='Porter' className={topbar.signOut} />
+        <TopbarSignOutButton moduleLabel={roleTitle || 'Porter'} className={topbar.signOut} />
       </div>
     </header>
   );

@@ -56,6 +56,8 @@ export const admin = {
     'inline-flex min-h-[2.25rem] items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-60 sm:text-sm sm:min-h-[2.5rem]',
   btnSecondary:
     'inline-flex min-h-[2.25rem] items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60 sm:text-sm sm:min-h-[2.5rem]',
+  btnGhost:
+    'inline-flex items-center rounded-lg px-2 py-1 text-sm font-semibold text-teal-700 transition hover:bg-teal-50',
   btnDanger:
     'inline-flex min-h-[2rem] items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 disabled:opacity-60',
   btnSuccess:
@@ -70,7 +72,7 @@ export const admin = {
   badgeInactive:
     'inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-slate-600',
   input: searchCard.input,
-  label: searchCard.label,
+  label: 'block text-sm font-medium text-slate-900',
   modalBackdrop: 'fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 p-4',
   modal:
     'relative z-[201] w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl shadow-slate-200/50',
@@ -82,7 +84,9 @@ export const admin = {
   filters: 'mb-3 flex flex-wrap items-center gap-2',
   footerLink: 'font-semibold text-teal-700 hover:underline',
   chartGrid: 'grid grid-cols-1 gap-3 lg:grid-cols-2',
-  chartPanel: `${greenCard} p-3 sm:p-4`,
+  chartPanel: 'rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4',
+  chartTitle: 'text-sm font-bold text-slate-900',
+  chartDesc: 'mt-0.5 text-xs text-slate-500',
   chartBox: 'mt-3 h-56 w-full sm:h-60',
 };
 
@@ -108,6 +112,7 @@ export const ADMIN_SECTIONS = [
   { id: 'employees', label: 'Employee Management', icon: 'employees' },
   { id: 'admins', label: 'System Administrators', icon: 'admins' },
   { id: 'patient-records', label: 'Patient Records', icon: 'records' },
+  { id: 'transfer-timelines', label: 'Transfer Timelines', icon: 'transfers' },
   { id: 'icd10', label: 'ICD-10 Catalog', icon: 'icd10' },
   { id: 'settings', label: 'System Settings', icon: 'settings' },
 ];

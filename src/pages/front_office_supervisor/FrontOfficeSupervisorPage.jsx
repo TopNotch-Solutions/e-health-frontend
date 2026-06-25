@@ -1,7 +1,9 @@
 import FrontOfficeSupervisorDashboard from './components/metrics/FrontOfficeSupervisorDashboard';
+import ExternalPickupRequestPanel from './components/ExternalPickupRequestPanel';
 import FrontOfficeSupervisorTopbar from './components/FrontOfficeSupervisorTopbar';
 import { useFrontOfficeSupervisorMetrics } from './hooks/useFrontOfficeSupervisorMetrics';
 import { useFrontOfficeSupervisorSession } from './hooks/useFrontOfficeSupervisorSession';
+import { getStoredUser } from '../../api/authSession';
 import { fos } from './styles/frontOfficeSupervisorClasses';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -9,6 +11,8 @@ const KOPANO = 'https://kopanovertex.com/';
 export default function FrontOfficeSupervisorPage() {
   const { supervisorLabel, initials } = useFrontOfficeSupervisorSession();
   const { metrics, loading, error, live } = useFrontOfficeSupervisorMetrics();
+  const facilityType = getStoredUser()?.facility_type;
+  const isStateHospital = facilityType === 'hospital' || facilityType === 'health_center';
 
   return (
     <div className={fos.page}>
@@ -26,7 +30,10 @@ export default function FrontOfficeSupervisorPage() {
             {loading ? (
               <p className={fos.hint}>Loading dashboard…</p>
             ) : metrics ? (
-              <FrontOfficeSupervisorDashboard metrics={metrics} live={live} />
+              <>
+                <FrontOfficeSupervisorDashboard metrics={metrics} live={live} />
+                {isStateHospital ? <ExternalPickupRequestPanel /> : null}
+              </>
             ) : (
               <p className={fos.hint}>No metrics available.</p>
             )}

@@ -13,9 +13,10 @@ export default function ScreeningAssessmentForm({
   canSubmit,
   onSubmit,
   actionLoading,
+  destinations = SCREENING_DESTINATIONS,
 }) {
   const err = (key) => fieldErrors[key];
-  const submitLabel = routingButtonLabel(form, actionLoading);
+  const submitLabel = routingButtonLabel(form, actionLoading, destinations);
 
   return (
     <div className="space-y-4">
@@ -70,7 +71,7 @@ export default function ScreeningAssessmentForm({
             onChange={(e) => onFieldChange('routing_destination', e.target.value)}
           >
             <option value="">Select destination…</option>
-            {SCREENING_DESTINATIONS.map((dest) => (
+            {destinations.map((dest) => (
               <option key={dest.value} value={dest.value}>
                 {dest.label}
               </option>
@@ -83,7 +84,7 @@ export default function ScreeningAssessmentForm({
             <button
               type="button"
               disabled={actionLoading || !canSubmit}
-              className={routingButtonClass(form)}
+              className={routingButtonClass(form, destinations)}
               onClick={onSubmit}
             >
               {submitLabel}

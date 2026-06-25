@@ -1,22 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
-import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
+import { startQueueEntry, releaseQueueEntry, completeQueueEntry } from '../../api/queue';
 import {
   getBookingRoomHandover,
   completeBookingRoomDisposition,
   getStateHospitalFacilities,
 } from '../../api/bookingRoom';
-import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
+import {
+  confirmClinicDeparture,
+  initiateClinicHospitalTransport,
+} from '../../api/clinicHospitalTransfer';
 import QueueEntryCard from '../../components/queue/QueueEntryCard';
+import { getSocket, requestDepartmentQueueRefresh } from '../../api/socket';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
 import { nurse as c } from '../nurse/styles/nurseClasses';
 import BookingRoomTopbar from './components/BookingRoomTopbar';
 import BookingRoomWorkspace from './components/BookingRoomWorkspace';
-import { emptyBookingForm } from './bookingRoomForm';
+import { emptyBookingForm, getBookingSubmitMode, resolveBookingTransferReason } from './bookingRoomForm';
 import {
   useBookingRoomQueue,
   useBookingRoomSession,
   pickAutoResumeEntry,
+  pickBookingRoomActiveEntries,
 } from './hooks/useBookingRoomQueue';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -30,11 +35,41 @@ function QueueEmptyIcon() {
   );
 }
 
-function LockIcon() {
+function BookingRoomActiveTabs({ patients, activeEntryId, onSelect, userId }) {
+  if (!patients.length) return null;
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17 10h-1V7a4 4 0 10-8 0v3H7a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2v-8a2 2 0 00-2-2zm-3 0h-4V7a2 2 0 114 0v3z" />
-    </svg>
+    <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50/50 p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-teal-800">
+        Active transports ({patients.length})
+      </p>
+      <p className="mt-0.5 text-xs text-teal-900/80">
+        Shared queue — any operator can continue the next step.
+      </p>
+      <div className="mt-2 flex flex-wrap gap-1.5" role="tablist" aria-label="Active transports">
+        {patients.map((p) => {
+          const active = p.entryId === activeEntryId;
+          return (
+            <button
+              key={p.entryId}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={`max-w-full truncate rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold transition ${
+                active
+                  ? 'bg-teal-700 text-white shadow-sm'
+                  : 'border border-teal-300 bg-white text-teal-900 hover:bg-teal-100'
+              }`}
+              onClick={() => onSelect(p)}
+            >
+              {p.name}
+              {p.assignedToId && p.assignedToId !== userId && p.assignedToName ? (
+                <span className="ml-1 font-normal opacity-80">· {p.assignedToName}</span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -52,6 +87,30 @@ export default function BookingRoomPage() {
   const [stateHospitalsLoading, setStateHospitalsLoading] = useState(true);
   const [stateHospitalsError, setStateHospitalsError] = useState('');
   const skipAutoResumeRef = useRef(false);
+  const draftsRef = useRef({});
+  const activeEntryIdRef = useRef(activeEntryId);
+  activeEntryIdRef.current = activeEntryId;
+
+  const persistCurrentDraft = useCallback(() => {
+    const entryId = activeEntryIdRef.current;
+    if (!entryId) return;
+    draftsRef.current[entryId] = { form, submitError };
+  }, [form, submitError]);
+
+  const restoreDraft = useCallback((entryId) => {
+    const saved = draftsRef.current[entryId];
+    setForm(saved?.form ?? emptyBookingForm());
+    setSubmitError(saved?.submitError || '');
+    setHandover(null);
+    return Boolean(saved);
+  }, []);
+
+  const switchToEntry = useCallback((entryId) => {
+    if (entryId === activeEntryIdRef.current) return;
+    persistCurrentDraft();
+    setActiveEntryId(entryId);
+    restoreDraft(entryId);
+  }, [persistCurrentDraft, restoreDraft]);
 
   const onQueueSynced = useCallback(
     (mapped) => {
@@ -59,10 +118,12 @@ export default function BookingRoomPage() {
         skipAutoResumeRef.current = false;
         return;
       }
-      const mine = pickAutoResumeEntry(mapped, userId);
-      if (mine) setActiveEntryId((prev) => prev || mine.entryId);
+      const current = activeEntryIdRef.current;
+      if (current && mapped.some((p) => p.entryId === current)) return;
+      const next = pickAutoResumeEntry(mapped);
+      if (next) setActiveEntryId(next.entryId);
     },
-    [userId]
+    []
   );
 
   const { queue, setQueue, loading, error: queueLoadError, live, refresh } = useBookingRoomQueue({
@@ -95,19 +156,32 @@ export default function BookingRoomPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (!activeEntryId || !userId) return;
+    if (!activeEntryId) return;
     const still = queue.find(
-      (p) =>
-        p.entryId === activeEntryId
-        && p.status === 'in_progress'
-        && p.assignedToId === userId
+      (p) => p.entryId === activeEntryId && p.status === 'in_progress'
     );
-    if (!still) setActiveEntryId(null);
-  }, [queue, activeEntryId, userId]);
+    if (!still) {
+      delete draftsRef.current[activeEntryId];
+      const active = pickBookingRoomActiveEntries(queue);
+      if (active.length) {
+        switchToEntry(active[0].entryId);
+      } else {
+        setActiveEntryId(null);
+        setHandover(null);
+        setForm(emptyBookingForm());
+        setSubmitError('');
+      }
+    }
+  }, [queue, activeEntryId, switchToEntry]);
 
   const activePatient = useMemo(
     () => queue.find((p) => p.entryId === activeEntryId) || null,
     [queue, activeEntryId]
+  );
+
+  const activeTransports = useMemo(
+    () => pickBookingRoomActiveEntries(queue),
+    [queue]
   );
 
   useEffect(() => {
@@ -115,6 +189,7 @@ export default function BookingRoomPage() {
       setHandover(null);
       return undefined;
     }
+
     let cancelled = false;
     getBookingRoomHandover(activePatient.visitId)
       .then((data) => {
@@ -127,10 +202,29 @@ export default function BookingRoomPage() {
         }
       })
       .catch(() => { if (!cancelled) setHandover(null); });
-    setForm(emptyBookingForm());
-    setSubmitError('');
+
     return () => { cancelled = true; };
+  }, [activePatient?.entryId, activePatient?.visitId]);
+
+  const reloadHandover = useCallback(async () => {
+    if (!activePatient?.visitId) return;
+    const data = await getBookingRoomHandover(activePatient.visitId);
+    setHandover(data);
   }, [activePatient?.visitId]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !activePatient?.visitId) return undefined;
+
+    const handleTransferUpdated = (payload) => {
+      if (payload?.visitId && payload.visitId !== activePatient.visitId) return;
+      reloadHandover();
+      requestDepartmentQueueRefresh('booking_room');
+    };
+
+    socket.on('transfer:updated', handleTransferUpdated);
+    return () => socket.off('transfer:updated', handleTransferUpdated);
+  }, [activePatient?.entryId, activePatient?.visitId, reloadHandover]);
 
   const filteredQueue = useMemo(() => {
     const q = queueSearch.trim().toLowerCase();
@@ -145,22 +239,15 @@ export default function BookingRoomPage() {
     return sortQueueEmergencyFirst(list);
   }, [queue, queueSearch]);
 
-  const workspaceActive =
-    activePatient
-    && activePatient.status === 'in_progress'
-    && activePatient.assignedToId === userId;
-
-  function isLockedToOther(patient) {
-    return (
-      patient.status === 'in_progress'
-      && patient.assignedToId
-      && patient.assignedToId !== userId
-    );
-  }
+  const workspaceActive = activePatient?.status === 'in_progress';
 
   async function handleSelectPatient(patient) {
-    if (isLockedToOther(patient) || actionLoading) return;
-    if (workspaceActive && patient.entryId !== activeEntryId) return;
+    if (actionLoading) return;
+
+    if (patient.status === 'in_progress') {
+      switchToEntry(patient.entryId);
+      return;
+    }
 
     const starting = patient.status === 'pending';
     if (!(await confirmStartPatientSession(patient.name, starting))) return;
@@ -173,7 +260,7 @@ export default function BookingRoomPage() {
         await startQueueEntry(patient.entryId);
         await refresh();
       }
-      setActiveEntryId(patient.entryId);
+      switchToEntry(patient.entryId);
     } catch (err) {
       setQueueActionError(err.message || 'Could not open patient');
     } finally {
@@ -182,51 +269,133 @@ export default function BookingRoomPage() {
   }
 
   function handleFormChange(updates) {
-    setForm((prev) => ({ ...prev, ...updates }));
+    setForm((prev) => {
+      const next = { ...prev, ...updates };
+      if (activeEntryId) {
+        draftsRef.current[activeEntryId] = {
+          ...draftsRef.current[activeEntryId],
+          form: next,
+          submitError,
+        };
+      }
+      return next;
+    });
     setSubmitError('');
   }
 
-  async function handleDisposition() {
-    if (!activePatient || !form.disposition || actionLoading) return;
-    const confirmMsg = form.disposition === 'mortuary'
-      ? `Process ${activePatient.name} to the mortuary?`
-      : `Transfer ${activePatient.name} to the selected state hospital?`;
+  async function closeCompletedSession(message, completedEntryId) {
+    skipAutoResumeRef.current = true;
+    delete draftsRef.current[completedEntryId];
+    setToast(message);
+    const mapped = await refresh();
+    const active = pickBookingRoomActiveEntries(mapped);
+    if (active.length) {
+      switchToEntry(active[0].entryId);
+    } else {
+      setActiveEntryId(null);
+      setHandover(null);
+      setForm(emptyBookingForm());
+      setSubmitError('');
+    }
+  }
+
+  async function handleSubmit() {
+    if (!activePatient || actionLoading) return;
+
+    const mode = getBookingSubmitMode(handover, form);
+    if (!mode) return;
+
+    const transferPlan = handover?.transferPlan;
+    let confirmTitle = 'Submit booking room action?';
+    let confirmText = `Continue for ${activePatient.name}?`;
+    let confirmButtonText = 'Submit';
+
+    if (mode === 'initiate_transport') {
+      confirmTitle = 'Initiate transport?';
+      confirmText = `Dispatch porters to transfer ${activePatient.name} to the selected state hospital?`;
+      confirmButtonText = 'Initiate transport';
+    } else if (mode === 'confirm_departure') {
+      confirmTitle = 'Confirm departure?';
+      confirmText = `Confirm that ${activePatient.name} has left the clinic with the external porter?`;
+      confirmButtonText = 'Confirm departure';
+    } else if (mode === 'complete_session') {
+      confirmTitle = 'Complete booking session?';
+      confirmText = `Mark booking room processing complete for ${activePatient.name}?`;
+      confirmButtonText = 'Complete';
+    } else if (mode === 'mortuary') {
+      confirmTitle = 'Process to mortuary?';
+      confirmText = `Process ${activePatient.name} to the mortuary?`;
+      confirmButtonText = 'Process';
+    } else if (mode === 'legacy_hospital') {
+      confirmTitle = 'Transfer to state hospital?';
+      confirmText = `Transfer ${activePatient.name} to the selected state hospital?`;
+      confirmButtonText = 'Transfer';
+    }
+
     const confirmed = await confirmAction({
-      title: form.disposition === 'mortuary' ? 'Process to mortuary?' : 'Transfer to state hospital?',
-      text: confirmMsg,
+      title: confirmTitle,
+      text: confirmText,
       icon: 'warning',
-      confirmButtonText: form.disposition === 'mortuary' ? 'Process' : 'Transfer',
+      confirmButtonText,
     });
     if (!confirmed) return;
 
     setActionLoading(true);
     setSubmitError('');
     try {
+      if (mode === 'initiate_transport') {
+        await initiateClinicHospitalTransport({
+          visit_id: activePatient.visitId,
+          transfer_id: transferPlan.id,
+          hospital_facility_id: form.destination_facility_id,
+          reason: resolveBookingTransferReason(handover) || transferPlan.transfer_reason,
+        });
+        setToast(`Transport initiated for ${activePatient.name}`);
+        await reloadHandover();
+        return;
+      }
+
+      const completedEntryId = activePatient.entryId;
+
+      if (mode === 'confirm_departure') {
+        await confirmClinicDeparture({ transfer_id: transferPlan.id });
+        await completeQueueEntry(completedEntryId, {
+          notes: 'Booking room — patient departed clinic for state hospital',
+        });
+        await closeCompletedSession(`${activePatient.name} departed clinic — porters notified`, completedEntryId);
+        return;
+      }
+
+      if (mode === 'complete_session') {
+        await completeQueueEntry(completedEntryId, {
+          notes: 'Booking room — hospital transfer in progress',
+        });
+        await closeCompletedSession(`${activePatient.name} — booking session complete`, completedEntryId);
+        return;
+      }
+
       await completeBookingRoomDisposition({
         visit_id: activePatient.visitId,
-        queue_entry_id: activePatient.entryId,
+        queue_entry_id: completedEntryId,
         disposition: form.disposition,
         destination_facility_id: form.destination_facility_id,
-        reason: form.reason,
+        reason: resolveBookingTransferReason(handover) || undefined,
         notes: form.notes,
         cause_of_death: form.cause_of_death,
         date_of_death: form.date_of_death,
       });
 
-      skipAutoResumeRef.current = true;
-      const completedEntryId = activePatient.entryId;
-      setActiveEntryId(null);
-      setHandover(null);
-      setForm(emptyBookingForm());
-      setQueue((prev) => prev.filter((p) => p.entryId !== completedEntryId));
-      setToast(
+      await closeCompletedSession(
         form.disposition === 'mortuary'
           ? `${activePatient.name} processed to Mortuary`
-          : `${activePatient.name} referred to state hospital`
+          : `${activePatient.name} referred to state hospital`,
+        completedEntryId
       );
-      await refresh();
     } catch (err) {
-      setSubmitError(err.message || 'Failed to complete disposition');
+      setSubmitError(err.message || 'Failed to submit');
+      if (activeEntryId) {
+        draftsRef.current[activeEntryId] = { form, submitError: err.message || 'Failed to submit' };
+      }
     } finally {
       setActionLoading(false);
     }
@@ -234,7 +403,7 @@ export default function BookingRoomPage() {
 
   async function handleReturnToQueue() {
     if (!activePatient || actionLoading) return;
-    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved work will be discarded.'))) {
+    if (!(await confirmReturnToQueue(activePatient.name, 'This patient will return to the waiting queue. You can pick up another active patient from the list.'))) {
       return;
     }
 
@@ -242,12 +411,20 @@ export default function BookingRoomPage() {
     setSubmitError('');
     try {
       skipAutoResumeRef.current = true;
-      await releaseQueueEntry(activePatient.entryId);
-      setActiveEntryId(null);
-      setHandover(null);
-      setForm(emptyBookingForm());
+      const releasedId = activePatient.entryId;
+      await releaseQueueEntry(releasedId);
+      delete draftsRef.current[releasedId];
       setToast(`${activePatient.name} returned to queue`);
-      await refresh();
+
+      const mapped = await refresh();
+      const active = pickBookingRoomActiveEntries(mapped);
+      if (active.length) {
+        switchToEntry(active[0].entryId);
+      } else {
+        setActiveEntryId(null);
+        setHandover(null);
+        setForm(emptyBookingForm());
+      }
     } catch (err) {
       setSubmitError(err.message || 'Could not return patient to queue');
     } finally {
@@ -260,14 +437,13 @@ export default function BookingRoomPage() {
       return <span className={c.badgeEmergency}>Emergency</span>;
     }
     if (patient.status === 'in_progress') {
+      const starter = patient.assignedToId === userId
+        ? 'you'
+        : patient.assignedToName || 'team';
       return (
         <span className={c.badgeProgress}>
           In progress
-          {patient.assignedToId === userId ? (
-            <span className={c.lockTag}><LockIcon /> You</span>
-          ) : patient.assignedToName ? (
-            <span className={c.lockTag}><LockIcon /> {patient.assignedToName}</span>
-          ) : null}
+          <span className={c.lockTag}> · {starter}</span>
         </span>
       );
     }
@@ -285,71 +461,68 @@ export default function BookingRoomPage() {
       <div className={c.body}>
         <aside className={c.queueAside} aria-label="Booking room queue">
           <h2 className={c.queueTitle}>Booking Room queue</h2>
-          {workspaceActive ? (
-            <p className={c.queueSub}>One patient at a time — complete final disposition</p>
-          ) : (
-            <p className={c.queueSub}>
-              <span className={c.queueCount}>{queue.length}</span> patient{queue.length === 1 ? '' : 's'} waiting
-            </p>
-          )}
+          <p className={c.queueSub}>
+            {activeTransports.length > 0 ? (
+              <>
+                <span className={c.queueCount}>{activeTransports.length}</span>
+                {' '}in progress · <span className={c.queueCount}>{queue.length}</span> in queue
+              </>
+            ) : (
+              <>
+                <span className={c.queueCount}>{queue.length}</span>
+                {' '}patient{queue.length === 1 ? '' : 's'} — shared booking room queue
+              </>
+            )}
+          </p>
 
-          {workspaceActive ? (
-            <ActiveSessionQueueAside
-              classes={c}
-              badge="In progress"
-              title="Active disposition session"
-              message="Transfer to a state hospital or process to the mortuary."
-              patientName={activePatient.name}
-              patientMeta={activePatient.sexAge}
-              patientIdLabel={activePatient.patientIdLabel}
+          <BookingRoomActiveTabs
+            patients={activeTransports}
+            activeEntryId={activeEntryId}
+            onSelect={handleSelectPatient}
+            userId={userId}
+          />
+
+          <div className={c.searchWrap}>
+            <label htmlFor="br-queue-search" className="sr-only">Search queue</label>
+            <input
+              id="br-queue-search"
+              type="search"
+              className={c.searchInput}
+              placeholder="Search by name or patient ID…"
+              value={queueSearch}
+              onChange={(e) => setQueueSearch(e.target.value)}
+              autoComplete="off"
             />
-          ) : (
-            <>
-              <div className={c.searchWrap}>
-                <label htmlFor="br-queue-search" className="sr-only">Search queue</label>
-                <input
-                  id="br-queue-search"
-                  type="search"
-                  className={c.searchInput}
-                  placeholder="Search by name or patient ID…"
-                  value={queueSearch}
-                  onChange={(e) => setQueueSearch(e.target.value)}
-                  autoComplete="off"
+          </div>
+          {queueLoadError ? (
+            <p className={`${c.hint} text-red-600`} role="alert">{queueLoadError}</p>
+          ) : null}
+          {queueActionError ? (
+            <p className={`${c.hint} mt-1 text-red-600`} role="alert">{queueActionError}</p>
+          ) : null}
+          <div className={c.queueList}>
+            {loading ? (
+              <p className={c.hint}>Loading queue…</p>
+            ) : filteredQueue.length === 0 ? (
+              <p className={c.hint}>
+                {queueSearch.trim() ? 'No patients match your search.' : 'No patients in the booking room queue.'}
+              </p>
+            ) : (
+              filteredQueue.map((p) => (
+                <QueueEntryCard
+                  key={p.entryId}
+                  classes={c}
+                  name={p.name}
+                  meta={p.sexAge}
+                  idLabel={p.patientIdLabel}
+                  badge={renderBadge(p)}
+                  active={p.entryId === activeEntryId}
+                  emergency={p.isEmergency}
+                  onClick={() => handleSelectPatient(p)}
                 />
-              </div>
-              {queueLoadError ? (
-                <p className={`${c.hint} text-red-600`} role="alert">{queueLoadError}</p>
-              ) : null}
-              {queueActionError ? (
-                <p className={`${c.hint} mt-1 text-red-600`} role="alert">{queueActionError}</p>
-              ) : null}
-              <div className={c.queueList}>
-                {loading ? (
-                  <p className={c.hint}>Loading queue…</p>
-                ) : filteredQueue.length === 0 ? (
-                  <p className={c.hint}>
-                    {queueSearch.trim() ? 'No patients match your search.' : 'No patients in the booking room queue.'}
-                  </p>
-                ) : (
-                  filteredQueue.map((p) => (
-                    <QueueEntryCard
-                      key={p.entryId}
-                      classes={c}
-                      name={p.name}
-                      meta={p.sexAge}
-                      idLabel={p.patientIdLabel}
-                      badge={renderBadge(p)}
-                      active={p.entryId === activeEntryId}
-                      locked={isLockedToOther(p)}
-                      emergency={p.isEmergency}
-                      onClick={() => handleSelectPatient(p)}
-                      lockedLabel="Locked by another operator"
-                    />
-                  ))
-                )}
-              </div>
-            </>
-          )}
+              ))
+            )}
+          </div>
         </aside>
 
         <div className={c.main}>
@@ -358,7 +531,8 @@ export default function BookingRoomPage() {
               <QueueEmptyIcon />
               <h3 className={c.idleTitle}>No patient selected</h3>
               <p className={c.idleText}>
-                Select a patient from the booking room queue to complete administrative disposition — state hospital transfer or mortuary processing.
+                Select a patient from the queue. Any booking room operator can initiate transport
+                or confirm departure — each step is tracked on the transfer record.
               </p>
             </div>
           ) : (
@@ -380,6 +554,17 @@ export default function BookingRoomPage() {
                 </div>
               </div>
 
+              {activeTransports.length > 1 ? (
+                <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-2 sm:px-6">
+                  <BookingRoomActiveTabs
+                    patients={activeTransports}
+                    activeEntryId={activeEntryId}
+                    onSelect={handleSelectPatient}
+                    userId={userId}
+                  />
+                </div>
+              ) : null}
+
               <div className={c.formScroll}>
                 <BookingRoomWorkspace
                   handover={handover}
@@ -389,7 +574,7 @@ export default function BookingRoomPage() {
                   stateHospitalsLoading={stateHospitalsLoading}
                   stateHospitalsError={stateHospitalsError}
                   actionLoading={actionLoading}
-                  onSubmit={handleDisposition}
+                  onSubmit={handleSubmit}
                 />
 
                 <div className="mt-4 border-t border-slate-200 pt-4">

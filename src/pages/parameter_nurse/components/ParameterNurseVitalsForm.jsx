@@ -7,9 +7,10 @@ export default function ParameterNurseVitalsForm({
   fieldErrors,
   onFieldChange,
   onClassificationChange,
+  classifications = PARAMETER_NURSE_CLASSIFICATIONS,
 }) {
   const destinations = form.visit_classification
-    ? PARAMETER_NURSE_CLASSIFICATIONS[form.visit_classification].destinations
+    ? classifications[form.visit_classification]?.destinations || []
     : [];
 
   const err = (key) => fieldErrors[key];

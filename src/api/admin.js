@@ -36,6 +36,39 @@ export function createAdminFacility(body) {
   });
 }
 
+export function getClinicDepartmentCatalog() {
+  return apiRequest('/api/v1/admin/clinic-departments/catalog');
+}
+
+export function getFacilityDepartments(facilityId) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/departments`);
+}
+
+export function getFacilityDepartmentDetail(facilityId, departmentKey) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/departments/${departmentKey}`);
+}
+
+export function addFacilityDepartment(facilityId, body) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/departments`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function removeFacilityDepartment(facilityId, departmentKey, body) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/departments/${departmentKey}/remove`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function removeFacilityDepartments(facilityId, body) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/departments/remove`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export async function getAdminUsers(params = {}) {
   const q = new URLSearchParams();
   if (params.page) q.set('page', String(params.page));
@@ -136,5 +169,44 @@ export async function downloadAdminMedicalHistoryExport(patientId, { facility_id
   const disposition = res.headers.get('Content-Disposition') || '';
   const match = disposition.match(/filename="?([^"]+)"?/i);
   const filename = match?.[1] || `medical-card-${scope}.xlsx`;
+  return { blob, filename };
+}
+
+export async function getAdminTransferTimelines(params = {}) {
+  const q = new URLSearchParams();
+  if (params.page) q.set('page', String(params.page));
+  if (params.limit) q.set('limit', String(params.limit));
+  if (params.status) q.set('status', params.status);
+  if (params.clinic_facility_id) q.set('clinic_facility_id', String(params.clinic_facility_id));
+  if (params.hospital_facility_id) q.set('hospital_facility_id', String(params.hospital_facility_id));
+  if (params.from) q.set('from', params.from);
+  if (params.to) q.set('to', params.to);
+  const qs = q.toString();
+  const json = await apiRequestFull(`/api/v1/admin/transfer-timelines${qs ? `?${qs}` : ''}`);
+  return { rows: json.data || [], pagination: json.pagination };
+}
+
+export async function downloadAdminTransferTimelinesExport(params = {}) {
+  const token = getAccessToken();
+  const q = new URLSearchParams();
+  if (params.status) q.set('status', params.status);
+  if (params.clinic_facility_id) q.set('clinic_facility_id', String(params.clinic_facility_id));
+  if (params.hospital_facility_id) q.set('hospital_facility_id', String(params.hospital_facility_id));
+  if (params.from) q.set('from', params.from);
+  if (params.to) q.set('to', params.to);
+  const res = await fetch(
+    `${getApiBase()}/api/v1/admin/transfer-timelines/export?${q}`,
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    }
+  );
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || `Export failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = disposition.match(/filename="?([^"]+)"?/i);
+  const filename = match?.[1] || 'clinic-hospital-transfer-timelines.xlsx';
   return { blob, filename };
 }

@@ -10,6 +10,7 @@ export default function QueueRoutingForm({
   onDestinationChange,
   patientSex,
   patientDateOfBirth,
+  facilityDestinations,
   disabled = false,
   classNames,
   hideWhenImmediateTriage = false,
@@ -17,8 +18,12 @@ export default function QueueRoutingForm({
 }) {
   const ui = classNames || lookup;
   const destinations = useMemo(
-    () => getRoutingDestinationsForPatient({ sex: patientSex, dateOfBirth: patientDateOfBirth }),
-    [patientSex, patientDateOfBirth]
+    () => getRoutingDestinationsForPatient({
+      sex: patientSex,
+      dateOfBirth: patientDateOfBirth,
+      facilityDestinations,
+    }),
+    [patientSex, patientDateOfBirth, facilityDestinations]
   );
 
   useEffect(() => {
@@ -36,7 +41,7 @@ export default function QueueRoutingForm({
     );
   }
 
-  const label = destination ? routingLabel(destination) : null;
+  const label = destination ? routingLabel(destination, destinations) : null;
 
   return (
     <section className={`${ui.intakeSection} mt-4`} aria-labelledby="fo-routing-heading">
@@ -74,9 +79,15 @@ export default function QueueRoutingForm({
   );
 }
 
-export function routingButtonLabel({ destination, immediateTriage, loading, action = 'Route' }) {
+export function routingButtonLabel({
+  destination,
+  immediateTriage,
+  loading,
+  action = 'Route',
+  destinations,
+} = {}) {
   if (loading) return `${action}…`;
   if (immediateTriage) return `${action} to Emergency Unit`;
-  if (destination) return `${action} to ${routingLabel(destination)}`;
+  if (destination) return `${action} to ${routingLabel(destination, destinations)}`;
   return `${action} patient`;
 }

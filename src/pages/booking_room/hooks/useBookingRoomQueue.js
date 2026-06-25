@@ -62,6 +62,7 @@ export function useBookingRoomQueue({ onQueueSynced } = {}) {
     };
 
     const handleLiveEvent = () => requestDepartmentQueueRefresh(DEPT);
+    const handleTransferUpdated = () => requestDepartmentQueueRefresh(DEPT);
     const onConnect = () => {
       setLive(true);
       socket.emit('queue:join_department', DEPT);
@@ -74,6 +75,7 @@ export function useBookingRoomQueue({ onQueueSynced } = {}) {
     socket.on('queue:refresh', handleRefresh);
     socket.on('queue:new_patient', handleLiveEvent);
     socket.on('queue:patient_moved', handlePatientMoved);
+    socket.on('transfer:updated', handleTransferUpdated);
     if (socket.connected) onConnect();
 
     return () => {
@@ -83,6 +85,7 @@ export function useBookingRoomQueue({ onQueueSynced } = {}) {
       socket.off('queue:refresh', handleRefresh);
       socket.off('queue:new_patient', handleLiveEvent);
       socket.off('queue:patient_moved', handlePatientMoved);
+      socket.off('transfer:updated', handleTransferUpdated);
     };
   }, [applyEntries, loadQueueHttp]);
 
@@ -95,9 +98,18 @@ export function useBookingRoomQueue({ onQueueSynced } = {}) {
   return { queue, setQueue, loading, error, live, refresh };
 }
 
-export function pickAutoResumeEntry(mapped, userId) {
-  if (!userId) return null;
-  return mapped.find((p) => p.status === 'in_progress' && p.assignedToId === userId);
+export function pickBookingRoomActiveEntries(mapped) {
+  return mapped.filter((p) => p.status === 'in_progress');
+}
+
+/** @deprecated use pickBookingRoomActiveEntries — booking room is shared across operators */
+export function pickMyActiveEntries(mapped, userId) {
+  return pickBookingRoomActiveEntries(mapped);
+}
+
+export function pickAutoResumeEntry(mapped) {
+  const active = pickBookingRoomActiveEntries(mapped);
+  return active[0] || null;
 }
 
 export function useBookingRoomSession() {

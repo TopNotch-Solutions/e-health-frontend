@@ -41,9 +41,14 @@ export function isPediatricEligible(dateOfBirth) {
   return age < MAX_PEDIATRIC_AGE;
 }
 
-/** Routing destinations available for a patient based on demographics. */
-export function getRoutingDestinationsForPatient({ sex, dateOfBirth } = {}) {
-  return ROUTING_DESTINATIONS.filter((destination) => {
+/** Routing destinations available for a patient based on demographics and facility setup. */
+export function getRoutingDestinationsForPatient({
+  sex,
+  dateOfBirth,
+  facilityDestinations,
+} = {}) {
+  const base = facilityDestinations?.length ? facilityDestinations : ROUTING_DESTINATIONS;
+  return base.filter((destination) => {
     if (destination.value === PAP_SMEAR_DESTINATION && isMalePatient(sex)) {
       return false;
     }
@@ -54,6 +59,8 @@ export function getRoutingDestinationsForPatient({ sex, dateOfBirth } = {}) {
   });
 }
 
-export function routingLabel(value) {
-  return ROUTING_DESTINATIONS.find((d) => d.value === value)?.label || value;
+export function routingLabel(value, destinations = ROUTING_DESTINATIONS) {
+  return destinations.find((d) => d.value === value)?.label
+    || ROUTING_DESTINATIONS.find((d) => d.value === value)?.label
+    || value;
 }

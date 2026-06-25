@@ -147,6 +147,11 @@ export default function SocialWorkerSuitePage() {
       case_history: form.case_history,
       clinical_notes: form.clinical_notes,
       severity: severityForApi(form),
+      destination_department: form.isSevere ? form.destination_department : undefined,
+      equipment_required: form.equipment_required,
+      critical_notes: form.critical_notes?.trim() || null,
+      external_porter_notes: form.external_porter_notes?.trim() || null,
+      internal_porter_notes: form.internal_porter_notes?.trim() || null,
     };
   }
 
@@ -354,6 +359,7 @@ export default function SocialWorkerSuitePage() {
                 <SocialWorkerAssessmentForm
                   form={form}
                   fieldErrors={fieldErrors}
+                  visitId={activePatient?.visitId}
                   isFinalized={!!handover?.assessment?.is_finalized}
                   onFieldChange={(k, v) => {
                     setForm((prev) => ({ ...prev, [k]: v }));
@@ -364,6 +370,7 @@ export default function SocialWorkerSuitePage() {
                       return next;
                     });
                   }}
+                  onFormPatch={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
                   onSubmit={handleSubmit}
                   actionLoading={actionLoading}
                   submitError={submitError}

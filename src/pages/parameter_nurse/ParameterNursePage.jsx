@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
+import { useClinicRoutingOptions } from '../../hooks/useClinicRoutingOptions';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { recordParameterNurseVitalsAndPush, dischargeParameterNursePatient } from '../../api/vitals';
 import DischargePatientSection from '../../components/consultation/DischargePatientSection';
@@ -50,6 +51,20 @@ function LockIcon() {
 
 export default function ParameterNursePage() {
   const { nurseLabel, initials, userId } = useParameterNurseSession();
+  const { options: routingOptions } = useClinicRoutingOptions();
+  const parameterClassifications = useMemo(() => {
+    if (!routingOptions?.parameter_nurse) return PARAMETER_NURSE_CLASSIFICATIONS;
+    return {
+      follow_up: {
+        label: routingOptions.parameter_nurse.follow_up?.label || 'Follow-Up',
+        destinations: routingOptions.parameter_nurse.follow_up?.destinations || [],
+      },
+      sick: {
+        label: routingOptions.parameter_nurse.sick?.label || 'Sick',
+        destinations: routingOptions.parameter_nurse.sick?.destinations || [],
+      },
+    };
+  }, [routingOptions]);
   const [queueSearch, setQueueSearch] = useState('');
   const [activeEntryId, setActiveEntryId] = useState(null);
   const [form, setForm] = useState(emptyParameterForm);
@@ -152,14 +167,14 @@ export default function ParameterNursePage() {
   async function handleSubmit() {
     if (!activePatient || actionLoading) return;
 
-    const validation = validateParameterForm(form);
+    const validation = validateParameterForm(form, parameterClassifications);
     if (Object.keys(validation).length > 0) {
       setFieldErrors(validation);
       setSubmitError('');
       return;
     }
 
-    const destLabel = PARAMETER_NURSE_CLASSIFICATIONS[form.visit_classification].destinations
+    const destLabel = parameterClassifications[form.visit_classification]?.destinations
       .find((d) => d.value === form.routing_destination)?.label;
     if (!(await confirmAction({
       title: 'Submit vitals?',
@@ -298,8 +313,8 @@ export default function ParameterNursePage() {
     return <span className={c.badgePending}>Waiting</span>;
   }
 
-  const submitLabel = routingButtonLabel(form, actionLoading);
-  const canSubmit = isParameterFormComplete(form);
+  const submitLabel = routingButtonLabel(form, actionLoading, parameterClassifications);
+  const canSubmit = isParameterFormComplete(form, parameterClassifications);
 
   return (
     <div className={c.page}>
@@ -410,6 +425,7 @@ export default function ParameterNursePage() {
                   fieldErrors={fieldErrors}
                   onFieldChange={handleFieldChange}
                   onClassificationChange={handleClassificationChange}
+                  classifications={parameterClassifications}
                 />
 
                 <DischargePatientSection

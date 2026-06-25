@@ -21,6 +21,7 @@ import ArtNursePage from './pages/art_nurse';
 import EmergencyUnitNursePage from './pages/emergency_unit_nurse';
 import EmergencyUnitDoctorPage from './pages/emergency_unit_doctor';
 import BookingRoomPage from './pages/booking_room';
+import HospitalOutpatientPage from './pages/hospital_outpatient';
 import ClinicStationPlaceholderPage from './pages/clinic_station/ClinicStationPlaceholderPage';
 import PrepSuitePage from './pages/prep_suite';
 import DermatologistPage from './pages/dermatologist';
@@ -201,6 +202,28 @@ function App() {
             </RoleRoute>
           }
         />
+        {[
+          'pediatric_outpatient_nurse',
+          'ent_nurse',
+          'hospital_emergency_nurse',
+          'eye_nurse',
+          'orthopedic_outpatient_nurse',
+          'adult_outpatient_nurse',
+          'physiotherapy_nurse',
+          'big_room_specialist_nurse',
+          'urology_nurse',
+          'mental_health_nurse',
+        ].map((role) => (
+          <Route
+            key={role}
+            path={`/${role}`}
+            element={
+              <RoleRoute role={role}>
+                <HospitalOutpatientPage />
+              </RoleRoute>
+            }
+          />
+        ))}
         <Route
           path="/clinic_doctor"
           element={
@@ -364,6 +387,22 @@ function App() {
           path="/porter"
           element={
             <RoleRoute role="porter">
+              <PorterPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/internal_porter"
+          element={
+            <RoleRoute role="internal_porter">
+              <PorterPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/external_porter"
+          element={
+            <RoleRoute role="external_porter">
               <PorterPage />
             </RoleRoute>
           }

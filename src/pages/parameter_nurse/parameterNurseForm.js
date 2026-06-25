@@ -34,7 +34,7 @@ function parseNum(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-export function validateParameterForm(form) {
+export function validateParameterForm(form, classifications = PARAMETER_NURSE_CLASSIFICATIONS) {
   const errors = {};
 
   if (!form.visit_classification) {
@@ -43,7 +43,7 @@ export function validateParameterForm(form) {
   if (!form.routing_destination) {
     errors.routing_destination = 'Select a routing destination.';
   } else if (form.visit_classification) {
-    const allowed = PARAMETER_NURSE_CLASSIFICATIONS[form.visit_classification]?.destinations || [];
+    const allowed = classifications[form.visit_classification]?.destinations || [];
     if (!allowed.some((d) => d.value === form.routing_destination)) {
       errors.routing_destination = 'Destination not allowed for this visit type.';
     }
@@ -112,15 +112,15 @@ export function buildParameterPayload(form, { visitId, queueEntryId }) {
   return payload;
 }
 
-export function isParameterFormComplete(form) {
+export function isParameterFormComplete(form, classifications = PARAMETER_NURSE_CLASSIFICATIONS) {
   if (!form.visit_classification || !form.routing_destination) return false;
-  return Object.keys(validateParameterForm(form)).length === 0;
+  return Object.keys(validateParameterForm(form, classifications)).length === 0;
 }
 
-export function routingButtonLabel(form, loading) {
+export function routingButtonLabel(form, loading, classifications = PARAMETER_NURSE_CLASSIFICATIONS) {
   if (loading) return 'Submitting…';
   if (!form.routing_destination) return 'Submit & route patient';
-  const dest = PARAMETER_NURSE_CLASSIFICATIONS[form.visit_classification]?.destinations
+  const dest = classifications[form.visit_classification]?.destinations
     .find((d) => d.value === form.routing_destination);
   return dest ? `Submit & route to ${dest.label}` : 'Submit & route patient';
 }

@@ -1,3 +1,4 @@
+import HospitalReferralFields from '../../../components/hospital/HospitalReferralFields';
 import { IntakeInput, IntakeSelect } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
@@ -53,6 +54,8 @@ export default function ClinicDispositionSection({
   prescriptionLines,
   onAddMedToList,
   onRemoveMedLine,
+  patient,
+  onFormPatch,
 }) {
   const submitLabel = dispositionButtonLabel(form, actionLoading, hasPrescription);
   const showPrescription = dispositionShowsPrescription(form.disposition);
@@ -118,6 +121,16 @@ export default function ClinicDispositionSection({
               hideSubmitButton
             />
           </>
+        ) : null}
+
+        {form.disposition === 'booking_room' ? (
+          <HospitalReferralFields
+            visitId={patient?.visitId}
+            sourceRole="master_doctor"
+            form={form}
+            onChange={(next) => onFormPatch?.(next)}
+            fieldErrors={fieldErrors}
+          />
         ) : null}
 
         {form.disposition === 'follow_up' ? (

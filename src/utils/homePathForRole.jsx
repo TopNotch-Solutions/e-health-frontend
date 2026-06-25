@@ -20,6 +20,8 @@ const ROLE_HOME_PATHS = {
   ward_supervisor: '/ward_supervisor',
   ward_staff: '/ward_staff',
   porter: '/porter',
+  internal_porter: '/internal_porter',
+  external_porter: '/external_porter',
   kitchen_staff: '/kitchen_staff',
   kitchen_manager: '/kitchen_manager',
   billing_clerk: '/billing_clerk',
@@ -49,6 +51,16 @@ const ROLE_HOME_PATHS = {
   maternity_pnw_staff: '/maternity_pnw_staff',
   maternity_icu_staff: '/maternity_icu_staff',
   maternity_nicu_staff: '/maternity_nicu_staff',
+  pediatric_outpatient_nurse: '/pediatric_outpatient_nurse',
+  ent_nurse: '/ent_nurse',
+  hospital_emergency_nurse: '/hospital_emergency_nurse',
+  eye_nurse: '/eye_nurse',
+  orthopedic_outpatient_nurse: '/orthopedic_outpatient_nurse',
+  adult_outpatient_nurse: '/adult_outpatient_nurse',
+  physiotherapy_nurse: '/physiotherapy_nurse',
+  big_room_specialist_nurse: '/big_room_specialist_nurse',
+  urology_nurse: '/urology_nurse',
+  mental_health_nurse: '/mental_health_nurse',
 };
 
 /** Legacy, informal, or queue-department slugs → canonical Role.name */
@@ -107,7 +119,9 @@ const ROLE_DISPLAY_NAMES = {
   radiologist_supervisor: 'Radiologist Supervisor',
   ward_supervisor: 'Ward Supervisor',
   ward_staff: 'Ward Staff',
-  porter: 'Porter',
+  porter: 'Internal Porter',
+  internal_porter: 'Internal Porter',
+  external_porter: 'External Porter (Ambulance)',
   kitchen_staff: 'Kitchen Staff',
   kitchen_manager: 'Kitchen Manager',
   billing_clerk: 'Billing Clerk',
@@ -137,6 +151,16 @@ const ROLE_DISPLAY_NAMES = {
   maternity_pnw_staff: 'PNW Staff',
   maternity_icu_staff: 'Maternity ICU Staff',
   maternity_nicu_staff: 'NICU Staff',
+  pediatric_outpatient_nurse: 'Pediatric Outpatient Nurse',
+  ent_nurse: 'ENT Nurse',
+  hospital_emergency_nurse: 'Emergency Unit Nurse',
+  eye_nurse: 'Eye Nurse',
+  orthopedic_outpatient_nurse: 'Orthopedic Outpatient Nurse',
+  adult_outpatient_nurse: 'Adult Outpatient Nurse',
+  physiotherapy_nurse: 'Physiotherapy Nurse',
+  big_room_specialist_nurse: 'Big Room Specialist Nurse',
+  urology_nurse: 'Urology Nurse',
+  mental_health_nurse: 'Mental Health Nurse',
 };
 
 export function normalizeRoleSlug(roleName) {

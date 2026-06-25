@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { confirmAction } from '../../utils/confirmAction';
+import { useClinicRoutingOptions } from '../../hooks/useClinicRoutingOptions';
 import RegistrationGuard from './RegistrationGuard';
 import { useRegistration } from './RegistrationContext';
 import RegistrationStepper from './RegistrationStepper';
@@ -10,6 +11,9 @@ import { fo } from './styles/frontOfficeModuleClasses';
 
 function Step4Form() {
   const { draft, updateField, submitRegistration, submitting, submitError } = useRegistration();
+  const { options: routingOptions } = useClinicRoutingOptions();
+  const frontOfficeDestinations = routingOptions?.front_office;
+  const emergencyUnitAvailable = routingOptions?.emergency_unit_available !== false;
 
   function handleImmediateTriageChange(checked) {
     updateField('immediate_triage', checked);
@@ -23,6 +27,7 @@ function Step4Form() {
       immediateTriage: draft.immediate_triage,
       loading: submitting,
       action: 'Finish & route',
+      destinations: frontOfficeDestinations,
     });
     const routeLabel = draft.immediate_triage
       ? 'Emergency Unit'
@@ -43,6 +48,7 @@ function Step4Form() {
     immediateTriage: draft.immediate_triage,
     loading: submitting,
     action: 'Finish & route',
+    destinations: frontOfficeDestinations,
   });
 
   const canFinishRoute = Boolean(draft.routing_destination) || Boolean(draft.immediate_triage);
@@ -107,13 +113,14 @@ function Step4Form() {
           id="fo-reg-step4-triage"
           checked={Boolean(draft.immediate_triage)}
           onChange={handleImmediateTriageChange}
-          disabled={submitting}
+          disabled={submitting || !emergencyUnitAvailable}
         />
         <QueueRoutingForm
           destination={draft.routing_destination}
           onDestinationChange={(v) => updateField('routing_destination', v)}
           patientSex={draft.sex}
           patientDateOfBirth={draft.date_of_birth}
+          facilityDestinations={frontOfficeDestinations}
           disabled={submitting || draft.immediate_triage}
           immediateTriage={draft.immediate_triage}
           hideWhenImmediateTriage

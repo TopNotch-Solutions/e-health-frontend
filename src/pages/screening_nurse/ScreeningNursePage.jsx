@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction, confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
+import { useClinicRoutingOptions } from '../../hooks/useClinicRoutingOptions';
 import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { getHandoverVitals, recordScreeningNurseAssessmentAndPush, dischargeScreeningNursePatient } from '../../api/vitals';
 import DischargePatientSection from '../../components/consultation/DischargePatientSection';
@@ -50,6 +51,15 @@ function LockIcon() {
 
 export default function ScreeningNursePage() {
   const { nurseLabel, initials, userId } = useScreeningNurseSession();
+  const { options: routingOptions } = useClinicRoutingOptions();
+  const screeningDestinations = useMemo(() => {
+    const api = routingOptions?.screening_nurse;
+    if (!api?.length) return SCREENING_DESTINATIONS;
+    return api.map((d) => {
+      const full = SCREENING_DESTINATIONS.find((s) => s.value === d.value);
+      return full ? { ...full, label: d.label || full.label } : d;
+    });
+  }, [routingOptions]);
   const [queueSearch, setQueueSearch] = useState('');
   const [activeEntryId, setActiveEntryId] = useState(null);
   const [form, setForm] = useState(emptyScreeningForm);
@@ -138,7 +148,7 @@ export default function ScreeningNursePage() {
     && activePatient.status === 'in_progress'
     && activePatient.assignedToId === userId;
 
-  const canSubmit = isScreeningFormComplete(form);
+  const canSubmit = isScreeningFormComplete(form, screeningDestinations);
 
   function isLockedToOther(patient) {
     return (
@@ -176,13 +186,13 @@ export default function ScreeningNursePage() {
   async function handleSubmit() {
     if (!activePatient || actionLoading) return;
 
-    const validation = validateScreeningForm(form);
+    const validation = validateScreeningForm(form, screeningDestinations);
     if (Object.keys(validation).length > 0) {
       setFieldErrors(validation);
       return;
     }
 
-    const destLabel = SCREENING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
+    const destLabel = screeningDestinations.find((d) => d.value === form.routing_destination)?.label;
     if (!(await confirmAction({
       title: 'Submit assessment?',
       text: `Save screening assessment and route ${activePatient.name} to ${destLabel || form.routing_destination}?`,
@@ -427,6 +437,7 @@ export default function ScreeningNursePage() {
                   canSubmit={canSubmit}
                   onSubmit={handleSubmit}
                   actionLoading={actionLoading}
+                  destinations={screeningDestinations}
                 />
 
                 <DischargePatientSection

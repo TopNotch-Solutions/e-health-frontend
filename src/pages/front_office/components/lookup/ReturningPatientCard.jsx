@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useClinicRoutingOptions } from '../../../../hooks/useClinicRoutingOptions';
 import IntakeDetailsForm from '../IntakeDetailsForm';
 import EmergencyPatientToggle from '../EmergencyPatientToggle';
 import ImmediateTriageToggle from '../ImmediateTriageToggle';
@@ -16,6 +17,9 @@ export default function ReturningPatientCard({
   checkInPatientId,
 }) {
   const { showToast } = useToast();
+  const { options: routingOptions } = useClinicRoutingOptions();
+  const frontOfficeDestinations = routingOptions?.front_office;
+  const emergencyUnitAvailable = routingOptions?.emergency_unit_available !== false;
   const [modeOfArrival, setModeOfArrival] = useState('');
   const [accompaniedBy, setAccompaniedBy] = useState('');
   const [isEmergency, setIsEmergency] = useState(Boolean(patient.is_emergency));
@@ -68,6 +72,7 @@ export default function ReturningPatientCard({
     immediateTriage,
     loading: busy,
     action: 'Route',
+    destinations: frontOfficeDestinations,
   });
 
   return (
@@ -123,7 +128,7 @@ export default function ReturningPatientCard({
             id={`fo-returning-triage-${patient.id}`}
             checked={immediateTriage}
             onChange={handleImmediateTriageChange}
-            disabled={checkInLoading || checkInBlocked}
+            disabled={checkInLoading || checkInBlocked || !emergencyUnitAvailable}
           />
         </div>
         <div className="mt-4">
@@ -132,6 +137,7 @@ export default function ReturningPatientCard({
             onDestinationChange={setRoutingDestination}
             patientSex={patient.sex}
             patientDateOfBirth={patient.date_of_birth}
+            facilityDestinations={frontOfficeDestinations}
             disabled={checkInLoading || immediateTriage || checkInBlocked}
             immediateTriage={immediateTriage}
             hideWhenImmediateTriage

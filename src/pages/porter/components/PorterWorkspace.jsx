@@ -72,6 +72,7 @@ export default function PorterWorkspace({
 
   const pending = transport?.status === 'pending';
   const inTransit = transport?.status === 'in_transit';
+  const isExternal = transport?.transport_scope === 'external';
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -81,7 +82,9 @@ export default function PorterWorkspace({
         </h3>
         <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">From</dt>
+            <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
+              {isExternal ? 'Pickup at' : 'From'}
+            </dt>
             <dd className="font-medium text-slate-900">{transport?.from_location || '—'}</dd>
           </div>
           <div>
@@ -107,17 +110,28 @@ export default function PorterWorkspace({
 
       <section className={c.sectionPanel} aria-labelledby="porter-clinical-heading">
         <h3 id="porter-clinical-heading" className={c.sectionTitle}>
-          Doctor handover
+          {transport?.transport_scope === 'external' ? 'Referral details' : 'Doctor handover'}
         </h3>
+        {transport?.transport_scope === 'external' && transport?.origin_facility_name ? (
+          <p className="mt-2 text-sm text-slate-700">
+            <span className="font-semibold">Referring facility: </span>
+            {transport.origin_facility_name}
+            {transport.origin_address ? ` — ${transport.origin_address}` : ''}
+          </p>
+        ) : null}
         {critical ? (
           <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
             <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Critical notes</p>
             <p className="mt-1 whitespace-pre-wrap">{critical}</p>
           </div>
         ) : (
-          <p className={`${c.hint} mt-1`}>No critical notes from the doctor.</p>
+          <p className={`${c.hint} mt-1`}>
+            {isExternal ? 'No clinical notes were provided for this referral.' : 'No critical notes from the doctor.'}
+          </p>
         )}
 
+        {!isExternal ? (
+          <>
         <h4 className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-600">
           Equipment checklist (from doctor)
         </h4>
@@ -130,6 +144,8 @@ export default function PorterWorkspace({
             ))}
           </ul>
         )}
+          </>
+        ) : null}
       </section>
 
       <section className={c.sectionPanel} aria-labelledby="porter-actions-heading">
@@ -138,10 +154,14 @@ export default function PorterWorkspace({
         </h3>
         <p className="mt-1 text-sm text-slate-600">
           {pending
-            ? 'Confirm when you have collected the patient from the pick-up point.'
+            ? isExternal
+              ? 'Confirm when you have collected the patient from the referring facility.'
+              : 'Confirm when you have collected the patient from the pick-up point.'
             : null}
           {inTransit
-            ? 'Confirm when the patient has been handed over at the destination.'
+            ? isExternal
+              ? 'Confirm when the patient has arrived and been handed over at this hospital.'
+              : 'Confirm when the patient has been handed over at the destination.'
             : null}
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">

@@ -15,22 +15,22 @@ export function emptyScreeningForm() {
   };
 }
 
-export function validateScreeningForm(form) {
+export function validateScreeningForm(form, destinations = SCREENING_DESTINATIONS) {
   const errors = {};
   if (!form.symptoms?.trim()) errors.symptoms = 'Required';
   if (!form.reason?.trim()) errors.reason = 'Required';
   if (!form.diagnosis?.trim()) errors.diagnosis = 'Required';
   if (!form.routing_destination) {
     errors.routing_destination = 'Select a routing destination.';
-  } else if (!SCREENING_DESTINATIONS.some((d) => d.value === form.routing_destination)) {
+  } else if (!destinations.some((d) => d.value === form.routing_destination)) {
     errors.routing_destination = 'Invalid routing destination.';
   }
   return errors;
 }
 
-export function isScreeningFormComplete(form) {
+export function isScreeningFormComplete(form, destinations = SCREENING_DESTINATIONS) {
   if (!form.routing_destination) return false;
-  return Object.keys(validateScreeningForm(form)).length === 0;
+  return Object.keys(validateScreeningForm(form, destinations)).length === 0;
 }
 
 export function buildScreeningDischargePayload(form, { visitId, queueEntryId }) {
@@ -55,10 +55,10 @@ export function buildScreeningPayload(form, { visitId, queueEntryId }) {
   };
 }
 
-export function routingButtonLabel(form, loading) {
+export function routingButtonLabel(form, loading, destinations = SCREENING_DESTINATIONS) {
   if (loading) return 'Submitting…';
   if (!form.routing_destination) return 'Submit & route patient';
-  const dest = SCREENING_DESTINATIONS.find((d) => d.value === form.routing_destination);
+  const dest = destinations.find((d) => d.value === form.routing_destination);
   return dest ? `Submit & route to ${dest.label}` : 'Submit & route patient';
 }
 
@@ -71,8 +71,8 @@ const ROUTING_BTN_COLORS = {
   emergency: 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500',
 };
 
-export function routingButtonClass(form) {
-  const dest = SCREENING_DESTINATIONS.find((d) => d.value === form.routing_destination);
+export function routingButtonClass(form, destinations = SCREENING_DESTINATIONS) {
+  const dest = destinations.find((d) => d.value === form.routing_destination);
   const colorKey = dest?.buttonClass || 'primary';
   return `${ROUTING_BTN_STRUCTURE} ${ROUTING_BTN_COLORS[colorKey]}`;
 }

@@ -15,6 +15,11 @@ export function emptyClinicDoctorForm() {
     disposition: '',
     follow_up_date: '',
     discharge_reason: '',
+    destination_department: '',
+    equipment_required: 'stretcher',
+    critical_notes: '',
+    external_porter_notes: '',
+    internal_porter_notes: '',
   };
 }
 

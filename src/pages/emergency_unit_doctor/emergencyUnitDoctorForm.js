@@ -12,6 +12,11 @@ export function emptyEmergencyDoctorForm() {
     notes: '',
     disposition: '',
     discharge_reason: '',
+    destination_department: '',
+    equipment_required: 'stretcher',
+    critical_notes: '',
+    external_porter_notes: '',
+    internal_porter_notes: '',
   };
 }
 

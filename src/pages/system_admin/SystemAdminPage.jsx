@@ -31,9 +31,11 @@ import { admin as c } from './styles/adminClasses';
 import AdminDashboardView from './views/AdminDashboardView';
 import EmployeeManagementView from './views/EmployeeManagementView';
 import FacilityManagementView from './views/FacilityManagementView';
+import ClinicFacilityDetailView from './views/ClinicFacilityDetailView';
 import SystemAdminManagementView from './views/SystemAdminManagementView';
 import Icd10ManagementView from './views/Icd10ManagementView';
 import PatientRecordsView from './views/PatientRecordsView';
+import TransferTimelinesView from './views/TransferTimelinesView';
 import SystemSettingsView from './views/SystemSettingsView';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -74,6 +76,8 @@ export default function SystemAdminPage() {
   const [roleFilter, setRoleFilter] = useState('');
 
   const [facilityModalOpen, setFacilityModalOpen] = useState(false);
+  const [selectedClinic, setSelectedClinic] = useState(null);
+  const [selectedDepartmentKey, setSelectedDepartmentKey] = useState(null);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -428,11 +432,27 @@ export default function SystemAdminPage() {
       />
     );
   } else if (section === 'facilities') {
-    content = (
+    content = selectedClinic ? (
+      <ClinicFacilityDetailView
+        facilityId={selectedClinic.id}
+        facilityName={selectedClinic.name}
+        selectedDepartmentKey={selectedDepartmentKey}
+        onBack={() => {
+          setSelectedClinic(null);
+          setSelectedDepartmentKey(null);
+        }}
+        onOpenDepartment={setSelectedDepartmentKey}
+        onBackFromDepartment={() => setSelectedDepartmentKey(null)}
+      />
+    ) : (
       <FacilityManagementView
         facilities={facilities}
         loading={loading}
         onCreateClick={() => setFacilityModalOpen(true)}
+        onSelectClinic={(clinic) => {
+          setSelectedClinic(clinic);
+          setSelectedDepartmentKey(null);
+        }}
       />
     );
   } else if (section === 'employees') {
@@ -476,6 +496,13 @@ export default function SystemAdminPage() {
     );
   } else if (section === 'patient-records') {
     content = <PatientRecordsView />;
+  } else if (section === 'transfer-timelines') {
+    content = (
+      <TransferTimelinesView
+        facilities={facilities}
+        onToast={setToast}
+      />
+    );
   } else if (section === 'icd10') {
     content = (
       <Icd10ManagementView
@@ -525,7 +552,16 @@ export default function SystemAdminPage() {
       ) : null}
 
       <div className={c.body}>
-        <AdminSidebar activeSection={section} onSectionChange={setSection} />
+        <AdminSidebar
+          activeSection={section}
+          onSectionChange={(next) => {
+            setSection(next);
+            if (next !== 'facilities') {
+              setSelectedClinic(null);
+              setSelectedDepartmentKey(null);
+            }
+          }}
+        />
         <main className={c.main}>
           <div className={c.mainScroll}>{content}</div>
         </main>

@@ -36,7 +36,7 @@ function statusBadge(status) {
 }
 
 export default function PorterConsultationPage() {
-  const { porterLabel, initials } = usePorterSession();
+  const { porterLabel, initials, roleTitle, queueHint, transportScope } = usePorterSession();
   const [queueSearch, setQueueSearch] = useState('');
   const [activeTransportId, setActiveTransportId] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -100,6 +100,7 @@ export default function PorterConsultationPage() {
         row.patientName.toLowerCase().includes(q) ||
         String(row.patientNumber).toLowerCase().includes(q) ||
         (row.fromLocation || '').toLowerCase().includes(q) ||
+        (row.originFacilityName || '').toLowerCase().includes(q) ||
         (row.toLocation || '').toLowerCase().includes(q)
       );
     });
@@ -173,7 +174,13 @@ export default function PorterConsultationPage() {
 
   return (
     <div className={c.page}>
-      <PorterTopbar porterLabel={porterLabel} initials={initials} live={live} />
+      <PorterTopbar
+        porterLabel={porterLabel}
+        roleTitle={roleTitle}
+        queueHint={queueHint}
+        initials={initials}
+        live={live}
+      />
 
       {toast ? (
         <div className={c.toast} role="status">
@@ -183,13 +190,17 @@ export default function PorterConsultationPage() {
 
       <div className={c.body}>
         <aside className={c.queueAside} aria-label="Transport queue">
-          <h2 className={c.queueTitle}>Transport queue</h2>
+          <h2 className={c.queueTitle}>
+            {transportScope === 'external' ? 'Ambulance pickup queue' : 'Transport queue'}
+          </h2>
           {sessionActive ? (
             <p className={c.queueSub}>You have an active transport job</p>
           ) : (
             <p className={c.queueSub}>
-              <span className={c.queueCount}>{totalCount}</span> job{totalCount === 1 ? '' : 's'} waiting or in
-              progress
+              <span className={c.queueCount}>{totalCount}</span>{' '}
+              {transportScope === 'external'
+                ? `pickup${totalCount === 1 ? '' : 's'} from referring facilities`
+                : `job${totalCount === 1 ? '' : 's'} waiting or in progress`}
             </p>
           )}
 
@@ -197,8 +208,12 @@ export default function PorterConsultationPage() {
             <ActiveSessionQueueAside
               classes={c}
               badge="Active"
-              title="Current transport"
-              message="Mark picked up when you collect the patient, then delivered at the ward. Use Return to queue to pause."
+              title={transportScope === 'external' ? 'Current ambulance pickup' : 'Current transport'}
+              message={
+                transportScope === 'external'
+                  ? 'Mark picked up when you collect the patient from the referring facility, then delivered when they arrive at this hospital.'
+                  : 'Mark picked up when you collect the patient, then delivered at the ward. Use Return to queue to pause.'
+              }
             />
           ) : (
             <>
@@ -244,7 +259,11 @@ export default function PorterConsultationPage() {
                       classes={c}
                       name={row.patientName}
                       idLabel={row.patientNumber ? `ID: ${row.patientNumber}` : undefined}
-                      subtitle={`${row.fromLocation} → ${row.toLocation} · Mode: ${row.equipmentRequired}`}
+                      subtitle={
+                        row.transportScope === 'external'
+                          ? `${row.originFacilityName || row.fromLocation} → ${row.toLocation} · Ambulance pickup`
+                          : `${row.fromLocation} → ${row.toLocation} · Mode: ${row.equipmentRequired}`
+                      }
                       badge={(
                         <div className="flex flex-wrap items-center gap-1">
                           {statusBadge(row.status)}
@@ -269,8 +288,9 @@ export default function PorterConsultationPage() {
               <QueueEmptyIcon />
               <h3 className={c.idleTitle}>No job selected</h3>
               <p className={c.idleText}>
-                Choose a patient from the queue to view critical notes, the doctor&rsquo;s equipment checklist, and
-                update pickup and delivery status.
+                {transportScope === 'external'
+                  ? 'Choose a pickup from the queue to view referral details and update ambulance status.'
+                  : 'Choose a patient from the queue to view critical notes, the doctor\u2019s equipment checklist, and update pickup and delivery status.'}
               </p>
             </div>
           ) : detailLoading ? (

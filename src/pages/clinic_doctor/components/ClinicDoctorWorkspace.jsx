@@ -322,6 +322,11 @@ export default function ClinicDoctorWorkspace({
           diagnosis: diagnosisText,
           notes: form.notes.trim() || null,
           items,
+          destination_department: form.destination_department || undefined,
+          equipment_required: form.equipment_required,
+          critical_notes: form.critical_notes?.trim() || null,
+          external_porter_notes: form.external_porter_notes?.trim() || null,
+          internal_porter_notes: form.internal_porter_notes?.trim() || null,
         });
         onToast(
           items?.length
@@ -439,6 +444,8 @@ export default function ClinicDoctorWorkspace({
         prescriptionLines={prescriptionLines}
         onAddMedToList={addMedToList}
         onRemoveMedLine={removeMedLine}
+        patient={patient}
+        onFormPatch={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
       />
 
       <DischargePatientSection

@@ -108,7 +108,7 @@ export const nurse = {
   select:
     'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30',
   field: searchCard.field,
-  label: searchCard.label,
+  label: 'block text-sm font-medium text-black',
   input: searchCard.input,
   btnCardPrimary:
     'mt-2 w-full rounded-md bg-teal-600 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60',

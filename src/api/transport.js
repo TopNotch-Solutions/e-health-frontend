@@ -15,3 +15,11 @@ export function markTransportPickedUp(id) {
 export function markTransportDelivered(id) {
   return apiRequest(`/api/v1/transport/${id}/complete`, { method: 'PUT' });
 }
+
+/** State hospital — request ambulance pickup from a referring clinic or hospital. */
+export function createExternalTransportRequest(body) {
+  return apiRequest('/api/v1/transport/external', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

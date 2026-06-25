@@ -1,4 +1,4 @@
-import { IntakeTextarea } from '../../nurse/components/IntakeField';
+import HospitalReferralFields from '../../../components/hospital/HospitalReferralFields';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import {
   isAssessmentFormComplete,
@@ -10,6 +10,8 @@ export default function SocialWorkerAssessmentForm({
   form,
   fieldErrors,
   onFieldChange,
+  onFormPatch,
+  visitId,
   onSubmit,
   isFinalized,
   actionLoading,
@@ -85,6 +87,16 @@ export default function SocialWorkerAssessmentForm({
               </span>
             </span>
           </label>
+
+          {isSevere ? (
+            <HospitalReferralFields
+              visitId={visitId}
+              sourceRole="social_worker"
+              form={form}
+              onChange={(next) => onFormPatch?.(next)}
+              fieldErrors={fieldErrors}
+            />
+          ) : null}
 
           <div className="mt-6">
             <button

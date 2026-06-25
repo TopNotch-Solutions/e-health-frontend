@@ -6,6 +6,11 @@ export function emptyAssessmentForm(assessment) {
     case_history: assessment?.case_history || '',
     clinical_notes: assessment?.clinical_notes || '',
     isSevere: assessment?.severity === 'severe',
+    destination_department: '',
+    equipment_required: 'stretcher',
+    critical_notes: '',
+    external_porter_notes: '',
+    internal_porter_notes: '',
   };
 }
 

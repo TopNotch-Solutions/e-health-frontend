@@ -4,15 +4,18 @@ import { getSocket } from '../../../api/socket';
 
 function mapRow(req) {
   const p = req?.visit?.patient;
+  const externalName = req?.external_patient_name?.trim();
   const name = p
     ? [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || 'Patient'
-    : 'Patient';
+    : externalName || 'Patient';
   return {
     id: req.id,
     status: req.status,
     priority: req.priority,
+    transportScope: req.transport_scope || 'internal',
     fromLocation: req.from_location,
     toLocation: req.to_location,
+    originFacilityName: req.origin_facility_name || null,
     equipmentRequired: req.equipment_required,
     equipmentNotes: req.equipment_notes,
     patientName: name,
