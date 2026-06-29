@@ -5,7 +5,7 @@ import { ws } from '../../styles/wardSupervisorClasses';
 export default function WardOccupancyDonut({ data }) {
   return (
     <section className={ws.chartPanel} aria-labelledby="ws-chart-occupancy">
-      <h2 id="ws-chart-occupancy" className={ws.sectionTitle}>
+      <h2 id="ws-chart-occupancy" className={ws.chartTitle}>
         Ward occupancy breakdown
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">Bed utilization by area</p>

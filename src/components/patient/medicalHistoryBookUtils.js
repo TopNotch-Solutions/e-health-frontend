@@ -1,6 +1,7 @@
 import { formatDateTime, formatLabel, formatVitalsLine, patientAge } from '../../pages/front_office/utils/ehrUtils';
 import { formatMaternityStopDetails } from './maternityMedicalHistoryBookUtils';
 import { formatDob, patientName } from '../../pages/front_office/patientUtils';
+import { departmentLabel as hospitalDepartmentLabel, TRANSFER_STATUS_LABELS } from '../../constants/hospitalOutpatientDepartments';
 import {
   displayValue,
   formatClinicalObjectLines,
@@ -126,15 +127,128 @@ function vitalsDetailLines(vitals) {
   const lines = [];
   const summary = formatVitalsLine(vitals);
   if (summary) lines.push({ label: 'Vitals', value: summary });
+  if (vitals.height != null) pushDetail(lines, 'Height', `${vitals.height} cm`);
   [
+    ['visit_classification', 'Visit classification'],
     ['chief_complaint', 'Chief complaint'],
+    ['onset_at', 'Onset'],
+    ['aggravating_factors', 'Aggravating factors'],
+    ['alleviating_factors', 'Alleviating factors'],
     ['allergies', 'Allergies'],
     ['current_medications', 'Current medications'],
     ['immunization_status', 'Immunization status'],
     ['social_history', 'Social history'],
     ['physical_examination', 'Physical examination'],
     ['notes', 'Notes'],
-  ].forEach(([key, label]) => pushDetail(lines, label, vitals[key]));
+  ].forEach(([key, label]) => {
+    let value = vitals[key];
+    if (value == null || value === '') return;
+    if (key === 'visit_classification') value = formatLabel(value);
+    if (key === 'onset_at') value = formatDateTime(value);
+    pushDetail(lines, label, value);
+  });
+  return lines;
+}
+
+function hospitalTransferDetailLines(transfer) {
+  if (!transfer) return [];
+  const lines = [];
+  pushDetail(
+    lines,
+    'Hospital destination',
+    transfer.destination_hospital || transfer.destination_hospital_name
+  );
+  pushDetail(
+    lines,
+    'Receiving department',
+    transfer.destination_department_label
+      || (transfer.destination_department ? hospitalDepartmentLabel(transfer.destination_department) : null)
+  );
+  pushDetail(
+    lines,
+    'Transfer status',
+    transfer.transfer_status
+      ? (TRANSFER_STATUS_LABELS[transfer.transfer_status] || formatLabel(transfer.transfer_status))
+      : null
+  );
+  pushDetail(lines, 'Transfer reason', transfer.transfer_reason);
+  pushDetail(lines, 'Equipment', transfer.equipment_required ? formatLabel(transfer.equipment_required) : null);
+  pushDetail(lines, 'Equipment notes', transfer.equipment_notes);
+  if (transfer.equipment_checklist) {
+    lines.push(...formatClinicalObjectLines(transfer.equipment_checklist, [], 'Equipment checklist'));
+  }
+  pushDetail(lines, 'External porter notes', transfer.external_porter_notes);
+  pushDetail(lines, 'Internal porter notes', transfer.internal_porter_notes);
+  pushDetail(lines, 'Critical notes', transfer.critical_notes);
+  return lines;
+}
+
+function referralDetailLines(referral) {
+  if (!referral) return [];
+  const lines = [];
+  pushDetail(lines, 'Referral type', referral.referral_type ? formatLabel(referral.referral_type) : null);
+  pushDetail(lines, 'Destination', referral.destination);
+  pushDetail(lines, 'Reason', referral.reason);
+  pushDetail(lines, 'Status', referral.status ? formatLabel(referral.status) : null);
+  if (referral.created_at) pushDetail(lines, 'Recorded', formatDateTime(referral.created_at));
+  return lines;
+}
+
+function mortuaryDetailLines(mortuary) {
+  if (!mortuary) return [];
+  const lines = [];
+  pushDetail(lines, 'Cause of death', mortuary.cause_of_death);
+  if (mortuary.date_of_death) pushDetail(lines, 'Date of death', formatDateTime(mortuary.date_of_death));
+  pushDetail(lines, 'Notes', mortuary.notes);
+  return lines;
+}
+
+const HIV_RESULT_LABELS = {
+  negative: 'Negative',
+  positive: 'Positive',
+};
+
+function hivTestResultDetailLines(test) {
+  if (!test) return [];
+  const lines = [];
+  pushDetail(
+    lines,
+    'Result',
+    test.result_label || (test.result ? HIV_RESULT_LABELS[test.result] || formatLabel(test.result) : null)
+  );
+  pushDetail(lines, 'Test method', test.test_method);
+  pushDetail(lines, 'Kit batch', test.kit_batch);
+  pushDetail(lines, 'Notes', test.notes);
+  if (test.created_at) pushDetail(lines, 'Recorded', formatDateTime(test.created_at));
+  return lines;
+}
+
+function prepEpisodeDetailLines(episode) {
+  if (!episode) return [];
+  const lines = [];
+  pushDetail(lines, 'Session status', episode.status ? formatLabel(episode.status) : null);
+  pushDetail(lines, 'Injection administered', episode.injection_administered ? 'Yes' : 'No');
+  if (episode.enrolled_at) pushDetail(lines, 'Enrolled', formatDateTime(episode.enrolled_at));
+  if (episode.injection_administered_at) {
+    pushDetail(lines, 'Injection time', formatDateTime(episode.injection_administered_at));
+  }
+  if (episode.completed_at) pushDetail(lines, 'Session completed', formatDateTime(episode.completed_at));
+
+  const injection = episode.session_data?.injection;
+  if (injection) {
+    pushDetail(lines, 'Medication', injection.medication);
+    pushDetail(
+      lines,
+      'Injection site',
+      injection.injection_site ? formatLabel(injection.injection_site) : null
+    );
+    pushDetail(lines, 'Lot number', injection.lot_number);
+    pushDetail(lines, 'Injection notes', injection.notes);
+    if (injection.administered_at) {
+      pushDetail(lines, 'Administered', formatDateTime(injection.administered_at));
+    }
+  }
+  pushDetail(lines, 'Counseling notes', episode.session_data?.counseling_notes);
   return lines;
 }
 
@@ -187,6 +301,24 @@ export function formatStopClinicalDetails(stop) {
   if (clinical.screening_assessment) {
     lines.push(...formatClinicalObjectLines(clinical.screening_assessment));
   }
+  if (clinical.hospital_transfer) {
+    lines.push(...hospitalTransferDetailLines(clinical.hospital_transfer));
+  }
+  if (clinical.referral) {
+    lines.push(...referralDetailLines(clinical.referral));
+  }
+  if (clinical.mortuary) {
+    lines.push(...mortuaryDetailLines(clinical.mortuary));
+  }
+  if (clinical.hiv_test_result) {
+    lines.push(...hivTestResultDetailLines(clinical.hiv_test_result));
+  }
+  if (clinical.routing_outcome) {
+    pushDetail(lines, 'Routing', clinical.routing_outcome);
+  }
+  if (clinical.prep_episode) {
+    lines.push(...prepEpisodeDetailLines(clinical.prep_episode));
+  }
   if (clinical.lab_requests?.length) {
     clinical.lab_requests.forEach((lab) => {
       lines.push({
@@ -214,7 +346,11 @@ export function formatStopClinicalDetails(stop) {
 
   const handled = new Set([
     'vitals', 'consultations', 'prescriptions', 'screening_assessment',
+    'hospital_transfer', 'referral', 'mortuary',
     'lab_requests', 'imaging_requests', 'emergency_interventions',
+    'dermatology_assessment', 'family_planning', 'prep_episode', 'art_episode',
+    'pap_smear_screening', 'social_worker_assessment', 'pediatric_assessment', 'hiv_test_result',
+    'routing_outcome',
     'maternity_anc_sessions', 'maternity_anw_daily_records', 'maternity_pnw_daily_records',
     'maternity_icu_daily_records', 'maternity_nicu_records', 'maternity_episode',
     'current_ward', 'status', 'admitted_at', 'discharged_at', 'front_office_visits',

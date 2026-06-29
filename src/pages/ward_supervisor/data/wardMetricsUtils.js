@@ -16,6 +16,10 @@ const WARD_TYPE_LABELS = {
   pediatric: 'Pediatrics',
   paediatric: 'Pediatrics',
   maternity: 'Maternity',
+  surgical_complex: 'Surgical complex',
+  specialized_inpatient: 'Specialized inpatient',
+  outpatient_specialist: 'Outpatient specialist',
+  psychiatric: 'Psychiatric',
   emergency: 'Emergency',
   isolation: 'Isolation',
 };

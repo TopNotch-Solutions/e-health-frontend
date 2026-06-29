@@ -1,6 +1,15 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { getAccessToken, getStoredUser, clearSession } from '../api/authSession';
+import { useEffect, useState } from 'react';
+import {
+  getAccessToken,
+  getStoredUser,
+  clearSession,
+  ensureAccessTokenFresh,
+  handleSessionExpired,
+  isAccessTokenExpired,
+} from '../api/authSession';
 import { authRoleSlug, homePathForRole, isRoleAllowedForPath } from '../utils/homePathForRole';
+import SessionExpiryWatcher from './SessionExpiryWatcher';
 
 /**
  * Requires a valid session. Optional `role` restricts the route to that role only.
@@ -9,9 +18,35 @@ import { authRoleSlug, homePathForRole, isRoleAllowedForPath } from '../utils/ho
 export default function RequireAuth({ children, role, roles }) {
   const location = useLocation();
   const token = getAccessToken();
+  const [sessionReady, setSessionReady] = useState(() => Boolean(token && !isAccessTokenExpired(token)));
+
+  useEffect(() => {
+    if (!token) {
+      setSessionReady(false);
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      if (!isAccessTokenExpired(token)) {
+        if (!cancelled) setSessionReady(true);
+        return;
+      }
+      const ok = await ensureAccessTokenFresh();
+      if (cancelled) return;
+      if (!ok) handleSessionExpired();
+      else setSessionReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   if (!token) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (!sessionReady) {
+    return null;
   }
 
   const user = getStoredUser();
@@ -53,5 +88,10 @@ export default function RequireAuth({ children, role, roles }) {
     );
   }
 
-  return children;
+  return (
+    <>
+      <SessionExpiryWatcher />
+      {children}
+    </>
+  );
 }

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { getTransportQueue } from '../../../api/transport';
 import { getSocket } from '../../../api/socket';
 
+const QUEUE_REFRESH_DEBOUNCE_MS = 600;
+
 function mapRow(req) {
   const p = req?.visit?.patient;
   const externalName = req?.external_patient_name?.trim();
@@ -39,7 +41,10 @@ export function usePorterQueue() {
       setQueue((Array.isArray(rows) ? rows : []).map(mapRow));
       return rows;
     } catch (err) {
-      setError(err.message || 'Failed to load transport queue');
+      const message = err.status === 429
+        ? 'Too many requests. The queue will refresh automatically in a moment.'
+        : (err.message || 'Failed to load transport queue');
+      setError(message);
       setQueue([]);
       return [];
     }
@@ -47,6 +52,9 @@ export function usePorterQueue() {
 
   useEffect(() => {
     let cancelled = false;
+    let debounceTimer = null;
+    const hadConnectedRef = { current: false };
+
     (async () => {
       await loadQueueHttp();
       if (!cancelled) setLoading(false);
@@ -57,16 +65,21 @@ export function usePorterQueue() {
       setError((prev) => prev || 'Sign in required for live queue updates.');
       return () => {
         cancelled = true;
+        if (debounceTimer) clearTimeout(debounceTimer);
       };
     }
 
     const bump = () => {
-      loadQueueHttp().finally(() => setLoading(false));
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadQueueHttp().finally(() => setLoading(false));
+      }, QUEUE_REFRESH_DEBOUNCE_MS);
     };
 
     const onConnect = () => {
       setLive(true);
-      bump();
+      if (hadConnectedRef.current) bump();
+      hadConnectedRef.current = true;
     };
     const onDisconnect = () => setLive(false);
 
@@ -81,6 +94,7 @@ export function usePorterQueue() {
 
     return () => {
       cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('transport:new_request', bump);

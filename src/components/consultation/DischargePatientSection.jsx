@@ -53,7 +53,7 @@ export default function DischargePatientSection({
           disabled={!canDischarge}
           onClick={onDischarge}
         >
-          {actionLoading ? 'Saving record…' : DISCHARGE_BUTTON_LABEL}
+          {actionLoading ? 'Discharging…' : DISCHARGE_BUTTON_LABEL}
         </button>
       </div>
     </section>

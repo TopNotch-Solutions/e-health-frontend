@@ -38,6 +38,7 @@ import RadiologistPage from './pages/radiologist';
 import RadiologistSupervisorPage from './pages/radiologist_supervisor';
 import WardSupervisorPage from './pages/ward_supervisor';
 import WardStaffPage from './pages/ward_staff';
+import { ALL_WARD_STAFF_ROLES } from './pages/ward_staff/wardStaffConfig';
 import PorterPage from './pages/porter';
 import KitchenStaffPage from './pages/kitchen_staff';
 import KitchenManagerPage from './pages/kitchen_manager';
@@ -375,14 +376,17 @@ function App() {
             </RoleRoute>
           }
         />
-        <Route
-          path="/ward_staff"
-          element={
-            <RoleRoute role="ward_staff">
-              <WardStaffPage />
-            </RoleRoute>
-          }
-        />
+        {ALL_WARD_STAFF_ROLES.map((role) => (
+          <Route
+            key={role}
+            path={`/${role}`}
+            element={
+              <RoleRoute role={role}>
+                <WardStaffPage />
+              </RoleRoute>
+            }
+          />
+        ))}
         <Route
           path="/porter"
           element={

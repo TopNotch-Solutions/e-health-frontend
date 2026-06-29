@@ -31,7 +31,7 @@ export function useHospitalOutpatientSession() {
       .map((w) => w[0]?.toUpperCase() || '')
       .join('') || 'HO';
 
-  return { user, department, label, operatorLabel, initials };
+  return { user, department, label, operatorLabel, initials, userId: user?.id };
 }
 
 function mapRow(entry) {
@@ -45,6 +45,7 @@ function mapRow(entry) {
     patientName: name,
     patientNumber: p?.patient_number ?? '',
     status: entry.status,
+    assignedToId: entry.assigned_to ?? null,
     priority: entry.priority,
     notes: entry.notes,
     raw: entry,

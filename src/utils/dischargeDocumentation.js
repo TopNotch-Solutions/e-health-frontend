@@ -15,7 +15,7 @@ export const DISCHARGE_REASON_PLACEHOLDER =
   + 'declined examination after counselling; left against medical advice (AMA); '
   + 'refused referral to screening…';
 
-export const DISCHARGE_BUTTON_LABEL = 'End consultation & save record';
+export const DISCHARGE_BUTTON_LABEL = 'Discharge';
 
 export const DISCHARGE_CONFIRM_TITLE = 'End consultation?';
 

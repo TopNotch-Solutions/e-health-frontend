@@ -1,7 +1,17 @@
-import { getAccessToken } from './authSession';
-import { apiRequest, getApiBase } from './client';
+import { getAccessToken, ensureAccessTokenFresh, handleSessionExpired } from './authSession';
+import { apiRequest, getApiBase, handleUnauthorized } from './client';
+import { disconnectSocket } from './socket';
 
-async function apiRequestFull(path, options = {}) {
+async function apiRequestFull(path, options = {}, isRetry = false) {
+  if (!isRetry) {
+    const ready = await ensureAccessTokenFresh();
+    if (!ready) {
+      disconnectSocket();
+      handleSessionExpired();
+      throw new Error('Session expired. Please sign in again.');
+    }
+  }
+
   const token = getAccessToken();
   const res = await fetch(`${getApiBase()}${path}`, {
     ...options,
@@ -12,10 +22,44 @@ async function apiRequestFull(path, options = {}) {
     },
   });
   const json = await res.json().catch(() => ({}));
+
+  if (res.status === 401) {
+    await handleUnauthorized(isRetry);
+    return apiRequestFull(path, options, true);
+  }
+
   if (!res.ok || json.success === false) {
     throw new Error(json.message || `Request failed (${res.status})`);
   }
   return json;
+}
+
+async function fetchBlobWithAuth(path, isRetry = false) {
+  if (!isRetry) {
+    const ready = await ensureAccessTokenFresh();
+    if (!ready) {
+      disconnectSocket();
+      handleSessionExpired();
+      throw new Error('Session expired. Please sign in again.');
+    }
+  }
+
+  const token = getAccessToken();
+  const res = await fetch(`${getApiBase()}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (res.status === 401) {
+    await handleUnauthorized(isRetry);
+    return fetchBlobWithAuth(path, true);
+  }
+
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || `Request failed (${res.status})`);
+  }
+
+  return res;
 }
 
 export function getAdminDashboard(params = {}) {
@@ -151,20 +195,12 @@ export function getAdminPatientMedicalHistory(patientId, { facility_id, scope = 
 }
 
 export async function downloadAdminMedicalHistoryExport(patientId, { facility_id, scope = 'all' } = {}) {
-  const token = getAccessToken();
   const q = new URLSearchParams();
   if (facility_id) q.set('facility_id', String(facility_id));
   if (scope) q.set('scope', scope);
-  const res = await fetch(
-    `${getApiBase()}/api/v1/admin/patients/${patientId}/medical-history/export?${q}`,
-    {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    }
+  const res = await fetchBlobWithAuth(
+    `/api/v1/admin/patients/${patientId}/medical-history/export?${q}`
   );
-  if (!res.ok) {
-    const json = await res.json().catch(() => ({}));
-    throw new Error(json.message || `Export failed (${res.status})`);
-  }
   const blob = await res.blob();
   const disposition = res.headers.get('Content-Disposition') || '';
   const match = disposition.match(/filename="?([^"]+)"?/i);
@@ -187,23 +223,13 @@ export async function getAdminTransferTimelines(params = {}) {
 }
 
 export async function downloadAdminTransferTimelinesExport(params = {}) {
-  const token = getAccessToken();
   const q = new URLSearchParams();
   if (params.status) q.set('status', params.status);
   if (params.clinic_facility_id) q.set('clinic_facility_id', String(params.clinic_facility_id));
   if (params.hospital_facility_id) q.set('hospital_facility_id', String(params.hospital_facility_id));
   if (params.from) q.set('from', params.from);
   if (params.to) q.set('to', params.to);
-  const res = await fetch(
-    `${getApiBase()}/api/v1/admin/transfer-timelines/export?${q}`,
-    {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    }
-  );
-  if (!res.ok) {
-    const json = await res.json().catch(() => ({}));
-    throw new Error(json.message || `Export failed (${res.status})`);
-  }
+  const res = await fetchBlobWithAuth(`/api/v1/admin/transfer-timelines/export?${q}`);
   const blob = await res.blob();
   const disposition = res.headers.get('Content-Disposition') || '';
   const match = disposition.match(/filename="?([^"]+)"?/i);

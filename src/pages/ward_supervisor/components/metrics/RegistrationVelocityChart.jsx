@@ -14,7 +14,7 @@ import { ws } from '../../styles/wardSupervisorClasses';
 export default function RegistrationVelocityChart({ data }) {
   return (
     <section className={ws.chartPanel} aria-labelledby="ws-chart-velocity">
-      <h2 id="ws-chart-velocity" className={ws.sectionTitle}>
+      <h2 id="ws-chart-velocity" className={ws.chartTitle}>
         Patient registration velocity
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">Hourly registrations today</p>

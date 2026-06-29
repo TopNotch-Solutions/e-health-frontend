@@ -2,6 +2,9 @@ import { useState } from 'react';
 import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import { nurse as nc } from '../nurse/styles/nurseClasses';
+import HospitalOutpatientTopbar from './components/HospitalOutpatientTopbar';
+import HospitalOutpatientClinicalWorkspace from './components/HospitalOutpatientClinicalWorkspace';
+import { hasClinicalWorkspace } from './hospitalOutpatientClinicalConfig';
 import {
   useHospitalOutpatientQueue,
   useHospitalOutpatientSession,
@@ -9,26 +12,12 @@ import {
 import { confirmHospitalDepartmentReceipt, getQueueEntryTransfer } from '../../api/hospitalOutpatient';
 import { TRANSFER_STATUS_LABELS } from '../../constants/hospitalOutpatientDepartments';
 
-function HospitalOutpatientTopbar({ label, operatorLabel, initials, live }) {
-  return (
-    <header className={`${c.topbar?.root || 'flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3'} shrink-0`}>
-      <div>
-        <h1 className="text-lg font-bold text-slate-900">{label}</h1>
-        <p className="text-sm text-slate-500">Inbound clinic referrals and patient receipt</p>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-slate-500">{live ? 'Live' : 'Connecting…'}</span>
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white">
-          {initials}
-        </span>
-        <span className="text-sm font-semibold text-slate-700">{operatorLabel}</span>
-      </div>
-    </header>
-  );
-}
-
 export default function HospitalOutpatientPage() {
   const { department, label, operatorLabel, initials } = useHospitalOutpatientSession();
+
+  if (hasClinicalWorkspace(department)) {
+    return <HospitalOutpatientClinicalWorkspace />;
+  }
   const { queue, loading, error, live, refresh } = useHospitalOutpatientQueue(department);
   const [activeId, setActiveId] = useState(null);
   const [transfer, setTransfer] = useState(null);

@@ -25,7 +25,7 @@ export const ws = {
   bedGrid: 'mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5',
   bedTile:
     'relative flex flex-col rounded-lg border p-2 shadow-sm transition hover:shadow-md',
-  bedTileAvailable: 'border-emerald-200 bg-gradient-to-b from-emerald-50 to-white',
+  bedTileAvailable: 'border-slate-200 bg-white',
   bedTileOccupied: 'border-amber-200 bg-gradient-to-b from-amber-50 to-white',
   bedTileOos: 'border-slate-300 bg-gradient-to-b from-slate-100 to-slate-50 opacity-90',
   bedRoom: 'text-xs font-bold uppercase tracking-wide text-slate-500',
@@ -56,6 +56,9 @@ export const ws = {
   wardInfoHeader: 'shrink-0',
   workspaceScroll: 'min-h-0 flex-1 overflow-y-auto',
   chartGrid: 'grid grid-cols-1 gap-3 lg:grid-cols-2',
-  chartPanel: `${greenCard} p-3 sm:p-4`,
+  chartPanel: 'rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4',
+  chartTitle: 'text-sm font-bold text-slate-900',
+  bedMapPanel: 'rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4',
+  bedMapHeader: 'flex flex-wrap items-start justify-between gap-2 border-b border-slate-200 pb-3',
   chartBox: 'mt-3 h-56 w-full sm:h-60',
 };

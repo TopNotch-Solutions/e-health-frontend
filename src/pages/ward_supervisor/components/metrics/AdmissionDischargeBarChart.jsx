@@ -15,7 +15,7 @@ import { ws } from '../../styles/wardSupervisorClasses';
 export default function AdmissionDischargeBarChart({ data }) {
   return (
     <section className={ws.chartPanel} aria-labelledby="ws-chart-ad-dis">
-      <h2 id="ws-chart-ad-dis" className={ws.sectionTitle}>
+      <h2 id="ws-chart-ad-dis" className={ws.chartTitle}>
         Admissions vs discharges
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">Hourly volumes today</p>

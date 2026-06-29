@@ -1,7 +1,36 @@
-const API_BASE = 'https://api-health.kopanovertex.com';
+const API_BASE = 'http://localhost:5000';
+
+/** Seconds before JWT `exp` to treat the access token as expired (refresh early). */
+const TOKEN_EXPIRY_SKEW_MS = 5000;
 
 export function getAccessToken() {
   return localStorage.getItem('accessToken');
+}
+
+export function parseJwtPayload(token) {
+  if (!token || typeof token !== 'string') return null;
+  try {
+    const segment = token.split('.')[1];
+    if (!segment) return null;
+    const normalized = segment.replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(normalized);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+export function isAccessTokenExpired(token = getAccessToken(), skewMs = TOKEN_EXPIRY_SKEW_MS) {
+  if (!token) return true;
+  const payload = parseJwtPayload(token);
+  if (!payload?.exp) return false;
+  return Date.now() >= payload.exp * 1000 - skewMs;
+}
+
+export function accessTokenExpiresInMs(token = getAccessToken()) {
+  const payload = parseJwtPayload(token);
+  if (!payload?.exp) return null;
+  return payload.exp * 1000 - Date.now();
 }
 
 export function getStoredUser() {
@@ -60,4 +89,15 @@ export async function refreshAccessToken() {
     localStorage.setItem('refreshToken', json.data.refreshToken);
   }
   return json.data.accessToken;
+}
+
+/**
+ * Refresh when the access token is missing or expired; otherwise no-op.
+ * @returns {Promise<boolean>} true when a usable access token is available
+ */
+export async function ensureAccessTokenFresh() {
+  const token = getAccessToken();
+  if (token && !isAccessTokenExpired(token)) return true;
+  const refreshed = await refreshAccessToken();
+  return Boolean(refreshed);
 }

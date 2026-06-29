@@ -48,7 +48,7 @@ function priorityBadge(priority) {
 }
 
 export default function WardStaffConsultationPage() {
-  const { staffLabel, initials } = useWardStaffSession();
+  const { staffLabel, initials, moduleLabel } = useWardStaffSession();
   const [queueSearch, setQueueSearch] = useState('');
   const [activeAdmissionId, setActiveAdmissionId] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -178,7 +178,7 @@ export default function WardStaffConsultationPage() {
 
   return (
     <div className={c.page}>
-      <WardStaffTopbar staffLabel={staffLabel} initials={initials} live={live} />
+      <WardStaffTopbar staffLabel={staffLabel} initials={initials} live={live} moduleLabel={moduleLabel} />
 
       {toast ? (
         <div className={c.toast} role="status">
@@ -349,7 +349,7 @@ export default function WardStaffConsultationPage() {
         <a href={KOPANO} target="_blank" rel="noopener noreferrer" className="text-teal-700 font-semibold hover:underline">
           Kopano-Vertex
         </a>{' '}
-        | Ward staff
+        | {moduleLabel}
       </footer>
     </div>
   );

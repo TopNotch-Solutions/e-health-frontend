@@ -1,5 +1,10 @@
 import { io } from 'socket.io-client';
-import { getAccessToken, handleSessionExpired } from './authSession';
+import {
+  getAccessToken,
+  handleSessionExpired,
+  isAccessTokenExpired,
+  refreshAccessToken,
+} from './authSession';
 import { getApiBase } from './client';
 
 let socket = null;
@@ -11,6 +16,13 @@ export function getSocket() {
   const token = getAccessToken();
   if (!token) return null;
 
+  if (isAccessTokenExpired(token)) {
+    refreshAccessToken().then((refreshed) => {
+      if (!refreshed) handleSessionExpired();
+    });
+    return null;
+  }
+
   if (!socket || socket.disconnected) {
     socket = io(getApiBase(), {
       auth: { token },
@@ -19,7 +31,11 @@ export function getSocket() {
     });
     socket.on('connect_error', (err) => {
       const msg = err?.message || '';
-      if (msg === 'Invalid token' || msg === 'Authentication required') {
+      if (
+        msg === 'Invalid token'
+        || msg === 'Authentication required'
+        || msg.toLowerCase().includes('token')
+      ) {
         disconnectSocket();
         handleSessionExpired();
       }

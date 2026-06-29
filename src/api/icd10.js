@@ -1,7 +1,17 @@
-import { apiRequest, getApiBase } from './client';
-import { getAccessToken, handleSessionExpired, refreshAccessToken } from './authSession';
+import { apiRequest, getApiBase, handleUnauthorized } from './client';
+import { ensureAccessTokenFresh, getAccessToken, handleSessionExpired } from './authSession';
+import { disconnectSocket } from './socket';
 
-async function fetchAdminAuditLogs(params = {}) {
+async function fetchAdminAuditLogs(params = {}, isRetry = false) {
+  if (!isRetry) {
+    const ready = await ensureAccessTokenFresh();
+    if (!ready) {
+      disconnectSocket();
+      handleSessionExpired();
+      throw new Error('Session expired. Please sign in again.');
+    }
+  }
+
   const q = new URLSearchParams();
   if (params.page) q.set('page', String(params.page));
   if (params.limit) q.set('limit', String(params.limit));
@@ -16,6 +26,12 @@ async function fetchAdminAuditLogs(params = {}) {
     },
   });
   const json = await res.json().catch(() => ({}));
+
+  if (res.status === 401) {
+    await handleUnauthorized(isRetry);
+    return fetchAdminAuditLogs(params, true);
+  }
+
   if (!res.ok || json.success === false) {
     throw new Error(json.message || `Request failed (${res.status})`);
   }
@@ -62,20 +78,12 @@ export function updateIcd10Status(id, { is_active }) {
   });
 }
 
-async function parseUploadResponse(res, path, file, isRetry = false) {
+async function parseUploadResponse(res, file, isRetry = false) {
   const json = await res.json().catch(() => ({}));
 
   if (res.status === 401) {
-    if (!isRetry) {
-      const refreshed = await refreshAccessToken();
-      if (refreshed) {
-        return uploadIcd10Xlsx(file, true);
-      }
-    }
-    handleSessionExpired();
-    const err = new Error('Session expired. Please sign in again.');
-    err.status = 401;
-    throw err;
+    await handleUnauthorized(isRetry);
+    return uploadIcd10Xlsx(file, true);
   }
 
   if (!res.ok || json.success === false) {
@@ -88,6 +96,15 @@ async function parseUploadResponse(res, path, file, isRetry = false) {
 }
 
 export async function uploadIcd10Xlsx(file, isRetry = false) {
+  if (!isRetry) {
+    const ready = await ensureAccessTokenFresh();
+    if (!ready) {
+      disconnectSocket();
+      handleSessionExpired();
+      throw new Error('Session expired. Please sign in again.');
+    }
+  }
+
   const formData = new FormData();
   formData.append('file', file);
 
@@ -98,5 +115,5 @@ export async function uploadIcd10Xlsx(file, isRetry = false) {
     body: formData,
   });
 
-  return parseUploadResponse(res, '/api/v1/icd10/import', file, isRetry);
+  return parseUploadResponse(res, file, isRetry);
 }

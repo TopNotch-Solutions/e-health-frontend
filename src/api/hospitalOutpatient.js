@@ -18,3 +18,35 @@ export function confirmHospitalDepartmentReceipt(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function startHospitalOutpatientSession(queueEntryId) {
+  return apiRequest('/api/v1/hospital-outpatient/session/start', {
+    method: 'POST',
+    body: JSON.stringify({ queue_entry_id: queueEntryId }),
+  });
+}
+
+export function getHospitalOutpatientWorkspace(queueEntryId) {
+  return apiRequest(`/api/v1/hospital-outpatient/queue/${queueEntryId}/workspace`);
+}
+
+export function saveHospitalOutpatientVitals(body) {
+  return apiRequest('/api/v1/hospital-outpatient/vitals', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function admitHospitalOutpatientPatient(body) {
+  return apiRequest('/api/v1/hospital-outpatient/admit', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function dischargeHospitalOutpatientPatient(body) {
+  return apiRequest('/api/v1/hospital-outpatient/discharge', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

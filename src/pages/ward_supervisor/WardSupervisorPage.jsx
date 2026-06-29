@@ -385,10 +385,10 @@ export default function WardSupervisorPage() {
                 </div>
               </div>
 
-              <section className={`${ws.sectionPanel} flex min-h-0 flex-1 flex-col overflow-hidden`}>
-                <div className={`${ws.panelHeader} shrink-0`}>
+              <section className={`${ws.bedMapPanel} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+                <div className={`${ws.bedMapHeader} shrink-0`}>
                   <div>
-                    <h2 className={ws.sectionTitle}>Room & bed map</h2>
+                    <h2 className={ws.chartTitle}>Room & bed map</h2>
                     <p className="mt-0.5 text-xs text-slate-600">
                       Click any empty bed to toggle active or inactive. Occupied beds show the patient.
                     </p>

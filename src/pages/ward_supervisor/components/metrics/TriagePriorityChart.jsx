@@ -14,7 +14,7 @@ import { ws } from '../../styles/wardSupervisorClasses';
 export default function TriagePriorityChart({ data }) {
   return (
     <section className={ws.chartPanel} aria-labelledby="ws-chart-triage">
-      <h2 id="ws-chart-triage" className={ws.sectionTitle}>
+      <h2 id="ws-chart-triage" className={ws.chartTitle}>
         Triage priority distribution
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">Patients awaiting bed assignment</p>

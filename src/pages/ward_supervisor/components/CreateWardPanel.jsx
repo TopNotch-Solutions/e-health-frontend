@@ -6,7 +6,9 @@ const WARD_TYPES = [
   { value: 'maternity', label: 'Maternity' },
   { value: 'pediatric', label: 'Pediatric' },
   { value: 'icu', label: 'ICU' },
-  { value: 'surgical', label: 'Surgical' },
+  { value: 'surgical_complex', label: 'Surgical complex' },
+  { value: 'specialized_inpatient', label: 'Specialized inpatient' },
+  { value: 'outpatient_specialist', label: 'Outpatient specialist' },
   { value: 'psychiatric', label: 'Psychiatric' },
 ];
 
@@ -25,10 +27,10 @@ export default function CreateWardPanel({
   onCancel,
 }) {
   return (
-    <div className={ws.sectionPanel}>
-      <div className={ws.panelHeader}>
+    <div className={ws.bedMapPanel}>
+      <div className={ws.bedMapHeader}>
         <div>
-          <h2 className={ws.sectionTitle}>New ward</h2>
+          <h2 className={ws.chartTitle}>New ward</h2>
           <p className="mt-0.5 text-xs text-slate-600">
             One bed per room. All beds start as active — open the ward after creation and click beds to
             mark any as inactive.

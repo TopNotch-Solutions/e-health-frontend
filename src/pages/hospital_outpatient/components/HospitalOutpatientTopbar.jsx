@@ -1,16 +1,18 @@
 /* topbar-signout-v2 */
-import { wst } from '../styles/wardStaffClasses';
+import { topbar } from '../../nurse/styles/nurseClasses';
 import TopbarSignOutButton from '../../../components/TopbarSignOutButton';
 import AppBrand from '../../../components/brand/AppBrand';
 
-export default function WardStaffTopbar({ staffLabel, initials, live, moduleLabel = 'Ward staff' }) {
-
+export default function HospitalOutpatientTopbar({ label, operatorLabel, initials, live }) {
   return (
-    <header className={`${wst.topbar.root} shrink-0`}>
+    <header className={`${topbar.root} shrink-0`}>
       <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
-        <AppBrand className={wst.topbar.brand} />
-        <span className="text-sm font-medium text-teal-700">{moduleLabel} · Arrivals</span>
+        <AppBrand className={topbar.brand} />
+        <span className="text-sm font-medium text-slate-500">
+          {label} · Inbound clinic referrals
+        </span>
       </div>
+
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <span
           className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 sm:inline-flex"
@@ -20,14 +22,17 @@ export default function WardStaffTopbar({ staffLabel, initials, live, moduleLabe
           {live ? 'Live' : 'Connecting…'}
         </span>
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-600 to-emerald-700 text-xs font-bold text-white shadow-md">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white"
+            aria-hidden
+          >
             {initials}
           </span>
-          <span className="max-w-[160px] truncate text-sm font-semibold text-slate-700 sm:max-w-none">
-            {staffLabel}
+          <span className="max-w-[140px] truncate text-sm font-semibold text-slate-700 sm:max-w-none">
+            {operatorLabel}
           </span>
         </div>
-        <TopbarSignOutButton moduleLabel={moduleLabel} className={wst.topbar.signOut} />
+        <TopbarSignOutButton moduleLabel={label} className={topbar.signOut} />
       </div>
     </header>
   );
