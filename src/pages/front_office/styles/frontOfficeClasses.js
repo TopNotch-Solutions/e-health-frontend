@@ -6,6 +6,8 @@ export const topbar = {
   brand: 'flex min-w-0 items-center',
   signOut:
     'rounded-xl border border-red-500/20 bg-gradient-to-r from-red-600 to-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-red-600/20 transition hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
+  reportingLink:
+    'rounded-xl border border-teal-200 bg-white px-3 py-2 text-sm font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2',
 };
 
 export const searchCard = {

@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { startQueueEntry } from '../../api/queue';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import DoctorTopbar from './components/DoctorTopbar';
 import DoctorWorkspace from './components/DoctorWorkspace';
+import DoctorPatientRecordLookup from '../../components/patient/DoctorPatientRecordLookup';
 import { useDoctorQueue, useDoctorSession, pickAutoResumeEntry } from './hooks/useDoctorQueue';
 import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAside';
 import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { sortQueueEmergencyFirst } from '../../utils/queueDisplay';
-import { confirmStartPatientSession } from '../../utils/confirmAction';
+import { confirmReturnToQueue, confirmStartPatientSession } from '../../utils/confirmAction';
 import { layout as c } from './styles/doctorLayoutClasses';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -30,15 +31,21 @@ function LockIcon() {
 
 export default function DoctorConsultationPage() {
   const { doctorLabel, initials, userId } = useDoctorSession();
+  const [viewMode, setViewMode] = useState('queue');
   const [queueSearch, setQueueSearch] = useState('');
   const [activeEntryId, setActiveEntryId] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [queueActionError, setQueueActionError] = useState('');
   const [workspaceError, setWorkspaceError] = useState('');
+  const skipAutoResumeRef = useRef(false);
 
   const onQueueSynced = useCallback(
     (mapped) => {
+      if (skipAutoResumeRef.current) {
+        skipAutoResumeRef.current = false;
+        return;
+      }
       const mine = pickAutoResumeEntry(mapped, userId);
       if (mine) {
         setActiveEntryId((prev) => prev || mine.entryId);
@@ -124,9 +131,31 @@ export default function DoctorConsultationPage() {
   }
 
   function handleConsultationDone() {
+    skipAutoResumeRef.current = true;
     setActiveEntryId(null);
     setWorkspaceError('');
     refresh();
+  }
+
+  async function handleReturnToQueue() {
+    if (!activePatient || actionLoading) return;
+    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved work will be discarded.'))) {
+      return;
+    }
+
+    setActionLoading(true);
+    setWorkspaceError('');
+    try {
+      skipAutoResumeRef.current = true;
+      await releaseQueueEntry(activePatient.entryId);
+      setActiveEntryId(null);
+      setToast(`${activePatient.name} returned to queue`);
+      await refresh();
+    } catch (err) {
+      setWorkspaceError(err.message || 'Could not return patient to queue');
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   function renderBadge(patient) {
@@ -163,7 +192,13 @@ export default function DoctorConsultationPage() {
 
   return (
     <div className={c.page}>
-      <DoctorTopbar doctorLabel={doctorLabel} initials={initials} live={live} />
+      <DoctorTopbar
+        doctorLabel={doctorLabel}
+        initials={initials}
+        live={live}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       {toast ? (
         <div className={c.toast} role="status">
@@ -172,6 +207,12 @@ export default function DoctorConsultationPage() {
       ) : null}
 
       <div className={c.body}>
+        {viewMode === 'records' ? (
+          <div className={`${c.main} overflow-y-auto p-4`}>
+            <DoctorPatientRecordLookup showStatSummaryButton />
+          </div>
+        ) : (
+        <>
         <aside className={c.queueAside} aria-label="Today's patient queue">
           <h2 className={c.queueTitle}>Today&apos;s Patient Queue</h2>
           {workspaceActive ? (
@@ -188,7 +229,7 @@ export default function DoctorConsultationPage() {
               classes={c}
               badge="In progress"
               title="Active consultation"
-              message="Finish diagnosis and disposition to see waiting patients again."
+              message="Finish diagnosis and disposition, or return to queue to see waiting patients again."
               patientName={activePatient.name}
               patientMeta={activePatient.sexAge}
               patientIdLabel={activePatient.patientIdLabel}
@@ -281,6 +322,16 @@ export default function DoctorConsultationPage() {
                     {activePatient.patientIdLabel.replace('ID: ', '')}
                   </strong>
                 </div>
+                <div>
+                  <button
+                    type="button"
+                    className={c.btnSecondary}
+                    disabled={actionLoading}
+                    onClick={handleReturnToQueue}
+                  >
+                    Return to queue
+                  </button>
+                </div>
               </div>
 
               <div className={c.formScroll}>
@@ -302,6 +353,8 @@ export default function DoctorConsultationPage() {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
 
       <footer className={c.footer}>

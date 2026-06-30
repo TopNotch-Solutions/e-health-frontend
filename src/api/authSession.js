@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'https://api-health.kopanovertex.com';
 
 /** Seconds before JWT `exp` to treat the access token as expired (refresh early). */
 const TOKEN_EXPIRY_SKEW_MS = 5000;

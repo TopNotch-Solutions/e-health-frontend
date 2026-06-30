@@ -11,9 +11,8 @@ export default function DoctorLabOrderSection({
   labEmergency,
   onLabEmergencyChange,
   actionLoading,
-  onSendToLab,
   labError,
-  prescriptionLineCount = 0,
+  hideSubmitButton = false,
 }) {
   const [catalog, setCatalog] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -75,16 +74,8 @@ export default function DoctorLabOrderSection({
         Laboratory orders
       </h3>
       <p className="mt-1 text-sm text-slate-600">
-        Select tests to send the patient to the laboratory. Mark as emergency when urgent processing
-        is required.
-        {prescriptionLineCount > 0 ? (
-          <>
-            {' '}
-            You have added {prescriptionLineCount} medication line
-            {prescriptionLineCount === 1 ? '' : 's'} — sending to the laboratory will also queue the
-            prescription for the pharmacy.
-          </>
-        ) : null}
+        Select tests to include when you complete the consultation. Mark as emergency when urgent
+        processing is required.
       </p>
 
       <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-800">
@@ -204,7 +195,7 @@ export default function DoctorLabOrderSection({
         </p>
       ) : null}
 
-      {hasSelection ? (
+      {hasSelection && !hideSubmitButton ? (
         <button
           type="button"
           className={`${c.btnAction} ${c.btnLab} mt-4`}

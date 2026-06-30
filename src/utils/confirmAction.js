@@ -76,3 +76,83 @@ export async function confirmStartPatientSession(patientName, starting = true) {
     confirmButtonText: starting ? 'Start session' : 'Open session',
   });
 }
+
+/** ICU nurse: confirm physical arrival, bed occupancy, and today's vitals in one step. */
+export async function confirmIcuArrivalAndSave(patientName) {
+  return confirmAction({
+    title: 'Confirm ICU arrival?',
+    text: `Confirm ${patientName} has arrived in ICU, mark the bed as occupied, and save today's vitals record?`,
+    icon: 'question',
+    confirmButtonText: 'Confirm arrival & save',
+  });
+}
+
+/** ICU nurse: save daily vitals after confirmation. */
+export async function confirmIcuDailySave(patientName) {
+  return confirmAction({
+    title: 'Save ICU record?',
+    text: `Save today's vitals and monitoring record for ${patientName}?`,
+    icon: 'question',
+    confirmButtonText: 'Save record',
+  });
+}
+
+/** Surgical complex nurse: confirm arrival and first daily record in one step. */
+export async function confirmSurgicalComplexArrivalAndSave(patientName) {
+  return confirmAction({
+    title: 'Confirm surgical complex arrival?',
+    text: `Confirm ${patientName} has arrived in surgical complex, mark the bed as occupied, and save today's monitoring record?`,
+    icon: 'question',
+    confirmButtonText: 'Confirm arrival & save',
+  });
+}
+
+/** Surgical complex nurse: save daily monitoring after confirmation. */
+export async function confirmSurgicalComplexDailySave(patientName) {
+  return confirmAction({
+    title: 'Save surgical complex record?',
+    text: `Save today's monitoring record for ${patientName}?`,
+    icon: 'question',
+    confirmButtonText: 'Save record',
+  });
+}
+
+/** Specialized inpatient nurse: confirm arrival and first daily record in one step. */
+export async function confirmSpecializedInpatientArrivalAndSave(patientName) {
+  return confirmAction({
+    title: 'Confirm specialized inpatient arrival?',
+    text: `Confirm ${patientName} has arrived, mark the bed as occupied, and save today's vitals record?`,
+    icon: 'question',
+    confirmButtonText: 'Confirm arrival & save',
+  });
+}
+
+/** Specialized inpatient nurse: save daily vitals after confirmation. */
+export async function confirmSpecializedInpatientDailySave(patientName) {
+  return confirmAction({
+    title: 'Save daily record?',
+    text: `Save today's vitals record for ${patientName}?`,
+    icon: 'question',
+    confirmButtonText: 'Save record',
+  });
+}
+
+/** Adult outpatient nurse: confirm arrival and first daily record in one step. */
+export async function confirmAdultOutpatientArrivalAndSave(patientName) {
+  return confirmAction({
+    title: 'Confirm adult outpatient arrival?',
+    text: `Confirm ${patientName} has arrived, mark the bed as occupied, and save today's vitals record?`,
+    icon: 'question',
+    confirmButtonText: 'Confirm arrival & save',
+  });
+}
+
+/** Adult outpatient nurse: save daily vitals after confirmation. */
+export async function confirmAdultOutpatientDailySave(patientName) {
+  return confirmAction({
+    title: 'Save daily record?',
+    text: `Save today's vitals record for ${patientName}?`,
+    icon: 'question',
+    confirmButtonText: 'Save record',
+  });
+}

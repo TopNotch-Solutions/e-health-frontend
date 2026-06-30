@@ -1,7 +1,7 @@
 import { getAccessToken, handleSessionExpired, refreshAccessToken, ensureAccessTokenFresh } from './authSession';
 import { disconnectSocket } from './socket';
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'https://api-health.kopanovertex.com';
 
 export function getApiBase() {
   return API_BASE;

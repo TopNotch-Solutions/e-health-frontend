@@ -11,6 +11,7 @@ export default function QueueRoutingForm({
   patientSex,
   patientDateOfBirth,
   facilityDestinations,
+  isHospital = false,
   disabled = false,
   classNames,
   hideWhenImmediateTriage = false,
@@ -25,6 +26,16 @@ export default function QueueRoutingForm({
     }),
     [patientSex, patientDateOfBirth, facilityDestinations]
   );
+
+  const singleNurseRoute = isHospital || (
+    destinations.length === 1 && destinations[0]?.value === 'nurse'
+  );
+
+  useEffect(() => {
+    if (singleNurseRoute && !destination && destinations[0]?.value) {
+      onDestinationChange(destinations[0].value);
+    }
+  }, [singleNurseRoute, destination, destinations, onDestinationChange]);
 
   useEffect(() => {
     if (destination && !destinations.some((opt) => opt.value === destination)) {
@@ -42,6 +53,20 @@ export default function QueueRoutingForm({
   }
 
   const label = destination ? routingLabel(destination, destinations) : null;
+
+  if (singleNurseRoute) {
+    return (
+      <section className={`${ui.intakeSection} mt-4`} aria-labelledby="fo-routing-heading">
+        <h4 id="fo-routing-heading" className={ui.intakeTitle}>
+          Queue routing
+        </h4>
+        <p className="mt-2 text-sm text-slate-600">
+          Hospital front office routes all patients to the <strong>Nurse</strong> intake queue.
+          Use emergency classification above if the case is urgent.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className={`${ui.intakeSection} mt-4`} aria-labelledby="fo-routing-heading">
@@ -89,5 +114,8 @@ export function routingButtonLabel({
   if (loading) return `${action}…`;
   if (immediateTriage) return `${action} to Emergency Unit`;
   if (destination) return `${action} to ${routingLabel(destination, destinations)}`;
+  if (destinations?.length === 1 && destinations[0]?.value === 'nurse') {
+    return `${action} to Nurse`;
+  }
   return `${action} patient`;
 }

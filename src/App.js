@@ -50,6 +50,7 @@ import FamilyPlanningSuitePage from './pages/family_planner';
 import PediatricCornerPage from './pages/pediatric_corner';
 import DataAnalystPage from './pages/data_analyst';
 import SystemAdminPage from './pages/system_admin';
+import ReportingPage from './pages/reporting/ReportingPage';
 import ExecutivePage from './pages/executive';
 import MaternityFrontOfficerLayout from './pages/maternity_front_officer';
 import MaternityFrontOfficeDashboardPage from './pages/maternity_front_officer/MaternityFrontOfficeDashboardPage';
@@ -209,7 +210,6 @@ function App() {
           'hospital_emergency_nurse',
           'eye_nurse',
           'orthopedic_outpatient_nurse',
-          'adult_outpatient_nurse',
           'physiotherapy_nurse',
           'big_room_specialist_nurse',
           'urology_nurse',
@@ -473,6 +473,14 @@ function App() {
             <RoleRoute role="system_admin">
               <SystemAdminPage />
             </RoleRoute>
+          }
+        />
+        <Route
+          path="/reporting"
+          element={
+            <RequireAuth>
+              <ReportingPage />
+            </RequireAuth>
           }
         />
         <Route

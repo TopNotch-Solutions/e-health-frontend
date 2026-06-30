@@ -9,12 +9,13 @@ export const admin = {
   topbar,
   body: 'mx-auto flex w-full min-h-0 max-w-[1600px] flex-1 flex-col overflow-hidden lg:flex-row',
   sidebar:
-    'flex min-h-0 w-full shrink-0 flex-col border-b border-slate-200 bg-white px-4 py-5 sm:px-5 lg:w-[17rem] lg:max-w-xs lg:border-b-0 lg:border-r lg:py-6',
+    'flex min-h-0 w-full shrink-0 flex-col border-b border-slate-200 bg-white px-4 py-5 sm:px-5 lg:h-full lg:w-[17rem] lg:max-w-xs lg:overflow-hidden lg:border-b-0 lg:border-r lg:py-6',
   sidebarTitle: 'text-lg font-bold tracking-tight text-slate-900',
   sidebarSub: 'mt-0.5 text-sm text-slate-500',
   sidebarLabel:
     'mt-4 text-[0.65rem] font-bold uppercase tracking-wide text-teal-800/80 first:mt-0',
-  navList: 'mt-2 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto',
+  navList:
+    'mt-2 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto overscroll-y-contain pr-1',
   navItem:
     'flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-slate-600 transition hover:border-teal-200 hover:bg-teal-50/50 hover:text-teal-900',
   navItemActive:
@@ -67,7 +68,13 @@ export const admin = {
   th: greenTable.th,
   td: greenTable.td,
   tdMuted: greenTable.tdMuted,
-  rowInactive: greenTable.rowInactive,  badgeActive:
+  rowInactive: greenTable.rowInactive,
+  whiteTableWrap: 'overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm',
+  whiteTable: 'min-w-full divide-y divide-slate-200 text-sm',
+  whiteTh:
+    'bg-slate-50 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600',
+  whiteTd: 'px-4 py-3 text-slate-800',
+  whiteTdMuted: 'px-4 py-3 text-sm text-slate-500',  badgeActive:
     'inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-emerald-800',
   badgeInactive:
     'inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-slate-600',
@@ -112,6 +119,7 @@ export const ADMIN_SECTIONS = [
   { id: 'employees', label: 'Employee Management', icon: 'employees' },
   { id: 'admins', label: 'System Administrators', icon: 'admins' },
   { id: 'patient-records', label: 'Patient Records', icon: 'records' },
+  { id: 'user-reports', label: 'User Reports', icon: 'reports' },
   { id: 'transfer-timelines', label: 'Transfer Timelines', icon: 'transfers' },
   { id: 'icd10', label: 'ICD-10 Catalog', icon: 'icd10' },
   { id: 'settings', label: 'System Settings', icon: 'settings' },

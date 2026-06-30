@@ -18,8 +18,9 @@ export default function ReturningPatientCard({
 }) {
   const { showToast } = useToast();
   const { options: routingOptions } = useClinicRoutingOptions();
+  const isHospital = Boolean(routingOptions?.is_hospital);
   const frontOfficeDestinations = routingOptions?.front_office;
-  const emergencyUnitAvailable = routingOptions?.emergency_unit_available !== false;
+  const emergencyUnitAvailable = !isHospital && routingOptions?.emergency_unit_available !== false;
   const [modeOfArrival, setModeOfArrival] = useState('');
   const [accompaniedBy, setAccompaniedBy] = useState('');
   const [isEmergency, setIsEmergency] = useState(Boolean(patient.is_emergency));
@@ -44,7 +45,7 @@ export default function ReturningPatientCard({
       );
       return;
     }
-    if (!immediateTriage && !routingDestination) {
+    if (!immediateTriage && !routingDestination && !isHospital) {
       showToast('Select a routing destination before sending the patient to queue.', 'error');
       return;
     }
@@ -138,6 +139,7 @@ export default function ReturningPatientCard({
             patientSex={patient.sex}
             patientDateOfBirth={patient.date_of_birth}
             facilityDestinations={frontOfficeDestinations}
+            isHospital={isHospital}
             disabled={checkInLoading || immediateTriage || checkInBlocked}
             immediateTriage={immediateTriage}
             hideWhenImmediateTriage

@@ -142,6 +142,9 @@ export default function AdminDashboardView({
           <button type="button" className={c.btnSecondary} onClick={() => onNavigate('admins')}>
             System administrators
           </button>
+          <button type="button" className={c.btnSecondary} onClick={() => onNavigate('user-reports')}>
+            User reports
+          </button>
           <button type="button" className={c.btnSecondary} onClick={() => onNavigate('settings')}>
             Audit logs & settings
           </button>

@@ -1,5 +1,6 @@
 import { formatDateTime, formatLabel, formatVitalsLine, patientAge } from '../../pages/front_office/utils/ehrUtils';
 import { formatMaternityStopDetails } from './maternityMedicalHistoryBookUtils';
+import { formatHospitalStopDetails, wardDepartmentLabel } from './hospitalMedicalHistoryBookUtils';
 import { formatDob, patientName } from '../../pages/front_office/patientUtils';
 import { departmentLabel as hospitalDepartmentLabel, TRANSFER_STATUS_LABELS } from '../../constants/hospitalOutpatientDepartments';
 import {
@@ -51,7 +52,10 @@ const ACTIONS_TAKEN_SKIP_KEYS = new Set([
 
 function departmentLabel(value) {
   if (!value) return '—';
-  return DEPARTMENT_LABELS[value] || formatLabel(value);
+  if (value === 'icu_ward' || value === 'surgical_complex_ward' || value === 'specialized_inpatient_ward' || value === 'adult_outpatient_ward' || value?.startsWith('ward_')) {
+    return wardDepartmentLabel(value);
+  }
+  return DEPARTMENT_LABELS[value] || hospitalDepartmentLabel(value) || formatLabel(value);
 }
 
 function formatActionsTakenLines(raw) {
@@ -65,9 +69,15 @@ function formatActionsTakenLines(raw) {
   }
 
   const lines = [];
-  const disposition = parsed.clinic_disposition || parsed.disposition;
+  const disposition = parsed.clinic_disposition || parsed.disposition || parsed.hospital_outpatient_disposition;
   if (disposition) {
     let outcome = DISPOSITION_LABELS[disposition] || formatLabel(disposition);
+    if (parsed.hospital_outpatient_disposition === 'admit') {
+      outcome = 'Admitted to ward';
+    }
+    if (parsed.hospital_outpatient_disposition === 'discharge') {
+      outcome = 'Discharged from hospital outpatient';
+    }
     if (parsed.documentation_type === 'patient_refused_care') {
       outcome = 'Patient declined care';
     }
@@ -353,6 +363,10 @@ export function formatStopClinicalDetails(stop) {
     'routing_outcome',
     'maternity_anc_sessions', 'maternity_anw_daily_records', 'maternity_pnw_daily_records',
     'maternity_icu_daily_records', 'maternity_nicu_records', 'maternity_episode',
+    'hospital_outpatient_vitals', 'hospital_outpatient_consultations',
+    'ward_admission', 'ward_location', 'icu_daily_records', 'surgical_complex_daily_records',
+    'specialized_inpatient_daily_records',
+    'adult_outpatient_daily_records',
     'current_ward', 'status', 'admitted_at', 'discharged_at', 'front_office_visits',
     'anw_days', 'pnw_days', 'icu_days', 'feeding_counselling_done', 'six_week_follow_up_date',
   ]);
@@ -362,6 +376,7 @@ export function formatStopClinicalDetails(stop) {
   });
 
   lines.push(...formatMaternityStopDetails(clinical));
+  lines.push(...formatHospitalStopDetails(clinical));
 
   return lines;
 }

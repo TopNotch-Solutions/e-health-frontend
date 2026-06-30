@@ -12,8 +12,9 @@ import { fo } from './styles/frontOfficeModuleClasses';
 function Step4Form() {
   const { draft, updateField, submitRegistration, submitting, submitError } = useRegistration();
   const { options: routingOptions } = useClinicRoutingOptions();
+  const isHospital = Boolean(routingOptions?.is_hospital);
   const frontOfficeDestinations = routingOptions?.front_office;
-  const emergencyUnitAvailable = routingOptions?.emergency_unit_available !== false;
+  const emergencyUnitAvailable = !isHospital && routingOptions?.emergency_unit_available !== false;
 
   function handleImmediateTriageChange(checked) {
     updateField('immediate_triage', checked);
@@ -31,7 +32,7 @@ function Step4Form() {
     });
     const routeLabel = draft.immediate_triage
       ? 'Emergency Unit'
-      : (draft.routing_destination || 'the selected queue');
+      : (isHospital ? 'Nurse' : (draft.routing_destination || 'the selected queue'));
     if (!(await confirmAction({
       title: 'Finish registration?',
       text: draft.immediate_triage
@@ -51,7 +52,9 @@ function Step4Form() {
     destinations: frontOfficeDestinations,
   });
 
-  const canFinishRoute = Boolean(draft.routing_destination) || Boolean(draft.immediate_triage);
+  const canFinishRoute = Boolean(draft.routing_destination)
+    || Boolean(draft.immediate_triage)
+    || isHospital;
 
   return (
     <div className={fo.page}>
@@ -121,6 +124,7 @@ function Step4Form() {
           patientSex={draft.sex}
           patientDateOfBirth={draft.date_of_birth}
           facilityDestinations={frontOfficeDestinations}
+          isHospital={isHospital}
           disabled={submitting || draft.immediate_triage}
           immediateTriage={draft.immediate_triage}
           hideWhenImmediateTriage

@@ -37,14 +37,15 @@ export default function DoctorConsultationForm({
   onAddMedToList,
   onRemoveMedLine,
   actionLoading,
-  onSendToPharmacy,
+  onCompleteRouting,
+  routingError,
+  hasRoutingSelection,
   selectedLabTests,
   onToggleLabTest,
   labClinicalNotes,
   onLabClinicalNotesChange,
   labEmergency,
   onLabEmergencyChange,
-  onSendToLab,
   labError,
   selectedScan,
   onSelectScan,
@@ -56,7 +57,6 @@ export default function DoctorConsultationForm({
   onSonarPrepInstructionsChange,
   sonarEmergency,
   onSonarEmergencyChange,
-  onSendToSonar,
   sonarError,
   onAdmit,
   onDischarge,
@@ -138,7 +138,7 @@ export default function DoctorConsultationForm({
         onAddMedToList={onAddMedToList}
         onRemoveMedLine={onRemoveMedLine}
         actionLoading={actionLoading}
-        onSendToPharmacy={onSendToPharmacy}
+        hideSubmitButton
       />
 
       <DoctorLabOrderSection
@@ -149,9 +149,8 @@ export default function DoctorConsultationForm({
         labEmergency={labEmergency}
         onLabEmergencyChange={onLabEmergencyChange}
         actionLoading={actionLoading}
-        onSendToLab={onSendToLab}
         labError={labError}
-        prescriptionLineCount={prescriptionLines.length}
+        hideSubmitButton
       />
 
       <DoctorSonarOrderSection
@@ -166,9 +165,38 @@ export default function DoctorConsultationForm({
         sonarEmergency={sonarEmergency}
         onSonarEmergencyChange={onSonarEmergencyChange}
         actionLoading={actionLoading}
-        onSendToSonar={onSendToSonar}
         sonarError={sonarError}
+        hideSubmitButton
       />
+
+      <section className={c.sectionPanel} aria-labelledby="doc-routing-heading">
+        <h3 id="doc-routing-heading" className={c.sectionTitle}>
+          Complete consultation
+        </h3>
+        <p className="mt-1 text-sm text-slate-600">
+          When you are ready, send the patient to pharmacy, laboratory, and/or ultrasound in one
+          step based on what you configured above. You can combine medication, lab tests, and
+          imaging on the same visit.
+        </p>
+        {routingError ? (
+          <p className="mt-3 text-sm text-red-600" role="alert">
+            {routingError}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className={`${c.btnAction} ${c.btnComplete} mt-4 max-w-md`}
+          disabled={actionLoading || !hasRoutingSelection}
+          onClick={onCompleteRouting}
+        >
+          {actionLoading ? 'Routing patient…' : 'Complete consultation & route patient'}
+        </button>
+        {!hasRoutingSelection ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Add at least one medication, laboratory test, or ultrasound referral to continue.
+          </p>
+        ) : null}
+      </section>
 
       <section className={c.sectionPanel} aria-labelledby="doc-disp-heading">
         <h3 id="doc-disp-heading" className={c.sectionTitle}>

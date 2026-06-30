@@ -6,6 +6,7 @@ export const WARD_STAFF_ROLE_SLUGS = [
   'specialized_inpatient_nurse',
   'outpatient_specialist_nurse',
   'psychiatric_ward_nurse',
+  'adult_outpatient_nurse',
 ];
 
 const ROLE_LABELS = {
@@ -17,6 +18,7 @@ const ROLE_LABELS = {
   specialized_inpatient_nurse: 'Specialized Inpatient Nurse',
   outpatient_specialist_nurse: 'Outpatient Specialist Nurse',
   psychiatric_ward_nurse: 'Psychiatric Ward Nurse',
+  adult_outpatient_nurse: 'Adult Outpatient Nurse',
 };
 
 const WARD_TYPE_BY_ROLE = {
@@ -27,6 +29,7 @@ const WARD_TYPE_BY_ROLE = {
   specialized_inpatient_nurse: 'specialized_inpatient',
   outpatient_specialist_nurse: 'outpatient_specialist',
   psychiatric_ward_nurse: 'psychiatric',
+  adult_outpatient_nurse: 'adult_outpatient',
 };
 
 const MODULE_LABEL_BY_ROLE = {
@@ -38,6 +41,7 @@ const MODULE_LABEL_BY_ROLE = {
   specialized_inpatient_nurse: 'Specialized inpatient',
   outpatient_specialist_nurse: 'Outpatient specialist',
   psychiatric_ward_nurse: 'Psychiatric ward',
+  adult_outpatient_nurse: 'Adult outpatient',
 };
 
 export function wardTypeForStaffRole(roleName) {

@@ -36,6 +36,7 @@ import SystemAdminManagementView from './views/SystemAdminManagementView';
 import Icd10ManagementView from './views/Icd10ManagementView';
 import PatientRecordsView from './views/PatientRecordsView';
 import TransferTimelinesView from './views/TransferTimelinesView';
+import UserReportsAdminView from './views/UserReportsAdminView';
 import SystemSettingsView from './views/SystemSettingsView';
 
 const KOPANO = 'https://kopanovertex.com/';
@@ -503,6 +504,8 @@ export default function SystemAdminPage() {
         onToast={setToast}
       />
     );
+  } else if (section === 'user-reports') {
+    content = <UserReportsAdminView onToast={setToast} currentUserId={user?.id} />;
   } else if (section === 'icd10') {
     content = (
       <Icd10ManagementView

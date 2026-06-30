@@ -73,7 +73,7 @@ export default function DoctorPrescriptionSection({
   onAddMedToList,
   onRemoveMedLine,
   actionLoading,
-  onSendToPharmacy,
+  onSendToPharmacy = () => {},
   hideSubmitButton = false,
 }) {
   const hasPrescription = prescriptionLines.length > 0;

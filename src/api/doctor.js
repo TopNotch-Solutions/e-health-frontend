@@ -60,6 +60,13 @@ export function createSonarReferral(body) {
   });
 }
 
+export function completeConsultationRouting(body) {
+  return apiRequest(`${BASE}/complete-routing`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export function prescribeDiet(body) {
   return apiRequest(`${BASE}/diet-prescriptions`, {
     method: 'POST',

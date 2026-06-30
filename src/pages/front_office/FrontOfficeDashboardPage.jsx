@@ -3,6 +3,7 @@ import { confirmAction } from '../../utils/confirmAction';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPatientVisit, registerEmergencyPatient } from '../../api/patients';
 import { routingLabel } from './constants/routingOptions';
+import { useClinicRoutingOptions } from '../../hooks/useClinicRoutingOptions';
 import LookupEmergencyBanner from './components/lookup/LookupEmergencyBanner';
 import LookupPageHero from './components/lookup/LookupPageHero';
 import LookupResultsView from './components/lookup/LookupResultsView';
@@ -19,6 +20,8 @@ export default function FrontOfficeDashboardPage() {
   const location = useLocation();
   const { showToast } = useToast();
   const { loadPrefill } = useRegistration();
+  const { options: routingOptions } = useClinicRoutingOptions();
+  const isHospital = Boolean(routingOptions?.is_hospital);
 
   const {
     searchMode,
@@ -157,7 +160,7 @@ export default function FrontOfficeDashboardPage() {
             onSubmit={runSearch}
             loading={loading}
           />
-          <LookupEmergencyBanner loading={emergencyLoading} onEmergency={handleEmergency} />
+          <LookupEmergencyBanner loading={emergencyLoading} onEmergency={handleEmergency} hidden={isHospital} />
           <TodaysRegistrationsPanel compact limit={5} showHeaderLink />
         </>
       ) : null}
@@ -170,7 +173,7 @@ export default function FrontOfficeDashboardPage() {
           partialMatches={partialMatches}
           onResetSearch={resetSearch}
           onRegisterNew={startNewRegistration}
-          onEmergency={handleEmergency}
+          onEmergency={isHospital ? undefined : handleEmergency}
           onCompleteRegistration={startCompleteRegistration}
           onCheckIn={handleCheckIn}
           emergencyLoading={emergencyLoading}

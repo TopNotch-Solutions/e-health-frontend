@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { confirmAction } from '../../utils/confirmAction';
-import { startQueueEntry } from '../../api/queue';
+import { confirmAction, confirmReturnToQueue } from '../../utils/confirmAction';
+import { startQueueEntry, releaseQueueEntry } from '../../api/queue';
 import { recordVitalsAndPushToDoctor } from '../../api/vitals';
 import NurseTopbar from './components/NurseTopbar';
 import { useNurseQueue, useNurseSession, pickAutoResumeEntry } from './hooks/useNurseQueue';
@@ -195,6 +195,30 @@ export default function NurseIntakePage() {
     }
   }
 
+  async function handleReturnToQueue() {
+    if (!activePatient || actionLoading) return;
+    if (!(await confirmReturnToQueue(activePatient.name, 'Unsaved vitals will be discarded.'))) {
+      return;
+    }
+
+    setActionLoading(true);
+    setSubmitError('');
+    setQueueActionError('');
+    try {
+      skipAutoResumeRef.current = true;
+      await releaseQueueEntry(activePatient.entryId);
+      setActiveEntryId(null);
+      setForm(emptyIntakeForm());
+      setFieldErrors({});
+      setToast(`${activePatient.name} returned to queue`);
+      await refresh();
+    } catch (err) {
+      setQueueActionError(err.message || 'Could not return patient to queue');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   function handleFieldChange(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setFieldErrors((prev) => {
@@ -265,7 +289,7 @@ export default function NurseIntakePage() {
               classes={c}
               badge="In progress"
               title="Active vitals session"
-              message="Finish and send to the doctor queue to see waiting patients again."
+              message="Finish and send to the doctor queue, or return to queue to choose another patient."
               // patientName={activePatient.name}
               // patientMeta={activePatient.sexAge}
               // patientIdLabel={activePatient.patientIdLabel}
@@ -357,6 +381,16 @@ export default function NurseIntakePage() {
                   <strong className={c.bannerValue}>
                     {activePatient.patientIdLabel.replace('ID: ', '')}
                   </strong>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    className={c.btnSecondary}
+                    disabled={actionLoading}
+                    onClick={handleReturnToQueue}
+                  >
+                    Return to queue
+                  </button>
                 </div>
               </div>
 

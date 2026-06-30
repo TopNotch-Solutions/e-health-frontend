@@ -3,9 +3,7 @@ import {
   admitPatient,
   createConsultation,
   updateConsultation,
-  createPrescription,
-  createLabOrder,
-  createSonarReferral,
+  completeConsultationRouting,
   dischargeVisit,
   getAvailableBeds,
   getConsultationsByVisit,
@@ -23,6 +21,7 @@ import {
 import { DIET_TYPES } from '../../../constants/dietTypes';
 import { confirmAction } from '../../../utils/confirmAction';
 import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
+import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
 
 function parseStoredDiagnoses(diagnosisText) {
   if (!diagnosisText || typeof diagnosisText !== 'string') return [];
@@ -77,6 +76,10 @@ export default function DoctorWorkspace({
   const [sonarPrepInstructions, setSonarPrepInstructions] = useState('');
   const [sonarEmergency, setSonarEmergency] = useState(false);
   const [sonarError, setSonarError] = useState('');
+  const [routingError, setRoutingError] = useState('');
+  const [showDischargeModal, setShowDischargeModal] = useState(false);
+  const [dischargeReason, setDischargeReason] = useState('');
+  const [dischargeReasonError, setDischargeReasonError] = useState('');
   const [medCatalog, setMedCatalog] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState('');
@@ -155,6 +158,31 @@ export default function DoctorWorkspace({
     [patient?.vitals, patient?.entryId]
   );
 
+  const hasRoutingSelection =
+    prescriptionLines.length > 0 || selectedLabTests.length > 0 || Boolean(selectedScan);
+
+  function buildRoutingSummary() {
+    const parts = [];
+    if (prescriptionLines.length > 0) parts.push('pharmacy');
+    if (selectedLabTests.length > 0) parts.push('laboratory');
+    if (selectedScan) parts.push('ultrasound');
+    return parts.join(', ');
+  }
+
+  function validateDischargeReason() {
+    const reason = dischargeReason.trim();
+    if (!reason) {
+      setDischargeReasonError('Enter the reason for discharge.');
+      return false;
+    }
+    if (reason.length < 10) {
+      setDischargeReasonError('Please provide a clearer reason (at least a short sentence).');
+      return false;
+    }
+    setDischargeReasonError('');
+    return true;
+  }
+
   useEffect(() => {
     setClinicalNotes('');
     setDiagnoses([]);
@@ -175,6 +203,10 @@ export default function DoctorWorkspace({
     setSonarPrepInstructions('');
     setSonarEmergency(Boolean(patient?.isEmergency));
     setSonarError('');
+    setRoutingError('');
+    setShowDischargeModal(false);
+    setDischargeReason('');
+    setDischargeReasonError('');
 
     if (!patient?.visitId) return;
     getConsultationsByVisit(patient.visitId)
@@ -351,73 +383,30 @@ export default function DoctorWorkspace({
     });
   }
 
-  async function handleSendToSonar() {
-    if (!selectedScan) return;
+  async function handleCompleteRouting() {
+    if (!hasRoutingSelection) return;
     if (!validateDiagnosisImpression()) return;
     if (!(await confirmAction({
-      title: 'Send to ultrasound?',
-      text: `Refer ${patient.name} to ultrasound (${selectedScan.name})? The patient will leave your queue.`,
+      title: 'Complete consultation?',
+      text: `Route ${patient.name} to ${buildRoutingSummary()} and remove them from your queue?`,
       icon: 'warning',
-      confirmButtonText: 'Send to ultrasound',
+      confirmButtonText: 'Complete & route',
     }))) return;
 
     setActionLoading(true);
     onActionError('');
-    setSonarError('');
-    try {
-      await ensureConsultation();
-      await createSonarReferral({
-        visit_id: patient.visitId,
-        queue_entry_id: patient.entryId,
-        scan_type: selectedScan.name,
-        scan_id: selectedScan.id,
-        symptoms: sonarSymptoms.trim() || null,
-        diagnostic_questions: sonarDiagnosticQuestions.trim() || null,
-        prep_instructions: sonarPrepInstructions.trim() || null,
-        clinical_notes: clinicalNotes.trim() || null,
-        is_emergency: sonarEmergency,
-      });
-      setSelectedScan(null);
-      setSonarSymptoms('');
-      setSonarDiagnosticQuestions('');
-      setSonarPrepInstructions('');
-      onToast('Patient referred to ultrasound — removed from your queue');
-      onDone();
-    } catch (err) {
-      const msg = err.message || 'Failed to send to ultrasound';
-      setSonarError(msg);
-      onActionError(msg);
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function handleSendToLab() {
-    if (selectedLabTests.length === 0) return;
-    if (!validateDiagnosisImpression()) return;
-    if (!(await confirmAction({
-      title: 'Send to laboratory?',
-      text: prescriptionLines.length > 0
-        ? `Send ${patient.name} to the lab and queue prescription for pharmacy?`
-        : `Send ${patient.name} to the laboratory? The patient will leave your queue.`,
-      icon: 'warning',
-      confirmButtonText: 'Send to lab',
-    }))) return;
-
-    setActionLoading(true);
-    onActionError('');
+    setRoutingError('');
     setLabError('');
+    setSonarError('');
     try {
       const cid = await ensureConsultation();
       const payload = {
         visit_id: patient.visitId,
         queue_entry_id: patient.entryId,
-        tests: selectedLabTests,
-        clinical_notes: labClinicalNotes.trim() || null,
-        is_emergency: labEmergency,
+        consultation_id: cid,
       };
+
       if (prescriptionLines.length > 0) {
-        payload.consultation_id = cid;
         payload.items = prescriptionLines.map((item) => ({
           medication_name: item.medication_name,
           dosage: item.dosage,
@@ -426,68 +415,47 @@ export default function DoctorWorkspace({
           instructions: item.instructions || null,
         }));
       }
-      await createLabOrder(payload);
-      setSelectedLabTests([]);
-      setLabClinicalNotes('');
-      if (prescriptionLines.length > 0) {
-        setPrescriptionLines([]);
-        setMedLine(emptyMedLine());
+
+      if (selectedLabTests.length > 0) {
+        payload.tests = selectedLabTests;
+        payload.lab_clinical_notes = labClinicalNotes.trim() || null;
+        payload.lab_is_emergency = labEmergency;
       }
-      onToast(
-        prescriptionLines.length > 0
-          ? 'Patient sent to laboratory and prescription queued for pharmacy'
-          : 'Patient sent to laboratory — removed from your queue'
-      );
-      onDone();
-    } catch (err) {
-      const msg = err.message || 'Failed to send to laboratory';
-      setLabError(msg);
-      onActionError(msg);
-    } finally {
-      setActionLoading(false);
-    }
-  }
 
-  async function handleSendToPharmacy() {
-    if (prescriptionLines.length === 0) return;
-    if (!validateDiagnosisImpression()) return;
-    if (!(await confirmAction({
-      title: 'Send to pharmacy?',
-      text: `Send prescription for ${patient.name} to the pharmacy and complete this consultation?`,
-      icon: 'warning',
-      confirmButtonText: 'Send to pharmacy',
-    }))) return;
+      if (selectedScan) {
+        payload.scan_type = selectedScan.name;
+        payload.scan_id = selectedScan.id;
+        payload.sonar_symptoms = sonarSymptoms.trim() || null;
+        payload.sonar_diagnostic_questions = sonarDiagnosticQuestions.trim() || null;
+        payload.sonar_prep_instructions = sonarPrepInstructions.trim() || null;
+        payload.sonar_clinical_notes = clinicalNotes.trim() || null;
+        payload.sonar_is_emergency = sonarEmergency;
+      }
 
-    setActionLoading(true);
-    onActionError('');
-    try {
-      const cid = await ensureConsultation();
-      const result = await createPrescription({
-        visit_id: patient.visitId,
-        consultation_id: cid,
-        queue_entry_id: patient.entryId,
-        items: prescriptionLines.map((item) => ({
-          medication_name: item.medication_name,
-          dosage: item.dosage,
-          frequency: item.frequency || null,
-          quantity: item.quantity || 1,
-          instructions: item.instructions || null,
-        })),
-      });
+      const result = await completeConsultationRouting(payload);
+
       setPrescriptionLines([]);
       setMedLine(emptyMedLine());
       setLiveStock(null);
+      setSelectedLabTests([]);
+      setLabClinicalNotes('');
+      setSelectedScan(null);
+      setSonarSymptoms('');
+      setSonarDiagnosticQuestions('');
+      setSonarPrepInstructions('');
 
       const alerts = result?.lowStockAlerts || [];
       const outCount = alerts.filter((a) => a.stock_status === 'out_of_stock').length;
       const lowCount = alerts.filter((a) => a.stock_status === 'low_stock').length;
-      let msg = 'Prescription sent to pharmacy — consultation completed';
+      let msg = `Consultation completed — patient routed to ${buildRoutingSummary()}`;
       if (outCount) msg += ` ${outCount} medication(s) out of stock.`;
       if (lowCount) msg += ` ${lowCount} low stock.`;
       onToast(msg);
       onDone();
     } catch (err) {
-      onActionError(err.message || 'Failed to send to pharmacy');
+      const msg = err.message || 'Failed to complete consultation routing';
+      setRoutingError(msg);
+      onActionError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -558,8 +526,15 @@ export default function DoctorWorkspace({
     }
   }
 
-  async function handleDischarge() {
+  function openDischargeModal() {
     if (!validateDiagnosisImpression()) return;
+    setDischargeReason('');
+    setDischargeReasonError('');
+    setShowDischargeModal(true);
+  }
+
+  async function handleDischarge() {
+    if (!validateDischargeReason()) return;
     if (!(await confirmAction({
       title: 'Discharge patient?',
       text: `Discharge ${patient.name} and complete this consultation?`,
@@ -572,8 +547,9 @@ export default function DoctorWorkspace({
     try {
       await ensureConsultation();
       await dischargeVisit(patient.visitId, {
-        discharge_notes: clinicalNotes || null,
+        discharge_reason: dischargeReason.trim(),
       });
+      setShowDischargeModal(false);
       await finishConsultation(`${patient.name} discharged — consultation completed`);
     } catch (err) {
       onActionError(err.message || 'Failed to discharge patient');
@@ -584,6 +560,11 @@ export default function DoctorWorkspace({
 
   return (
     <>
+      <ConsultationMedicalHistoryPanel
+        patientId={patient?.patient?.id}
+        showStatSummaryButton
+      />
+
       <DoctorConsultationForm
         intakeForm={intakeForm}
         allergy={patient.allergy}
@@ -617,14 +598,15 @@ export default function DoctorWorkspace({
         onAddMedToList={addMedToList}
         onRemoveMedLine={removeMedLine}
         actionLoading={actionLoading}
-        onSendToPharmacy={handleSendToPharmacy}
+        onCompleteRouting={handleCompleteRouting}
+        routingError={routingError}
+        hasRoutingSelection={hasRoutingSelection}
         selectedLabTests={selectedLabTests}
         onToggleLabTest={toggleLabTest}
         labClinicalNotes={labClinicalNotes}
         onLabClinicalNotesChange={setLabClinicalNotes}
         labEmergency={labEmergency}
         onLabEmergencyChange={setLabEmergency}
-        onSendToLab={handleSendToLab}
         labError={labError}
         selectedScan={selectedScan}
         onSelectScan={setSelectedScan}
@@ -636,10 +618,9 @@ export default function DoctorWorkspace({
         onSonarPrepInstructionsChange={setSonarPrepInstructions}
         sonarEmergency={sonarEmergency}
         onSonarEmergencyChange={setSonarEmergency}
-        onSendToSonar={handleSendToSonar}
         sonarError={sonarError}
         onAdmit={openAdmitModal}
-        onDischarge={handleDischarge}
+        onDischarge={openDischargeModal}
       />
 
       {showAdmitModal ? (
@@ -806,6 +787,61 @@ export default function DoctorWorkspace({
                 onClick={handleAdmit}
               >
                 Confirm admission
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showDischargeModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4"
+          role="presentation"
+          onClick={() => setShowDischargeModal(false)}
+        >
+          <div
+            className={`${c.sectionPanel} max-h-[min(90vh,720px)] w-full max-w-2xl overflow-y-auto`}
+            role="dialog"
+            aria-labelledby="discharge-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="discharge-title" className={c.sectionTitle}>
+              Discharge patient
+            </h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Document why the patient is being discharged. This is saved to the medical record.
+            </p>
+            <div className="mt-4">
+              <IntakeTextarea
+                id="doc-discharge-reason"
+                label="Reason for discharge"
+                required
+                error={dischargeReasonError}
+                className={c.textarea}
+                rows={4}
+                placeholder="e.g. Treatment completed, condition improved, follow-up arranged with GP, patient requested discharge…"
+                value={dischargeReason}
+                onChange={(e) => {
+                  setDischargeReason(e.target.value);
+                  if (e.target.value.trim()) setDischargeReasonError('');
+                }}
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                className={c.btnSecondary}
+                onClick={() => setShowDischargeModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`${c.btnAction} ${c.btnDischarge}`}
+                disabled={actionLoading}
+                onClick={handleDischarge}
+              >
+                Confirm discharge
               </button>
             </div>
           </div>

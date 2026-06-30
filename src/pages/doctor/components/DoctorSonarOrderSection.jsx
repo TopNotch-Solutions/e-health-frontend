@@ -15,18 +15,29 @@ export default function DoctorSonarOrderSection({
   sonarEmergency,
   onSonarEmergencyChange,
   actionLoading,
-  onSendToSonar,
+  onSendToSonar = () => {},
   sonarError,
+  hideSubmitButton = false,
 }) {
   const [catalog, setCatalog] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
     getSonarScanCatalog()
-      .then((data) => setCatalog(Array.isArray(data) ? data : []))
-      .catch(() => setCatalog([]))
-      .finally(() => setCatalogLoading(false));
+      .then((data) => {
+        if (!cancelled) setCatalog(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalog([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -56,54 +67,20 @@ export default function DoctorSonarOrderSection({
       <h3 id="doc-sonar-heading" className={c.sectionTitle}>
         Ultrasound (sonar) referral
       </h3>
-      <p className="mt-1 text-xs text-slate-600">
-        Document symptoms and the diagnostic questions for the imaging team. The patient will
-        follow preparation instructions, then receive a formal report returned to you for
-        follow-up.
+      <p className="mt-1 text-sm text-slate-600">
+        Select a scan type, then document symptoms and questions for the imaging team. Preparation
+        instructions are filled in automatically when you pick a study.
       </p>
 
       <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-800">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded border-slate-300 text-violet-600"
+          className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
           checked={sonarEmergency}
           onChange={(e) => onSonarEmergencyChange(e.target.checked)}
         />
         Emergency imaging (priority sonar queue)
       </label>
-
-      <div className="mt-4">
-        <IntakeTextarea
-          id="doc-sonar-symptoms"
-          label="Patient symptoms & clinical suspicion"
-          value={symptoms}
-          onChange={(e) => onSymptomsChange(e.target.value)}
-          rows={3}
-          placeholder="e.g. RUQ pain, fever, rule out cholecystitis"
-        />
-      </div>
-
-      <div className="mt-3">
-        <IntakeTextarea
-          id="doc-sonar-questions"
-          label="Diagnostic questions for sonographer / radiologist"
-          value={diagnosticQuestions}
-          onChange={(e) => onDiagnosticQuestionsChange(e.target.value)}
-          rows={3}
-          placeholder="e.g. Gallstones? Wall thickening? Free fluid?"
-        />
-      </div>
-
-      <div className="mt-3">
-        <IntakeTextarea
-          id="doc-sonar-prep"
-          label="Preparation instructions for patient"
-          value={prepInstructions}
-          onChange={(e) => onPrepInstructionsChange(e.target.value)}
-          rows={2}
-          placeholder="Auto-filled when you select a scan type"
-        />
-      </div>
 
       <div className="mt-4">
         <label htmlFor="doc-sonar-search" className="text-xs font-bold uppercase tracking-wide text-slate-600">
@@ -112,7 +89,7 @@ export default function DoctorSonarOrderSection({
         <input
           id="doc-sonar-search"
           type="search"
-          className={`${c.input} mt-1`}
+          className={`${c.input} mt-1 w-full`}
           placeholder="Search ultrasound studies…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -161,20 +138,57 @@ export default function DoctorSonarOrderSection({
         </p>
       ) : null}
 
+      <div className="mt-4 space-y-4">
+        <IntakeTextarea
+          id="doc-sonar-symptoms"
+          label="Patient symptoms & clinical suspicion"
+          required={false}
+          value={symptoms}
+          onChange={(e) => onSymptomsChange(e.target.value)}
+          className={c.textarea}
+          rows={3}
+          placeholder="e.g. RUQ pain, fever, rule out cholecystitis"
+        />
+
+        <IntakeTextarea
+          id="doc-sonar-questions"
+          label="Diagnostic questions for sonographer / radiologist"
+          required={false}
+          value={diagnosticQuestions}
+          onChange={(e) => onDiagnosticQuestionsChange(e.target.value)}
+          className={c.textarea}
+          rows={3}
+          placeholder="e.g. Gallstones? Wall thickening? Free fluid?"
+        />
+
+        <IntakeTextarea
+          id="doc-sonar-prep"
+          label="Preparation instructions for patient"
+          required={false}
+          value={prepInstructions}
+          onChange={(e) => onPrepInstructionsChange(e.target.value)}
+          className={c.textarea}
+          rows={2}
+          placeholder="Auto-filled when you select a scan type"
+        />
+      </div>
+
       {sonarError ? (
         <p className={`${c.submitError} mt-3`} role="alert">
           {sonarError}
         </p>
       ) : null}
 
-      <button
-        type="button"
-        className={`${c.btnAction} ${c.btnSonar} mt-4`}
-        disabled={actionLoading || !selectedScan}
-        onClick={onSendToSonar}
-      >
-        Send to ultrasound (sonar)
-      </button>
+      {selectedScan && !hideSubmitButton ? (
+        <button
+          type="button"
+          className={`${c.btnAction} ${c.btnSonar} mt-4`}
+          disabled={actionLoading || !selectedScan}
+          onClick={onSendToSonar}
+        >
+          Send to ultrasound (sonar)
+        </button>
+      ) : null}
     </section>
   );
 }

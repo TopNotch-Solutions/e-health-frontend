@@ -1,6 +1,7 @@
 import { lookup } from '../../styles/lookupClasses';
 
-export default function LookupEmergencyBanner({ loading, onEmergency }) {
+export default function LookupEmergencyBanner({ loading, onEmergency, hidden = false }) {
+  if (hidden) return null;
   return (
     <p className={lookup.emergencyBanner}>
       Critical situation, no ID?{' '}

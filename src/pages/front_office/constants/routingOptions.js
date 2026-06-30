@@ -10,6 +10,11 @@ export const ROUTING_DESTINATIONS = [
   { value: 'family_planning', label: 'Family Planning' },
 ];
 
+/** Hospital state front office — nurse intake queue only. */
+export const HOSPITAL_ROUTING_DESTINATIONS = [
+  { value: 'nurse', label: 'Nurse' },
+];
+
 const PAP_SMEAR_DESTINATION = 'pap_smear';
 const PEDIATRIC_DESTINATION = 'pediatric';
 export const MAX_PEDIATRIC_AGE = 12;
