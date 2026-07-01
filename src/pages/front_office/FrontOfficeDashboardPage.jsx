@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../utils/confirmAction';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPatientVisit, registerEmergencyPatient } from '../../api/patients';
 import { routingLabel } from './constants/routingOptions';
 import { useClinicRoutingOptions } from '../../hooks/useClinicRoutingOptions';
@@ -10,6 +10,7 @@ import LookupResultsView from './components/lookup/LookupResultsView';
 import LookupSearchCard from './components/lookup/LookupSearchCard';
 import TodaysRegistrationsPanel from './components/TodaysRegistrationsPanel';
 import { useToast } from './context/ToastContext';
+import { useFlashNotice } from './hooks/useFlashNotice';
 import { usePatientSearch } from './hooks/usePatientSearch';
 import { useRegistration } from './RegistrationContext';
 import { lookup } from './styles/lookupClasses';
@@ -17,8 +18,8 @@ import { patientName, REGISTRATION_ALLOWED_KEY } from './patientUtils';
 
 export default function FrontOfficeDashboardPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { showToast } = useToast();
+  useFlashNotice(showToast);
   const { loadPrefill } = useRegistration();
   const { options: routingOptions } = useClinicRoutingOptions();
   const isHospital = Boolean(routingOptions?.is_hospital);
@@ -47,13 +48,6 @@ export default function FrontOfficeDashboardPage() {
 
   const completeMatches = useMemo(() => results.filter((p) => p.profile_complete), [results]);
   const partialMatches = useMemo(() => results.filter((p) => !p.profile_complete), [results]);
-
-  useEffect(() => {
-    if (location.state?.notice) {
-      showToast(location.state.notice, 'success');
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state?.notice, location.pathname, navigate, showToast]);
 
   function startNewRegistration() {
     const prefill = {};
@@ -160,7 +154,7 @@ export default function FrontOfficeDashboardPage() {
             onSubmit={runSearch}
             loading={loading}
           />
-          <LookupEmergencyBanner loading={emergencyLoading} onEmergency={handleEmergency} hidden={isHospital} />
+          <LookupEmergencyBanner loading={emergencyLoading} onEmergency={handleEmergency} />
           <TodaysRegistrationsPanel compact limit={5} showHeaderLink />
         </>
       ) : null}
@@ -173,12 +167,13 @@ export default function FrontOfficeDashboardPage() {
           partialMatches={partialMatches}
           onResetSearch={resetSearch}
           onRegisterNew={startNewRegistration}
-          onEmergency={isHospital ? undefined : handleEmergency}
+          onEmergency={handleEmergency}
           onCompleteRegistration={startCompleteRegistration}
           onCheckIn={handleCheckIn}
           emergencyLoading={emergencyLoading}
           checkInLoading={checkInLoading}
           checkInPatientId={checkInPatientId}
+          isHospital={isHospital}
         />
       ) : null}
     </div>

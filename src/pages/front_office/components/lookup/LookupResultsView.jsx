@@ -22,6 +22,7 @@ export default function LookupResultsView({
   emergencyLoading,
   checkInLoading,
   checkInPatientId,
+  isHospital = false,
 }) {
   const stats = computeLookupStats(results);
   const title = getResultsTitle(stats);
@@ -52,6 +53,7 @@ export default function LookupResultsView({
             onRegisterNew={onRegisterNew}
             onEmergency={onEmergency}
             emergencyLoading={emergencyLoading}
+            isHospital={isHospital}
           />
         ) : null}
 

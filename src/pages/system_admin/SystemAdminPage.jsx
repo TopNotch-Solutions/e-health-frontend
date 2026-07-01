@@ -77,7 +77,7 @@ export default function SystemAdminPage() {
   const [roleFilter, setRoleFilter] = useState('');
 
   const [facilityModalOpen, setFacilityModalOpen] = useState(false);
-  const [selectedClinic, setSelectedClinic] = useState(null);
+  const [selectedFacility, setSelectedFacility] = useState(null);
   const [selectedDepartmentKey, setSelectedDepartmentKey] = useState(null);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
@@ -433,13 +433,14 @@ export default function SystemAdminPage() {
       />
     );
   } else if (section === 'facilities') {
-    content = selectedClinic ? (
+    content = selectedFacility ? (
       <ClinicFacilityDetailView
-        facilityId={selectedClinic.id}
-        facilityName={selectedClinic.name}
+        facilityId={selectedFacility.id}
+        facilityName={selectedFacility.name}
+        facilityType={selectedFacility.type}
         selectedDepartmentKey={selectedDepartmentKey}
         onBack={() => {
-          setSelectedClinic(null);
+          setSelectedFacility(null);
           setSelectedDepartmentKey(null);
         }}
         onOpenDepartment={setSelectedDepartmentKey}
@@ -450,8 +451,8 @@ export default function SystemAdminPage() {
         facilities={facilities}
         loading={loading}
         onCreateClick={() => setFacilityModalOpen(true)}
-        onSelectClinic={(clinic) => {
-          setSelectedClinic(clinic);
+        onSelectFacility={(facility) => {
+          setSelectedFacility(facility);
           setSelectedDepartmentKey(null);
         }}
       />
@@ -560,7 +561,7 @@ export default function SystemAdminPage() {
           onSectionChange={(next) => {
             setSection(next);
             if (next !== 'facilities') {
-              setSelectedClinic(null);
+              setSelectedFacility(null);
               setSelectedDepartmentKey(null);
             }
           }}

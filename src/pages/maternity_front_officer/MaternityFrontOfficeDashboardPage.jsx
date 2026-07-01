@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { confirmAction } from '../../utils/confirmAction';
 import { routeFromMaternityFrontOffice } from '../../api/maternity';
 import LookupSearchCard from '../front_office/components/lookup/LookupSearchCard';
 import TodaysRegistrationsPanel from '../front_office/components/TodaysRegistrationsPanel';
 import { useToast } from '../front_office/context/ToastContext';
+import { useFlashNotice } from '../front_office/hooks/useFlashNotice';
 import { usePatientSearch } from '../front_office/hooks/usePatientSearch';
 import { patientName } from '../front_office/patientUtils';
 import { lookup } from '../front_office/styles/lookupClasses';
@@ -20,8 +21,8 @@ import { MATERNITY_REGISTRATION_ALLOWED_KEY } from './registrationUtils';
 
 export default function MaternityFrontOfficeDashboardPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { showToast } = useToast();
+  useFlashNotice(showToast);
   const { loadPrefill } = useMaternityRegistration();
 
   const {
@@ -47,13 +48,6 @@ export default function MaternityFrontOfficeDashboardPage() {
 
   const completeMatches = useMemo(() => results.filter((p) => p.profile_complete), [results]);
   const partialMatches = useMemo(() => results.filter((p) => !p.profile_complete), [results]);
-
-  useEffect(() => {
-    if (location.state?.notice) {
-      showToast(location.state.notice, 'success');
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state?.notice, location.pathname, navigate, showToast]);
 
   function startNewRegistration() {
     const prefill = {};

@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   addFacilityDepartment,
   getClinicDepartmentCatalog,
+  getHospitalDepartmentCatalog,
   getFacilityDepartments,
   removeFacilityDepartments,
 } from '../../../api/admin';
-import { admin as c } from '../styles/adminClasses';
+import { admin as c, facilityTypeLabel } from '../styles/adminClasses';
 import ClinicDepartmentDetailView from './ClinicDepartmentDetailView';
 
 function formatDateTime(iso) {
@@ -20,11 +21,14 @@ function formatDateTime(iso) {
 export default function ClinicFacilityDetailView({
   facilityId,
   facilityName,
+  facilityType = 'clinic',
   onBack,
   onOpenDepartment,
   selectedDepartmentKey,
   onBackFromDepartment,
 }) {
+  const isHospital = facilityType === 'hospital' || facilityType === 'health_center';
+  const facilityLabel = facilityTypeLabel(facilityType);
   const [summary, setSummary] = useState(null);
   const [catalog, setCatalog] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,16 +44,16 @@ export default function ClinicFacilityDetailView({
     try {
       const [deptSummary, deptCatalog] = await Promise.all([
         getFacilityDepartments(facilityId),
-        getClinicDepartmentCatalog(),
+        isHospital ? getHospitalDepartmentCatalog() : getClinicDepartmentCatalog(),
       ]);
       setSummary(deptSummary);
       setCatalog(deptCatalog);
     } catch (err) {
-      setError(err.message || 'Failed to load clinic departments');
+      setError(err.message || `Failed to load ${facilityLabel.toLowerCase()} departments`);
     } finally {
       setLoading(false);
     }
-  }, [facilityId]);
+  }, [facilityId, isHospital, facilityLabel]);
 
   useEffect(() => {
     load();
@@ -211,9 +215,9 @@ export default function ClinicFacilityDetailView({
           <button type="button" className={`${c.btnGhost} mb-2`} onClick={onBack}>
             ← Back to facilities
           </button>
-          <h2 className={c.sectionTitle}>{facilityName || summary?.facility?.name || 'Clinic'}</h2>
+          <h2 className={c.sectionTitle}>{facilityName || summary?.facility?.name || facilityLabel}</h2>
           <p className={c.sectionDesc}>
-            Departments and staff assigned to this clinic. Click a department to view employees and activity.
+            Departments and staff assigned to this {facilityLabel.toLowerCase()}. Click a department to view employees and activity.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -248,7 +252,7 @@ export default function ClinicFacilityDetailView({
           </p>
 
           {availableToAdd.length === 0 ? (
-            <p className="mt-3 text-sm text-slate-600">All departments are already active at this clinic.</p>
+            <p className="mt-3 text-sm text-slate-600">All departments are already active at this {facilityLabel.toLowerCase()}.</p>
           ) : (
             <div className="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
               {availableToAdd.map((dept) => {
@@ -425,7 +429,7 @@ export default function ClinicFacilityDetailView({
           <section className={`${c.sectionPanel} mt-4`}>
             <h3 className={c.sectionTitle}>Department change history</h3>
             <p className={c.sectionDesc}>
-              Record of departments added to or removed from this clinic, with reasons.
+              Record of departments added to or removed from this {facilityLabel.toLowerCase()}, with reasons.
             </p>
             {summary?.change_history?.length ? (
               <div className={`${c.tableWrap} mt-3`}>

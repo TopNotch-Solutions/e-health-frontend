@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getClinicDepartmentCatalog } from '../../../api/admin';
+import { getClinicDepartmentCatalog, getHospitalDepartmentCatalog } from '../../../api/admin';
 import { admin as c, FACILITY_TYPE_OPTIONS } from '../styles/adminClasses';
 
 const EMPTY = {
@@ -10,6 +10,7 @@ const EMPTY = {
   phone: '',
   type: 'hospital',
   clinic_template: 'full',
+  hospital_template: 'full',
   departments: [],
   template_reason: '',
 };
@@ -28,12 +29,20 @@ export default function CreateFacilityModal({ open, onClose, onSubmit, submittin
   const [catalogError, setCatalogError] = useState('');
 
   const isClinic = form.type === 'clinic';
-  const isCustomTemplate = isClinic && form.clinic_template === 'custom';
+  const isHospital = form.type === 'hospital' || form.type === 'health_center';
+  const hasDepartmentTemplate = isClinic || isHospital;
+  const templateKey = isClinic ? 'clinic_template' : 'hospital_template';
+  const isCustomTemplate = hasDepartmentTemplate && form[templateKey] === 'custom';
 
   useEffect(() => {
-    if (!open || !isClinic) return undefined;
+    if (!open || !hasDepartmentTemplate) {
+      setCatalog(null);
+      setCatalogError('');
+      return undefined;
+    }
     let cancelled = false;
-    getClinicDepartmentCatalog()
+    const loadCatalog = isClinic ? getClinicDepartmentCatalog : getHospitalDepartmentCatalog;
+    loadCatalog()
       .then((data) => {
         if (!cancelled) {
           setCatalog(data);
@@ -44,10 +53,12 @@ export default function CreateFacilityModal({ open, onClose, onSubmit, submittin
         }
       })
       .catch((err) => {
-        if (!cancelled) setCatalogError(err.message || 'Could not load clinic departments');
+        if (!cancelled) {
+          setCatalogError(err.message || `Could not load ${isClinic ? 'clinic' : 'hospital'} departments`);
+        }
       });
     return () => { cancelled = true; };
-  }, [open, isClinic]);
+  }, [open, hasDepartmentTemplate, isClinic]);
 
   const foundationKeys = useMemo(
     () => new Set(catalog?.foundation_template || catalog?.minimal_template || []),
@@ -72,7 +83,7 @@ export default function CreateFacilityModal({ open, onClose, onSubmit, submittin
   function setTemplate(template) {
     setForm((f) => ({
       ...f,
-      clinic_template: template,
+      [templateKey]: template,
       departments: template === 'full'
         ? [...(catalog?.full_template || [])]
         : [...(catalog?.full_template || f.departments)],
@@ -113,10 +124,22 @@ export default function CreateFacilityModal({ open, onClose, onSubmit, submittin
           payload.template_reason = form.template_reason.trim();
         }
       }
+    } else if (isHospital) {
+      payload.hospital_template = form.hospital_template;
+      if (form.hospital_template === 'custom') {
+        payload.departments = form.departments;
+        if (customDiffersFromFull) {
+          payload.template_reason = form.template_reason.trim();
+        }
+      }
     }
     await onSubmit(payload);
     setForm(EMPTY);
   };
+
+  const foundationCopy = isClinic
+    ? 'Every clinic includes Front Office, Parameter Nurse, Screening Nurse, and Master Doctor.'
+    : 'Every hospital includes Front Office, Nurse, and Doctor as foundation departments.';
 
   return (
     <div className={c.modalBackdrop} role="presentation" onClick={onClose}>
@@ -185,23 +208,26 @@ export default function CreateFacilityModal({ open, onClose, onSubmit, submittin
             </div>
           </div>
 
-          {isClinic ? (
+          {hasDepartmentTemplate ? (
             <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-bold text-slate-900">Clinic department template</h3>
+              <h3 className="text-sm font-bold text-slate-900">
+                {isClinic ? 'Clinic' : 'Hospital'} department template
+              </h3>
               <p className="mt-1 text-xs text-slate-600">
-                Every clinic includes Front Office, Parameter Nurse, Screening Nurse, and Master Doctor.
+                {foundationCopy}
+                {' '}
                 Choose the full template or remove optional departments.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {[
-                  { value: 'full', label: 'Full clinic (all departments)' },
+                  { value: 'full', label: `Full ${isClinic ? 'clinic' : 'hospital'} (all departments)` },
                   { value: 'custom', label: 'Customize departments' },
                 ].map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
                     className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                      form.clinic_template === opt.value
+                      form[templateKey] === opt.value
                         ? 'border-teal-600 bg-teal-50 text-teal-900'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
                     }`}
@@ -212,9 +238,9 @@ export default function CreateFacilityModal({ open, onClose, onSubmit, submittin
                 ))}
               </div>
 
-              {form.clinic_template === 'full' ? (
+              {form[templateKey] === 'full' ? (
                 <p className="mt-3 text-xs text-slate-600">
-                  All clinic departments will be created, including the four foundation departments.
+                  All {isClinic ? 'clinic' : 'hospital'} departments will be created, including foundation departments.
                 </p>
               ) : null}
 

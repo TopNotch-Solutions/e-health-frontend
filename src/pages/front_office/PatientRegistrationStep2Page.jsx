@@ -27,7 +27,7 @@ function Step2Form() {
           <h3 className={fo.sectionTitle}>Official identification</h3>
           <p className={`${fo.field} mt-4`}>
             <label className={fo.label} htmlFor="fo-govid">
-              Government ID number
+              Government ID number <span className="text-slate-500 font-normal">(optional)</span>
             </label>
             <input
               id="fo-govid"

@@ -8,10 +8,10 @@ export function sanitizeNationalIdInput(value) {
 }
 
 /** Returns an error message string, or null when valid. */
-export function validateNationalId(value) {
+export function validateNationalId(value, { required = true } = {}) {
   const digits = String(value).trim();
   if (!digits) {
-    return 'Enter the patient\'s national ID number.';
+    return required ? 'Enter the patient\'s national ID number.' : null;
   }
   if (!/^\d{11}$/.test(digits)) {
     return 'National ID must be exactly 11 numeric digits.';
@@ -20,13 +20,21 @@ export function validateNationalId(value) {
 }
 
 /** Returns an error message string, or null when valid. */
-export function validatePhone(value) {
+export function validateRequiredText(value, { label = 'field' } = {}) {
+  if (!String(value).trim()) {
+    return `Enter the ${label}.`;
+  }
+  return null;
+}
+
+/** Returns an error message string, or null when valid. */
+export function validatePhone(value, { required = true, label = 'primary phone number' } = {}) {
   const digits = String(value).replace(/\D/g, '');
   if (!digits) {
-    return 'Enter the patient\'s primary phone number.';
+    return required ? `Enter the patient's ${label}.` : null;
   }
   if (digits.length < 7) {
-    return 'Enter a valid primary phone number.';
+    return `Enter a valid ${label}.`;
   }
   return null;
 }

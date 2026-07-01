@@ -45,7 +45,7 @@ export default function ReturningPatientCard({
       );
       return;
     }
-    if (!immediateTriage && !routingDestination && !isHospital) {
+    if (!immediateTriage && !routingDestination) {
       showToast('Select a routing destination before sending the patient to queue.', 'error');
       return;
     }

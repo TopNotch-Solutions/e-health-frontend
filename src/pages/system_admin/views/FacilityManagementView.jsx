@@ -1,10 +1,12 @@
 import { admin as c, facilityTypeLabel } from '../styles/adminClasses';
 
+const DEPARTMENT_MANAGED_TYPES = new Set(['clinic', 'hospital', 'health_center']);
+
 export default function FacilityManagementView({
   facilities,
   loading,
   onCreateClick,
-  onSelectClinic,
+  onSelectFacility,
 }) {
   return (
     <div>
@@ -29,14 +31,14 @@ export default function FacilityManagementView({
       ) : (
         <div className={c.facilityGrid}>
           {facilities.map((f) => {
-            const isClinic = f.type === 'clinic';
-            const CardTag = isClinic ? 'button' : 'article';
+            const hasDepartments = DEPARTMENT_MANAGED_TYPES.has(f.type);
+            const CardTag = hasDepartments ? 'button' : 'article';
             return (
               <CardTag
                 key={f.id}
-                type={isClinic ? 'button' : undefined}
-                className={`${c.facilityCard} ${isClinic ? 'cursor-pointer text-left transition hover:border-emerald-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-500/40' : ''}`}
-                onClick={isClinic ? () => onSelectClinic(f) : undefined}
+                type={hasDepartments ? 'button' : undefined}
+                className={`${c.facilityCard} ${hasDepartments ? 'cursor-pointer text-left transition hover:border-emerald-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-500/40' : ''}`}
+                onClick={hasDepartments ? () => onSelectFacility(f) : undefined}
               >
                 <h3 className={c.cardTitle}>{f.name}</h3>
                 <p className={c.cardDesc}>{f.location || '—'}</p>
@@ -49,7 +51,7 @@ export default function FacilityManagementView({
                     <dt className={c.cardFieldLabel}>Assigned staff</dt>
                     <dd className={`${c.cardFieldValue} tabular-nums`}>{f.staff_count ?? 0}</dd>
                   </div>
-                  {isClinic ? (
+                  {hasDepartments ? (
                     <div className="flex justify-between gap-2">
                       <dt className={c.cardFieldLabel}>Departments</dt>
                       <dd className={`${c.cardFieldValue} tabular-nums`}>{f.department_count ?? 0}</dd>
@@ -65,7 +67,7 @@ export default function FacilityManagementView({
                 {f.address ? (
                   <p className="mt-3 text-xs text-emerald-100/80 line-clamp-2">{f.address}</p>
                 ) : null}
-                {isClinic ? (
+                {hasDepartments ? (
                   <p className="mt-3 text-xs font-semibold text-teal-100">View departments →</p>
                 ) : null}
               </CardTag>

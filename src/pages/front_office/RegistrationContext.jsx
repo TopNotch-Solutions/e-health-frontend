@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import { useNavigate } from 'react-router-dom';
 import { registerPatient } from '../../api/patients';
 import { mapSexToApi, REGISTRATION_ALLOWED_KEY, REGISTRATION_STORAGE_KEY } from './patientUtils';
-import { validateNationalId, validatePhone } from './utils/validation';
+import { validateNationalId, validatePhone, validateRequiredText } from './utils/validation';
+import { getRegionById, normalizeRegionId } from './data/namibiaLocations';
 
 const defaultDraft = () => ({
   first_name: '',
@@ -51,6 +52,13 @@ export function RegistrationProvider({ children }) {
     [draft, persist]
   );
 
+  const patchDraft = useCallback(
+    (patch) => {
+      persist({ ...draft, ...patch });
+    },
+    [draft, persist]
+  );
+
   const loadPrefill = useCallback(
     (prefill) => {
       const next = {
@@ -71,7 +79,9 @@ export function RegistrationProvider({ children }) {
   }, []);
 
   const buildPayload = useCallback(() => {
-    const addressParts = [draft.address, draft.city, draft.region].filter(Boolean);
+    const regionId = normalizeRegionId(draft.region);
+    const regionLabel = getRegionById(regionId)?.name || draft.region.trim();
+    const addressParts = [draft.address, draft.city, regionLabel].filter(Boolean);
     const address =
       addressParts.join(', ') +
       (draft.physical_notes ? `\n[Physical notes: ${draft.physical_notes}]` : '');
@@ -106,10 +116,18 @@ export function RegistrationProvider({ children }) {
         throw new Error('Select a routing destination before finishing registration.');
       }
       if (!payload.immediate_triage) {
-        const idError = validateNationalId(payload.id_number || '');
+        const idError = validateNationalId(payload.id_number || '', { required: false });
         if (idError) throw new Error(idError);
-        const phoneError = validatePhone(payload.phone || '');
+        const phoneError = validatePhone(payload.phone || '', { required: false });
         if (phoneError) throw new Error(phoneError);
+        const emergencyNameError = validateRequiredText(payload.emergency_contact_name || '', {
+          label: 'next of kin full name',
+        });
+        if (emergencyNameError) throw new Error(emergencyNameError);
+        const emergencyPhoneError = validatePhone(payload.emergency_contact_phone || '', {
+          label: 'emergency phone number',
+        });
+        if (emergencyPhoneError) throw new Error(emergencyPhoneError);
       }
       const data = await registerPatient(payload);
       clearDraft();
@@ -125,7 +143,6 @@ export function RegistrationProvider({ children }) {
       return data;
     } catch (err) {
       setSubmitError(err.message || 'Registration failed');
-      throw err;
     } finally {
       setSubmitting(false);
     }
@@ -135,13 +152,14 @@ export function RegistrationProvider({ children }) {
     () => ({
       draft,
       updateField,
+      patchDraft,
       loadPrefill,
       clearDraft,
       submitRegistration,
       submitting,
       submitError,
     }),
-    [draft, updateField, loadPrefill, clearDraft, submitRegistration, submitting, submitError]
+    [draft, updateField, patchDraft, loadPrefill, clearDraft, submitRegistration, submitting, submitError]
   );
 
   return <RegistrationContext.Provider value={value}>{children}</RegistrationContext.Provider>;

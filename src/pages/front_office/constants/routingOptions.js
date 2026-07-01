@@ -10,9 +10,12 @@ export const ROUTING_DESTINATIONS = [
   { value: 'family_planning', label: 'Family Planning' },
 ];
 
-/** Hospital state front office — nurse intake queue only. */
+/** Hospital state front office — nurse, pharmacy, emergency unit, and outpatient. */
 export const HOSPITAL_ROUTING_DESTINATIONS = [
   { value: 'nurse', label: 'Nurse' },
+  { value: 'pharmacy', label: 'Pharmacy' },
+  { value: 'hospital_emergency_unit', label: 'Emergency Unit' },
+  { value: 'adult_outpatient', label: 'Outpatient' },
 ];
 
 const PAP_SMEAR_DESTINATION = 'pap_smear';
@@ -66,6 +69,7 @@ export function getRoutingDestinationsForPatient({
 
 export function routingLabel(value, destinations = ROUTING_DESTINATIONS) {
   return destinations.find((d) => d.value === value)?.label
+    || HOSPITAL_ROUTING_DESTINATIONS.find((d) => d.value === value)?.label
     || ROUTING_DESTINATIONS.find((d) => d.value === value)?.label
     || value;
 }

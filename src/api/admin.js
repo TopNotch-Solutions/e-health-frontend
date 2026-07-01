@@ -80,6 +80,10 @@ export function createAdminFacility(body) {
   });
 }
 
+export function getHospitalDepartmentCatalog() {
+  return apiRequest('/api/v1/admin/hospital-departments/catalog');
+}
+
 export function getClinicDepartmentCatalog() {
   return apiRequest('/api/v1/admin/clinic-departments/catalog');
 }

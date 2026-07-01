@@ -40,6 +40,31 @@ export const fo = {
   progressLabel: 'text-sm font-semibold text-slate-600',
   error: 'mt-3 text-sm font-medium text-red-600',
   summaryList: 'space-y-2 text-sm text-slate-700',
+  summaryCard: 'overflow-hidden',
+  summaryHero:
+    'flex items-start gap-4 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-slate-50 p-4 sm:p-5',
+  summaryAvatar:
+    'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-600 text-lg font-bold text-white shadow-md shadow-teal-600/25 sm:h-16 sm:w-16 sm:text-xl',
+  summaryHeroName: 'text-xl font-bold tracking-tight text-slate-900 sm:text-2xl',
+  summaryHeroMeta: 'mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600',
+  summaryHeroDot: 'hidden text-slate-300 sm:inline',
+  summaryBody: 'mt-5 space-y-5',
+  summaryGroup: 'space-y-3',
+  summaryGroupTitle:
+    'text-[0.65rem] font-bold uppercase tracking-widest text-slate-400',
+  summaryGrid: 'grid gap-3 sm:grid-cols-2',
+  summaryItem:
+    'rounded-xl border border-slate-100 bg-slate-50/80 px-3.5 py-3 transition hover:border-slate-200 hover:bg-white',
+  summaryLabel: 'text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500',
+  summaryValue: 'mt-1 text-sm font-semibold text-slate-900',
+  summaryValueMuted: 'mt-1 text-sm font-medium text-slate-400',
+  summaryBadges: 'flex flex-wrap gap-2 border-t border-slate-100 pt-4',
+  summaryBadge:
+    'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset',
+  summaryBadgePublic: 'bg-sky-50 text-sky-800 ring-sky-200',
+  summaryBadgePrivate: 'bg-violet-50 text-violet-800 ring-violet-200',
+  summaryBadgeEmergency: 'bg-rose-50 text-rose-800 ring-rose-200',
+  summaryBadgeNormal: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
   actionGrid: 'grid gap-4 sm:grid-cols-2',
   stepper: 'mb-5 flex flex-wrap items-center justify-between gap-1 sm:gap-2',
   stepLine: 'mx-0.5 hidden h-0.5 w-4 flex-none bg-slate-200 sm:block sm:w-6',

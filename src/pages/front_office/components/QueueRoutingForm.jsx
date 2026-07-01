@@ -27,9 +27,7 @@ export default function QueueRoutingForm({
     [patientSex, patientDateOfBirth, facilityDestinations]
   );
 
-  const singleNurseRoute = isHospital || (
-    destinations.length === 1 && destinations[0]?.value === 'nurse'
-  );
+  const singleNurseRoute = destinations.length === 1 && destinations[0]?.value === 'nurse';
 
   useEffect(() => {
     if (singleNurseRoute && !destination && destinations[0]?.value) {
@@ -74,7 +72,9 @@ export default function QueueRoutingForm({
         Queue routing
       </h4>
       <p className="mt-1 text-xs text-slate-500">
-        Select the clinic sector, then route the patient to that queue.
+        {isHospital
+          ? 'Select where to send the patient — nurse, pharmacy, emergency unit, or outpatient.'
+          : 'Select the clinic sector, then route the patient to that queue.'}
       </p>
       <div className="mt-3 space-y-1">
         <label htmlFor="fo-routing-dest" className="text-sm font-medium text-slate-700">

@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import { confirmAction } from '../../utils/confirmAction';
 import { useClinicRoutingOptions } from '../../hooks/useClinicRoutingOptions';
+import { getRegionById, normalizeRegionId } from './data/namibiaLocations';
 import RegistrationGuard from './RegistrationGuard';
 import { useRegistration } from './RegistrationContext';
 import RegistrationStepper from './RegistrationStepper';
 import EmergencyPatientToggle from './components/EmergencyPatientToggle';
 import ImmediateTriageToggle from './components/ImmediateTriageToggle';
 import QueueRoutingForm, { routingButtonLabel } from './components/QueueRoutingForm';
+import RegistrationSummaryCard from './components/RegistrationSummaryCard';
+import { routingLabel } from './constants/routingOptions';
 import { fo } from './styles/frontOfficeModuleClasses';
 
 function Step4Form() {
@@ -32,7 +35,7 @@ function Step4Form() {
     });
     const routeLabel = draft.immediate_triage
       ? 'Emergency Unit'
-      : (isHospital ? 'Nurse' : (draft.routing_destination || 'the selected queue'));
+      : (routingLabel(draft.routing_destination, frontOfficeDestinations) || 'the selected queue');
     if (!(await confirmAction({
       title: 'Finish registration?',
       text: draft.immediate_triage
@@ -53,8 +56,10 @@ function Step4Form() {
   });
 
   const canFinishRoute = Boolean(draft.routing_destination)
-    || Boolean(draft.immediate_triage)
-    || isHospital;
+    || Boolean(draft.immediate_triage);
+
+  const regionLabel =
+    getRegionById(normalizeRegionId(draft.region))?.name || draft.region || '—';
 
   return (
     <div className={fo.page}>
@@ -74,34 +79,9 @@ function Step4Form() {
 
       <article className={fo.sectionPanel}>
         <h3 className={fo.sectionTitle}>Summary</h3>
-        <ul className={`${fo.summaryList} mt-4`}>
-          <li>
-            <strong>Name:</strong> {draft.first_name} {draft.last_name}
-          </li>
-          <li>
-            <strong>DOB:</strong> {draft.date_of_birth || '—'}
-          </li>
-          <li>
-            <strong>Sex:</strong> {draft.sex || '—'}
-          </li>
-          <li>
-            <strong>National ID:</strong> {draft.id_number || '—'}
-          </li>
-          <li>
-            <strong>Phone:</strong> {draft.phone || '—'}
-          </li>
-          <li>
-            <strong>Payment:</strong> {draft.payment_type === 'private' ? 'Private' : 'Public'}
-          </li>
-          <li>
-            <strong>Emergency case:</strong>{' '}
-            {draft.is_emergency ? (
-              <span className="font-semibold text-rose-700">Yes</span>
-            ) : (
-              'No'
-            )}
-          </li>
-        </ul>
+        <div className="mt-4">
+          <RegistrationSummaryCard draft={draft} regionLabel={regionLabel} />
+        </div>
       </article>
 
       <article className={`${fo.sectionPanel} mt-4 space-y-3`}>
