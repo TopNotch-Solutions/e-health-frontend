@@ -314,10 +314,14 @@ export default function WardStaffConsultationPage() {
               title="Current patient"
               message={
                 onInWardTab
-                  ? "Save today's daily record, then request transfer if needed. The patient leaves this queue after save but stays open until you close the session."
-                  : isTypedWardNurse && wardTab === 'arrivals'
-                    ? 'Fill in arrival monitoring values, then confirm arrival to save everything at once.'
-                    : 'Confirm the arrival date when the patient reaches the ward. Use Return to queue to choose another.'
+                  ? roleName === 'surgical_complex_nurse'
+                    ? "Record the six basic vitals for today, then request transfer if needed. The patient leaves this queue after save but stays open until you close the session."
+                    : "Save today's daily record, then request transfer if needed. The patient leaves this queue after save but stays open until you close the session."
+                  : roleName === 'surgical_complex_nurse' && wardTab === 'arrivals'
+                    ? 'Confirm arrival when the patient reaches the surgical complex ward. Basic vitals are recorded separately from the in-ward queue.'
+                    : isTypedWardNurse && wardTab === 'arrivals'
+                      ? 'Fill in arrival monitoring values, then confirm arrival to save everything at once.'
+                      : 'Confirm the arrival date when the patient reaches the ward. Use Return to queue to choose another.'
               }
             />
           ) : (
@@ -403,10 +407,14 @@ export default function WardStaffConsultationPage() {
               <h3 className={c.idleTitle}>No patient selected</h3>
               <p className={c.idleText}>
                 {onInWardTab
-                  ? `Select a patient who needs today's ${typedWardUi.wardShort} daily record. After saving, they leave the queue — you can still request transfer from the open session.`
-                  : isTypedWardNurse && wardTab === 'arrivals'
-                    ? `Select a patient awaiting ${typedWardUi.wardShort} arrival. Capture monitoring values and confirm arrival in one step.`
-                    : 'When a doctor admits a patient, they appear here for ward staff and in the porter transport queue. Select a patient to review ward, room, and bed details and confirm their arrival date.'}
+                  ? roleName === 'surgical_complex_nurse'
+                    ? `Select a patient who needs today's basic vitals recorded. After saving, they leave the queue — you can still request transfer from the open session.`
+                    : `Select a patient who needs today's ${typedWardUi.wardShort} daily record. After saving, they leave the queue — you can still request transfer from the open session.`
+                  : roleName === 'surgical_complex_nurse' && wardTab === 'arrivals'
+                    ? `Select a patient awaiting ${typedWardUi.wardShort} arrival. Confirm arrival first — basic vitals are recorded from the in-ward queue.`
+                    : isTypedWardNurse && wardTab === 'arrivals'
+                      ? `Select a patient awaiting ${typedWardUi.wardShort} arrival. Capture monitoring values and confirm arrival in one step.`
+                      : 'When a doctor admits a patient, they appear here for ward staff and in the porter transport queue. Select a patient to review ward, room, and bed details and confirm their arrival date.'}
               </p>
             </div>
           ) : detailLoading ? (
@@ -443,7 +451,10 @@ export default function WardStaffConsultationPage() {
               <div className={c.formScroll}>
                 {(isTypedWardNurse && detail?.patient?.id) ? (
                   <div className="mb-4">
-                    <ConsultationMedicalHistoryPanel patientId={detail.patient.id} />
+                    <ConsultationMedicalHistoryPanel
+                      patientId={detail.patient.id}
+                      visitId={detail.visit?.id}
+                    />
                   </div>
                 ) : null}
                 {roleName === 'icu_ward_nurse' && onInWardTab ? (

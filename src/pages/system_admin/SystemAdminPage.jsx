@@ -32,6 +32,7 @@ import AdminDashboardView from './views/AdminDashboardView';
 import EmployeeManagementView from './views/EmployeeManagementView';
 import FacilityManagementView from './views/FacilityManagementView';
 import ClinicFacilityDetailView from './views/ClinicFacilityDetailView';
+import BillingPricesView from './views/BillingPricesView';
 import SystemAdminManagementView from './views/SystemAdminManagementView';
 import Icd10ManagementView from './views/Icd10ManagementView';
 import PatientRecordsView from './views/PatientRecordsView';
@@ -78,6 +79,8 @@ export default function SystemAdminPage() {
 
   const [facilityModalOpen, setFacilityModalOpen] = useState(false);
   const [selectedFacility, setSelectedFacility] = useState(null);
+  const [selectedPricingFacility, setSelectedPricingFacility] = useState(null);
+  const [pricingView, setPricingView] = useState('home');
   const [selectedDepartmentKey, setSelectedDepartmentKey] = useState(null);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
@@ -457,6 +460,20 @@ export default function SystemAdminPage() {
         }}
       />
     );
+  } else if (section === 'prices') {
+    content = (
+      <BillingPricesView
+        facilities={facilities}
+        loading={loading}
+        view={pricingView}
+        selectedFacility={selectedPricingFacility}
+        onViewChange={(next) => {
+          setPricingView(next);
+          if (next === 'home') setSelectedPricingFacility(null);
+        }}
+        onSelectFacility={setSelectedPricingFacility}
+      />
+    );
   } else if (section === 'employees') {
     content = (
       <EmployeeManagementView
@@ -563,6 +580,10 @@ export default function SystemAdminPage() {
             if (next !== 'facilities') {
               setSelectedFacility(null);
               setSelectedDepartmentKey(null);
+            }
+            if (next !== 'prices') {
+              setSelectedPricingFacility(null);
+              setPricingView('home');
             }
           }}
         />

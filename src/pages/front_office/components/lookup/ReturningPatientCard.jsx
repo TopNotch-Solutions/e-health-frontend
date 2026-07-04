@@ -17,7 +17,7 @@ export default function ReturningPatientCard({
   checkInPatientId,
 }) {
   const { showToast } = useToast();
-  const { options: routingOptions } = useClinicRoutingOptions();
+  const { options: routingOptions, loading: routingLoading } = useClinicRoutingOptions();
   const isHospital = Boolean(routingOptions?.is_hospital);
   const frontOfficeDestinations = routingOptions?.front_office;
   const emergencyUnitAvailable = !isHospital && routingOptions?.emergency_unit_available !== false;
@@ -140,6 +140,7 @@ export default function ReturningPatientCard({
             patientDateOfBirth={patient.date_of_birth}
             facilityDestinations={frontOfficeDestinations}
             isHospital={isHospital}
+            destinationsLoading={routingLoading}
             disabled={checkInLoading || immediateTriage || checkInBlocked}
             immediateTriage={immediateTriage}
             hideWhenImmediateTriage

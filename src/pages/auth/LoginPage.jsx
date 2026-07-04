@@ -175,22 +175,6 @@ export default function LoginPage() {
               </h2>
               <p className={auth.cardSubtitle}>Enter your credentials to access your account.</p>
 
-              {process.env.NODE_ENV === 'development' ? (
-                <p className={auth.devHint}>
-                  Demo supervisors:{' '}
-                  <span className="font-mono">nurse_supervisor@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">doctor_supervisor@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">laboratory_supervisor@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">radiologist_supervisor@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">kitchen_staff@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">kitchen_manager@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">billing_clerk@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">revenue_officer@demo.ehealth.gov</span>,{' '}
-                  <span className="font-mono">admin@ehealth.gov</span> — password for all demo accounts:{' '}
-                  <span className="font-mono">Demo123!</span>
-                </p>
-              ) : null}
-
               <form className="space-y-4" onSubmit={handleSubmit} noValidate>
                 <div className={auth.field}>
                   <label htmlFor="login-email" className={auth.label}>

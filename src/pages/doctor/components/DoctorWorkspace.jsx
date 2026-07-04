@@ -546,11 +546,14 @@ export default function DoctorWorkspace({
     onActionError('');
     try {
       await ensureConsultation();
-      await dischargeVisit(patient.visitId, {
+      const result = await dischargeVisit(patient.visitId, {
         discharge_reason: dischargeReason.trim(),
       });
       setShowDischargeModal(false);
-      await finishConsultation(`${patient.name} discharged — consultation completed`);
+      const billingNote = result?.routedToBilling
+        ? ' Patient sent to billing clerk for payment.'
+        : '';
+      await finishConsultation(`${patient.name} discharged — consultation completed.${billingNote}`);
     } catch (err) {
       onActionError(err.message || 'Failed to discharge patient');
     } finally {
@@ -562,6 +565,7 @@ export default function DoctorWorkspace({
     <>
       <ConsultationMedicalHistoryPanel
         patientId={patient?.patient?.id}
+        visitId={patient?.visitId}
         showStatSummaryButton
       />
 

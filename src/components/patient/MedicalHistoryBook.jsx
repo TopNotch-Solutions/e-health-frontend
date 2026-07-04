@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { lookup } from '../../pages/front_office/styles/lookupClasses';
 import { patientInitials } from '../../pages/front_office/utils/ehrUtils';
 import { buildBookModel, buildIdentityFields, formatStepTime } from './medicalHistoryBookUtils';
+import MedicalCardDownloadActions from '../medical_card/MedicalCardDownloadActions';
 
 function bookStyles({ compact }) {
   const dense = compact;
@@ -426,6 +427,9 @@ export default function MedicalHistoryBook({
   bookLabel = 'Medical history book',
   emptyMessage = 'No medical history on file for this patient.',
   pageHint = null,
+  medicalCardVisitId = null,
+  medicalCardAdmin = false,
+  showMedicalCardDownload = true,
 }) {
   const [spreadIndex, setSpreadIndex] = useState(0);
   const [statOpen, setStatOpen] = useState(false);
@@ -525,6 +529,13 @@ export default function MedicalHistoryBook({
                 <button type="button" className={styles.statBtn} onClick={() => setStatOpen(true)}>
                   Stat summary
                 </button>
+              ) : null}
+              {showMedicalCardDownload && patient?.id ? (
+                <MedicalCardDownloadActions
+                  patientId={patient.id}
+                  visitId={medicalCardVisitId}
+                  admin={medicalCardAdmin}
+                />
               ) : null}
               <span className={styles.readOnlyBadge}>Read only</span>
             </div>

@@ -56,7 +56,8 @@ export default function SystemSettingsView({ auditLogs, loading, onRefresh }) {
           </li>
           <li>Employee lifecycle: accounts are inactivated, never deleted from the system.</li>
           <li>Facilities: hospital, clinic, and health center types are supported nationally.</li>
-          <li>Billing shifts and fee schedules are managed per facility by supervisors and revenue staff.</li>
+          <li>National clinic and hospital prices are managed from Billing Prices, with optional per-facility overrides and full change history.</li>
+          <li>Billing shifts and payment collection remain managed on-site by billing clerks and the revenue office.</li>
         </ul>
       </div>
 

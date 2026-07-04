@@ -49,13 +49,30 @@ export function isPediatricEligible(dateOfBirth) {
   return age < MAX_PEDIATRIC_AGE;
 }
 
+/** Format destination labels for help text, e.g. "nurse, pharmacy, or outpatient". */
+export function formatRoutingDestinationList(destinations = []) {
+  if (!destinations.length) return null;
+  const labels = destinations.map((d) => d.label.toLowerCase());
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} or ${labels[1]}`;
+  return `${labels.slice(0, -1).join(', ')}, or ${labels[labels.length - 1]}`;
+}
+
 /** Routing destinations available for a patient based on demographics and facility setup. */
 export function getRoutingDestinationsForPatient({
   sex,
   dateOfBirth,
   facilityDestinations,
+  isHospital = false,
 } = {}) {
-  const base = facilityDestinations?.length ? facilityDestinations : ROUTING_DESTINATIONS;
+  let base;
+  if (facilityDestinations != null) {
+    base = facilityDestinations;
+  } else if (isHospital) {
+    base = [];
+  } else {
+    base = ROUTING_DESTINATIONS;
+  }
   return base.filter((destination) => {
     if (destination.value === PAP_SMEAR_DESTINATION && isMalePatient(sex)) {
       return false;

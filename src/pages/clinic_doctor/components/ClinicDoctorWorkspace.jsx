@@ -298,7 +298,7 @@ export default function ClinicDoctorWorkspace({
       }
 
       if (form.disposition === 'follow_up') {
-        await clinicScheduleFollowUp({
+        const result = await clinicScheduleFollowUp({
           visit_id: patient.visitId,
           queue_entry_id: patient.entryId,
           diagnosis: diagnosisText,
@@ -306,10 +306,13 @@ export default function ClinicDoctorWorkspace({
           notes: form.notes.trim() || null,
           items,
         });
+        const billingNote = result?.routedToBilling
+          ? ' Patient sent to billing clerk for payment.'
+          : '';
         onToast(
           items?.length
-            ? `${patient.name} — prescription sent to pharmacy, follow-up on ${form.follow_up_date}`
-            : `${patient.name} — follow-up scheduled for ${form.follow_up_date}`
+            ? `${patient.name} — prescription sent to pharmacy, follow-up on ${form.follow_up_date}${billingNote}`
+            : `${patient.name} — follow-up scheduled for ${form.follow_up_date}${billingNote}`
         );
         onDone();
         return;
@@ -375,7 +378,7 @@ export default function ClinicDoctorWorkspace({
     setFieldErrors({});
 
     try {
-      await clinicDischargePatient({
+      const result = await clinicDischargePatient({
         visit_id: patient.visitId,
         queue_entry_id: patient.entryId,
         diagnosis: resolveDischargeDiagnosisForSave(
@@ -386,7 +389,10 @@ export default function ClinicDoctorWorkspace({
         discharge_reason: form.discharge_reason.trim(),
         notes: form.notes.trim() || null,
       });
-      onToast(`${patient.name} — refusal documented, consultation ended`);
+      const billingNote = result?.routedToBilling
+        ? ' Patient sent to billing clerk for payment.'
+        : '';
+      onToast(`${patient.name} — refusal documented, consultation ended${billingNote}`);
       onDone();
     } catch (err) {
       onActionError(err.message || 'Failed to discharge patient');
@@ -409,6 +415,7 @@ export default function ClinicDoctorWorkspace({
     <div className="space-y-4">
       <ConsultationMedicalHistoryPanel
         patientId={patient?.patient?.id}
+        visitId={patient?.visitId}
         showStatSummaryButton
       />
       <ClinicalTimelinePanel timeline={timeline} loading={timelineLoading} hideStaff />

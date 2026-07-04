@@ -17,13 +17,17 @@ export function recordPayment(body) {
   });
 }
 
+export function getBillingReceipt(billId) {
+  return apiRequest(`${BASE}/receipt/${billId}`);
+}
+
 export function getBillingFees() {
   return apiRequest(`${BASE}/fees`);
 }
 
-export function updateBillingFee(feeKey, amount) {
+export function updateBillingFee(feeKey, amount, reason) {
   return apiRequest(`${BASE}/fees/${feeKey}`, {
     method: 'PUT',
-    body: JSON.stringify({ amount }),
+    body: JSON.stringify({ amount, reason }),
   });
 }

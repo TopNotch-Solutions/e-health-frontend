@@ -233,10 +233,13 @@ export default function HospitalOutpatientClinicalWorkspace() {
     setSubmitError('');
     try {
       if (!(await ensureVitalsSaved())) return;
-      await dischargeHospitalOutpatientPatient(
+      const result = await dischargeHospitalOutpatientPatient(
         buildDischargePayload(form, visitId, queueEntryId)
       );
-      setToast(`${activeEntry.patientName} discharged`);
+      const billingNote = result?.routedToBilling
+        ? ' Patient sent to billing clerk for payment.'
+        : '';
+      setToast(`${activeEntry.patientName} discharged.${billingNote}`);
       resetWorkspace();
       await refresh();
     } catch (err) {

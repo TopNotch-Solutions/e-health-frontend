@@ -16,7 +16,7 @@ import IcuDispositionPorterFields, {
 import {
   TRANSFER_WARD_OPTIONS,
   firstValidationMessage,
-  validateSurgicalComplexDailyRecord,
+  validateSurgicalComplexArrivalRecord,
   validateSurgicalComplexMortuaryTransfer,
   validateSurgicalComplexPorterTransport,
 } from '../surgicalComplexWardValidation';
@@ -130,7 +130,7 @@ export default function SurgicalComplexPatientWorkspace({
   async function handleSaveRecord() {
     if (!admission?.id) return;
     const payload = { ...vitals, record_date: todayIsoDate() };
-    const errors = validateSurgicalComplexDailyRecord(payload);
+    const errors = validateSurgicalComplexArrivalRecord(payload);
     setVitalsErrors(errors);
     if (Object.keys(errors).length) {
       onActionError(firstValidationMessage(errors));
@@ -143,7 +143,7 @@ export default function SurgicalComplexPatientWorkspace({
     try {
       await saveSurgicalComplexDailyRecord(admission.id, payload);
       setVitalsErrors({});
-      onToast(`Daily record saved for ${patientName}.`);
+      onToast(`Basic vitals saved for ${patientName}.`);
       await loadRecords();
       await onRefreshQueue();
     } catch (err) {
@@ -271,9 +271,9 @@ export default function SurgicalComplexPatientWorkspace({
       </section>
 
       <section className={wst.sectionPanel} aria-labelledby="sc-vitals-heading">
-        <h3 id="sc-vitals-heading" className={wst.sectionTitle}>Daily record</h3>
+        <h3 id="sc-vitals-heading" className={wst.sectionTitle}>Basic vitals</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Capture today&apos;s monitoring, then save. Once saved, the patient leaves today&apos;s queue — you can still request transfer below.
+          Record the six basic vitals for today. Theatre monitoring is captured separately once the patient is in surgery.
         </p>
         {hasTodayRecord ? (
           <p className="mt-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-900">
@@ -285,10 +285,11 @@ export default function SurgicalComplexPatientWorkspace({
           onChange={(updater) => { setVitals(updater); setVitalsErrors({}); }}
           idPrefix="sc-daily"
           hideRecordDate
+          variant="arrival"
           fieldErrors={vitalsErrors}
           submitButton={hasTodayRecord ? null : (
             <button type="button" className={wst.btnPrimary} disabled={actionLoading} onClick={handleSaveRecord}>
-              {actionLoading ? 'Saving…' : 'Save daily record'}
+              {actionLoading ? 'Saving…' : 'Save basic vitals'}
             </button>
           )}
         />

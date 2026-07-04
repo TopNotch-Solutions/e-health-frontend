@@ -21,9 +21,12 @@ export default function SurgicalComplexVitalsForm({
   onChange,
   idPrefix = 'sc-vitals',
   hideRecordDate = false,
+  variant = 'daily',
   submitButton = null,
   fieldErrors = {},
 }) {
+  const showTheatreMonitoring = variant !== 'arrival';
+
   function update(field, value) {
     onChange((prev) => ({ ...prev, [field]: value }));
   }
@@ -66,11 +69,6 @@ export default function SurgicalComplexVitalsForm({
           {errorText('oxygen_saturation')}
         </label>
         <label className="block text-sm">
-          <span className={wst.infoLabel}>Pulse oximetry — SpO₂ (%)</span>
-          <input type="number" min="0" max="100" step="0.1" className={fieldClass('pulse_oximetry_spo2')} value={vitals.pulse_oximetry_spo2} onChange={(e) => update('pulse_oximetry_spo2', e.target.value)} />
-          {errorText('pulse_oximetry_spo2')}
-        </label>
-        <label className="block text-sm">
           <span className={wst.infoLabel}>Respiration rate (/min)</span>
           <input type="number" min="0" className={fieldClass('respiration_rate')} value={vitals.respiration_rate} onChange={(e) => update('respiration_rate', e.target.value)} />
           {errorText('respiration_rate')}
@@ -90,31 +88,40 @@ export default function SurgicalComplexVitalsForm({
           <input type="number" min="0" className={fieldClass('blood_pressure_diastolic')} value={vitals.blood_pressure_diastolic} onChange={(e) => update('blood_pressure_diastolic', e.target.value)} />
           {errorText('blood_pressure_diastolic')}
         </label>
-        <label className="block text-sm sm:col-span-2">
-          <span className={wst.infoLabel}>Capnography — EtCO₂</span>
-          <input type="text" className={fieldClass('capnography_etco2')} value={vitals.capnography_etco2} onChange={(e) => update('capnography_etco2', e.target.value)} placeholder="e.g. 38 mmHg" />
-          {errorText('capnography_etco2')}
-        </label>
-        <label className="block text-sm">
-          <span className={wst.infoLabel}>FiO₂</span>
-          <input type="text" className={fieldClass('fio2')} value={vitals.fio2} onChange={(e) => update('fio2', e.target.value)} placeholder="e.g. 40%" />
-          {errorText('fio2')}
-        </label>
-        <label className="block text-sm sm:col-span-2 lg:col-span-3">
-          <span className={wst.infoLabel}>Depth of anesthesia / neurological monitoring</span>
-          <textarea rows={2} className={fieldClass('anesthesia_neuro_monitoring')} value={vitals.anesthesia_neuro_monitoring} onChange={(e) => update('anesthesia_neuro_monitoring', e.target.value)} placeholder="BIS, entropy, pupil response, limb movement…" />
-          {errorText('anesthesia_neuro_monitoring')}
-        </label>
-        <label className="block text-sm sm:col-span-2">
-          <span className={wst.infoLabel}>Neuromuscular transmission (TOF)</span>
-          <input type="text" className={fieldClass('neuromuscular_tof')} value={vitals.neuromuscular_tof} onChange={(e) => update('neuromuscular_tof', e.target.value)} placeholder="e.g. TOF 4/4" />
-          {errorText('neuromuscular_tof')}
-        </label>
-        <label className="block text-sm sm:col-span-2 lg:col-span-3">
-          <span className={wst.infoLabel}>Pain and sedation scores</span>
-          <textarea rows={2} className={fieldClass('pain_sedation_scores')} value={vitals.pain_sedation_scores} onChange={(e) => update('pain_sedation_scores', e.target.value)} placeholder="NRS, Ramsay, RASS, etc." />
-          {errorText('pain_sedation_scores')}
-        </label>
+        {showTheatreMonitoring ? (
+          <>
+            <label className="block text-sm">
+              <span className={wst.infoLabel}>Pulse oximetry — SpO₂ (%)</span>
+              <input type="number" min="0" max="100" step="0.1" className={fieldClass('pulse_oximetry_spo2')} value={vitals.pulse_oximetry_spo2} onChange={(e) => update('pulse_oximetry_spo2', e.target.value)} />
+              {errorText('pulse_oximetry_spo2')}
+            </label>
+            <label className="block text-sm sm:col-span-2">
+              <span className={wst.infoLabel}>Capnography — EtCO₂</span>
+              <input type="text" className={fieldClass('capnography_etco2')} value={vitals.capnography_etco2} onChange={(e) => update('capnography_etco2', e.target.value)} placeholder="e.g. 38 mmHg" />
+              {errorText('capnography_etco2')}
+            </label>
+            <label className="block text-sm">
+              <span className={wst.infoLabel}>FiO₂</span>
+              <input type="text" className={fieldClass('fio2')} value={vitals.fio2} onChange={(e) => update('fio2', e.target.value)} placeholder="e.g. 40%" />
+              {errorText('fio2')}
+            </label>
+            <label className="block text-sm sm:col-span-2 lg:col-span-3">
+              <span className={wst.infoLabel}>Depth of anesthesia / neurological monitoring</span>
+              <textarea rows={2} className={fieldClass('anesthesia_neuro_monitoring')} value={vitals.anesthesia_neuro_monitoring} onChange={(e) => update('anesthesia_neuro_monitoring', e.target.value)} placeholder="BIS, entropy, pupil response, limb movement…" />
+              {errorText('anesthesia_neuro_monitoring')}
+            </label>
+            <label className="block text-sm sm:col-span-2">
+              <span className={wst.infoLabel}>Neuromuscular transmission (TOF)</span>
+              <input type="text" className={fieldClass('neuromuscular_tof')} value={vitals.neuromuscular_tof} onChange={(e) => update('neuromuscular_tof', e.target.value)} placeholder="e.g. TOF 4/4" />
+              {errorText('neuromuscular_tof')}
+            </label>
+            <label className="block text-sm sm:col-span-2 lg:col-span-3">
+              <span className={wst.infoLabel}>Pain and sedation scores</span>
+              <textarea rows={2} className={fieldClass('pain_sedation_scores')} value={vitals.pain_sedation_scores} onChange={(e) => update('pain_sedation_scores', e.target.value)} placeholder="NRS, Ramsay, RASS, etc." />
+              {errorText('pain_sedation_scores')}
+            </label>
+          </>
+        ) : null}
       </div>
       {submitButton ? <div className="mt-4">{submitButton}</div> : null}
     </>

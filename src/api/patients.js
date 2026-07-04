@@ -20,6 +20,13 @@ export function getClinicalMedicalHistory(patientId) {
   return apiRequest(`/api/v1/patients/${patientId}/clinical-medical-history`);
 }
 
+export function getMedicalCard(patientId, { visit_id } = {}) {
+  const q = new URLSearchParams();
+  if (visit_id) q.set('visit_id', visit_id);
+  const qs = q.toString();
+  return apiRequest(`/api/v1/patients/${patientId}/medical-card${qs ? `?${qs}` : ''}`);
+}
+
 export function registerPatient(body) {
   return apiRequest('/api/v1/patients', {
     method: 'POST',

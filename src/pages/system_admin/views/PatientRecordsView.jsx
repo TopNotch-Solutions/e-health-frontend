@@ -7,6 +7,7 @@ import {
 import DoctorPatientResultCard from '../../../components/patient/DoctorPatientResultCard';
 import MedicalHistoryBook from '../../../components/patient/MedicalHistoryBook';
 import MaternityMedicalHistoryBook from '../../../components/patient/MaternityMedicalHistoryBook';
+import MedicalCardDownloadActions from '../../../components/medical_card/MedicalCardDownloadActions';
 import LookupSearchCard from '../../front_office/components/lookup/LookupSearchCard';
 import { formatDob, patientName } from '../../front_office/patientUtils';
 import { admin as c } from '../styles/adminClasses';
@@ -331,6 +332,7 @@ export default function PatientRecordsView() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <MedicalCardDownloadActions patientId={patient.id} admin />
               <button
                 type="button"
                 className={c.btnPrimary}
@@ -377,6 +379,8 @@ export default function PatientRecordsView() {
               loading={recordLoading}
               error={recordError}
               compact
+              medicalCardAdmin
+              showMedicalCardDownload={false}
               bookLabel="Patient medical history book"
               emptyMessage="No visits on file for this patient."
             />

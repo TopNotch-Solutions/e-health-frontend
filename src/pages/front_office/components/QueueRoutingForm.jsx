@@ -1,5 +1,9 @@
 import { useEffect, useMemo } from 'react';
-import { getRoutingDestinationsForPatient, routingLabel } from '../constants/routingOptions';
+import {
+  formatRoutingDestinationList,
+  getRoutingDestinationsForPatient,
+  routingLabel,
+} from '../constants/routingOptions';
 import { lookup } from '../styles/lookupClasses';
 
 /**
@@ -12,6 +16,7 @@ export default function QueueRoutingForm({
   patientDateOfBirth,
   facilityDestinations,
   isHospital = false,
+  destinationsLoading = false,
   disabled = false,
   classNames,
   hideWhenImmediateTriage = false,
@@ -23,9 +28,24 @@ export default function QueueRoutingForm({
       sex: patientSex,
       dateOfBirth: patientDateOfBirth,
       facilityDestinations,
+      isHospital,
     }),
-    [patientSex, patientDateOfBirth, facilityDestinations]
+    [patientSex, patientDateOfBirth, facilityDestinations, isHospital]
   );
+
+  const destinationHelpText = useMemo(() => {
+    if (!isHospital) {
+      return 'Select the clinic sector, then route the patient to that queue.';
+    }
+    if (destinationsLoading) {
+      return 'Loading routing destinations for this hospital…';
+    }
+    if (!destinations.length) {
+      return 'No routing destinations are active at this hospital. Ask system administration to add departments.';
+    }
+    const list = formatRoutingDestinationList(destinations);
+    return `Select where to send the patient — ${list}.`;
+  }, [isHospital, destinationsLoading, destinations]);
 
   const singleNurseRoute = destinations.length === 1 && destinations[0]?.value === 'nurse';
 
@@ -72,10 +92,9 @@ export default function QueueRoutingForm({
         Queue routing
       </h4>
       <p className="mt-1 text-xs text-slate-500">
-        {isHospital
-          ? 'Select where to send the patient — nurse, pharmacy, emergency unit, or outpatient.'
-          : 'Select the clinic sector, then route the patient to that queue.'}
+        {destinationHelpText}
       </p>
+      {destinations.length > 0 ? (
       <div className="mt-3 space-y-1">
         <label htmlFor="fo-routing-dest" className="text-sm font-medium text-slate-700">
           Destination sector
@@ -84,7 +103,7 @@ export default function QueueRoutingForm({
           id="fo-routing-dest"
           className={ui.select}
           value={destination}
-          disabled={disabled}
+          disabled={disabled || destinationsLoading}
           onChange={(e) => onDestinationChange(e.target.value)}
         >
           <option value="">Select destination…</option>
@@ -95,6 +114,7 @@ export default function QueueRoutingForm({
           ))}
         </select>
       </div>
+      ) : null}
       {label ? (
         <p className="mt-3 text-sm text-teal-800">
           Ready to send patient to <strong>{label}</strong>.

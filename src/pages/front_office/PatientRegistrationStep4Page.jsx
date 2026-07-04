@@ -14,7 +14,7 @@ import { fo } from './styles/frontOfficeModuleClasses';
 
 function Step4Form() {
   const { draft, updateField, submitRegistration, submitting, submitError } = useRegistration();
-  const { options: routingOptions } = useClinicRoutingOptions();
+  const { options: routingOptions, loading: routingLoading } = useClinicRoutingOptions();
   const isHospital = Boolean(routingOptions?.is_hospital);
   const frontOfficeDestinations = routingOptions?.front_office;
   const emergencyUnitAvailable = !isHospital && routingOptions?.emergency_unit_available !== false;
@@ -105,6 +105,7 @@ function Step4Form() {
           patientDateOfBirth={draft.date_of_birth}
           facilityDestinations={frontOfficeDestinations}
           isHospital={isHospital}
+          destinationsLoading={routingLoading}
           disabled={submitting || draft.immediate_triage}
           immediateTriage={draft.immediate_triage}
           hideWhenImmediateTriage

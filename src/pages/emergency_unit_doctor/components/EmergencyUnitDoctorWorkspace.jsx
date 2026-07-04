@@ -246,6 +246,7 @@ export default function EmergencyUnitDoctorWorkspace({
     <div className="space-y-4">
       <ConsultationMedicalHistoryPanel
         patientId={patient?.patient?.id}
+        visitId={patient?.visitId}
         showStatSummaryButton
       />
       <NurseReadOnlyIntakeCards form={intakeForm} idPrefix="eu-doc" />

@@ -5,6 +5,7 @@ import MedicalHistoryBook from './MedicalHistoryBook';
 
 export default function ConsultationMedicalHistoryPanel({
   patientId,
+  visitId = null,
   showStatSummaryButton = true,
 }) {
   const [open, setOpen] = useState(false);
@@ -84,6 +85,7 @@ export default function ConsultationMedicalHistoryPanel({
             loading={loading}
             error={error}
             showStatSummaryButton={showStatSummaryButton}
+            medicalCardVisitId={visitId}
             compact
           />
         </div>

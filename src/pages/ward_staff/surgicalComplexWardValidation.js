@@ -39,7 +39,7 @@ function checklistSelection(checklist = {}) {
 }
 
 /** @returns {Record<string, string>} */
-export function validateSurgicalComplexDailyRecord(vitals = {}) {
+function validateSurgicalComplexBasicVitals(vitals = {}) {
   const errors = {};
 
   const hr = parseRequiredNumber(vitals.heart_rate, { min: 20, max: 300, label: 'Heart rate' });
@@ -47,13 +47,6 @@ export function validateSurgicalComplexDailyRecord(vitals = {}) {
 
   const spo2 = parseRequiredNumber(vitals.oxygen_saturation, { min: 0, max: 100, label: 'Oxygen saturation' });
   if (spo2.error) errors.oxygen_saturation = spo2.error;
-
-  const pulseOx = parseRequiredNumber(vitals.pulse_oximetry_spo2, {
-    min: 0,
-    max: 100,
-    label: 'Pulse oximetry (SpO₂)',
-  });
-  if (pulseOx.error) errors.pulse_oximetry_spo2 = pulseOx.error;
 
   const rr = parseRequiredNumber(vitals.respiration_rate, { min: 4, max: 80, label: 'Respiration rate' });
   if (rr.error) errors.respiration_rate = rr.error;
@@ -78,6 +71,25 @@ export function validateSurgicalComplexDailyRecord(vitals = {}) {
   if (!sys.error && !dia.error && sys.value <= dia.value) {
     errors.blood_pressure_systolic = 'Systolic must be higher than diastolic';
   }
+
+  return errors;
+}
+
+/** Pre-operative ward arrival — basic vitals only (no theatre monitoring). */
+export function validateSurgicalComplexArrivalRecord(vitals = {}) {
+  return validateSurgicalComplexBasicVitals(vitals);
+}
+
+/** @returns {Record<string, string>} */
+export function validateSurgicalComplexDailyRecord(vitals = {}) {
+  const errors = validateSurgicalComplexBasicVitals(vitals);
+
+  const pulseOx = parseRequiredNumber(vitals.pulse_oximetry_spo2, {
+    min: 0,
+    max: 100,
+    label: 'Pulse oximetry (SpO₂)',
+  });
+  if (pulseOx.error) errors.pulse_oximetry_spo2 = pulseOx.error;
 
   for (const [field, label] of SC_DAILY_TEXT_FIELDS) {
     if (!String(vitals[field] ?? '').trim()) {

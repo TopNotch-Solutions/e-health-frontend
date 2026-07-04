@@ -5,6 +5,7 @@ import ActiveSessionQueueAside from '../../components/queue/ActiveSessionQueueAs
 import QueueEntryCard from '../../components/queue/QueueEntryCard';
 import { layout as c } from '../doctor/styles/doctorLayoutClasses';
 import BillingPaymentPanel from './components/BillingPaymentPanel';
+import BillingReceiptModal from './components/BillingReceiptModal';
 import BillingTopbar from './components/BillingTopbar';
 import BillingShiftBar from './components/BillingShiftBar';
 import { useBillingQueue } from './hooks/useBillingQueue';
@@ -43,6 +44,7 @@ export default function BillingClerkPage() {
   const [toast, setToast] = useState('');
   const [queueActionError, setQueueActionError] = useState('');
   const [workspaceError, setWorkspaceError] = useState('');
+  const [receiptToPrint, setReceiptToPrint] = useState(null);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -93,11 +95,18 @@ export default function BillingClerkPage() {
     refresh();
   }
 
-  function handlePaid() {
-    setToast('Payment recorded — patient discharged.');
+  function handlePaid(receipt) {
+    setToast('Payment recorded — print the receipt for the patient.');
     setActiveBillId(null);
     setWorkspaceError('');
+    if (receipt) {
+      setReceiptToPrint(receipt);
+    }
     refresh();
+  }
+
+  function handleCloseReceipt() {
+    setReceiptToPrint(null);
   }
 
   return (
@@ -258,6 +267,10 @@ export default function BillingClerkPage() {
         </a>{' '}
         | Billing module
       </footer>
+
+      {receiptToPrint ? (
+        <BillingReceiptModal receipt={receiptToPrint} onClose={handleCloseReceipt} />
+      ) : null}
     </div>
   );
 }

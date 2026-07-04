@@ -118,6 +118,7 @@ export const ADMIN_SECTIONS = [
   { id: 'facilities', label: 'Facility Management', icon: 'facility' },
   { id: 'employees', label: 'Employee Management', icon: 'employees' },
   { id: 'admins', label: 'System Administrators', icon: 'admins' },
+  { id: 'prices', label: 'Billing Prices', icon: 'prices' },
   { id: 'patient-records', label: 'Patient Records', icon: 'records' },
   { id: 'user-reports', label: 'User Reports', icon: 'reports' },
   { id: 'transfer-timelines', label: 'Transfer Timelines', icon: 'transfers' },

@@ -1,10 +1,7 @@
-import { useState } from 'react';
 import { confirmPatientArrival } from '../../../api/ward';
-import { confirmSurgicalComplexArrivalAndSave } from '../../../utils/confirmAction';
+import { confirmAction } from '../../../utils/confirmAction';
 import { EQUIPMENT_MODES } from '../../../constants/admitTransportChecklist';
 import { wst } from '../styles/wardStaffClasses';
-import SurgicalComplexVitalsForm, { EMPTY_SC_VITALS } from './SurgicalComplexVitalsForm';
-import { firstValidationMessage, validateSurgicalComplexDailyRecord } from '../surgicalComplexWardValidation';
 
 function equipmentLabel(value) {
   return EQUIPMENT_MODES.find((m) => m.value === value)?.label || value || '—';
@@ -25,10 +22,6 @@ function formatDob(value) {
   }
 }
 
-function todayRecord() {
-  return { ...EMPTY_SC_VITALS, record_date: new Date().toISOString().slice(0, 10) };
-}
-
 export default function SurgicalComplexArrivalWorkspace({
   admission,
   actionLoading,
@@ -39,9 +32,6 @@ export default function SurgicalComplexArrivalWorkspace({
   onRefreshInWardQueue,
   onDone,
 }) {
-  const [vitals, setVitals] = useState(() => todayRecord());
-  const [vitalsErrors, setVitalsErrors] = useState({});
-
   const patient = admission?.patient || {};
   const ward = admission?.ward || {};
   const bed = admission?.bed || {};
@@ -51,33 +41,30 @@ export default function SurgicalComplexArrivalWorkspace({
   const critical = transport?.critical_notes?.trim() || '';
   const patientName = [patient.first_name, patient.last_name].filter(Boolean).join(' ').trim() || 'Patient';
 
-  async function handleConfirmArrivalAndSave() {
+  async function handleConfirmArrival() {
     if (!admission?.id) return;
 
-    const payload = { ...vitals, record_date: new Date().toISOString().slice(0, 10) };
-    const errors = validateSurgicalComplexDailyRecord(payload);
-    setVitalsErrors(errors);
-    if (Object.keys(errors).length) {
-      onActionError(firstValidationMessage(errors));
-      return;
-    }
-
-    if (!(await confirmSurgicalComplexArrivalAndSave(patientName))) return;
+    if (!(await confirmAction({
+      title: 'Confirm surgical complex arrival?',
+      text: `Confirm ${patientName} has arrived in surgical complex and mark the bed as occupied?`,
+      icon: 'question',
+      confirmButtonText: 'Confirm arrival',
+    }))) return;
 
     setActionLoading(true);
     onActionError('');
     try {
-      const result = await confirmPatientArrival(admission.id, { surgical_complex_record: payload });
+      const result = await confirmPatientArrival(admission.id);
       const when = result?.admitted_at
         ? new Date(result.admitted_at).toLocaleString()
         : new Date().toLocaleString();
       onToast(
-        `${patientName} — arrival confirmed at ${when}. Bed marked occupied and today's record saved.`
+        `${patientName} — arrival confirmed at ${when}. Bed marked occupied. Record basic vitals from the in-ward queue.`
       );
       await Promise.all([onRefreshQueue?.(), onRefreshInWardQueue?.()]);
       onDone();
     } catch (err) {
-      onActionError(err.message || 'Could not confirm arrival and save record');
+      onActionError(err.message || 'Could not confirm arrival');
     } finally {
       setActionLoading(false);
     }
@@ -128,23 +115,19 @@ export default function SurgicalComplexArrivalWorkspace({
         </section>
       ) : null}
 
-      <section className={wst.sectionPanel} aria-labelledby="sc-arr-vitals-heading">
-        <h3 id="sc-arr-vitals-heading" className={wst.sectionTitle}>Arrival record</h3>
+      <section className={wst.sectionPanel} aria-labelledby="sc-arr-confirm-heading">
+        <h3 id="sc-arr-confirm-heading" className={wst.sectionTitle}>Confirm arrival</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Capture today&apos;s monitoring values, then confirm arrival — everything is saved in one step.
+          Confirm when the patient reaches the surgical complex ward. Basic vitals are recorded separately from the in-ward queue.
         </p>
-        <SurgicalComplexVitalsForm
-          vitals={vitals}
-          onChange={(updater) => { setVitals(updater); setVitalsErrors({}); }}
-          idPrefix="sc-arrival"
-          hideRecordDate
-          fieldErrors={vitalsErrors}
-          submitButton={(
-            <button type="button" className={wst.btnPrimary} disabled={actionLoading} onClick={handleConfirmArrivalAndSave}>
-              {actionLoading ? 'Saving…' : 'Confirm arrival & save record'}
-            </button>
-          )}
-        />
+        <button
+          type="button"
+          className={`${wst.btnPrimary} mt-4`}
+          disabled={actionLoading}
+          onClick={handleConfirmArrival}
+        >
+          {actionLoading ? 'Saving…' : 'Confirm patient arrival'}
+        </button>
       </section>
     </div>
   );

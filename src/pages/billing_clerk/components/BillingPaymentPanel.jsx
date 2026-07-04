@@ -10,6 +10,8 @@ const CATEGORY_LABELS = {
   lab: 'Laboratory',
   sonar: 'Ultrasound',
   ward: 'Ward stay',
+  clinic_visit: 'Clinic visit fee',
+  department_visit: 'Department visit',
   other: 'Other',
 };
 
@@ -47,12 +49,12 @@ export default function BillingPaymentPanel({ billRow, onPaid, onActionError }) 
     setLoading(true);
     onActionError('');
     try {
-      await recordPayment({
+      const result = await recordPayment({
         bill_id: billRow.bill_id,
         cash_amount: cashNum,
         eft_amount: eftNum,
       });
-      onPaid();
+      onPaid(result?.receipt || null);
     } catch (err) {
       onActionError(err.message || 'Payment failed');
     } finally {

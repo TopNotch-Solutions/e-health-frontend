@@ -117,6 +117,36 @@ export function removeFacilityDepartments(facilityId, body) {
   });
 }
 
+export function getFacilityBillingFees(facilityId) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/billing-fees`);
+}
+
+export function getNationalBillingFees(scope) {
+  return apiRequest(`/api/v1/admin/billing-prices/national?scope=${encodeURIComponent(scope)}`);
+}
+
+export function getNationalBillingFeeHistory(scope) {
+  return apiRequest(`/api/v1/admin/billing-prices/national/history?scope=${encodeURIComponent(scope)}`);
+}
+
+export function updateNationalBillingFee(scope, feeKey, body) {
+  return apiRequest(`/api/v1/admin/billing-prices/national/${feeKey}?scope=${encodeURIComponent(scope)}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+export function getFacilityBillingFeeHistory(facilityId) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/billing-fees/history`);
+}
+
+export function updateFacilityBillingFee(facilityId, feeKey, body) {
+  return apiRequest(`/api/v1/admin/facilities/${facilityId}/billing-fees/${feeKey}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
 export async function getAdminUsers(params = {}) {
   const q = new URLSearchParams();
   if (params.page) q.set('page', String(params.page));
@@ -196,6 +226,13 @@ export function getAdminPatientMedicalHistory(patientId, { facility_id, scope = 
   if (facility_id) q.set('facility_id', String(facility_id));
   if (scope) q.set('scope', scope);
   return apiRequest(`/api/v1/admin/patients/${patientId}/medical-history?${q}`);
+}
+
+export function getAdminMedicalCard(patientId, { visit_id } = {}) {
+  const q = new URLSearchParams();
+  if (visit_id) q.set('visit_id', visit_id);
+  const qs = q.toString();
+  return apiRequest(`/api/v1/admin/patients/${patientId}/medical-card${qs ? `?${qs}` : ''}`);
 }
 
 export async function downloadAdminMedicalHistoryExport(patientId, { facility_id, scope = 'all' } = {}) {
