@@ -16,11 +16,11 @@ export default function QueueRoutingForm({
   patientDateOfBirth,
   facilityDestinations,
   isHospital = false,
+  hasPendingMedication = false,
   destinationsLoading = false,
   disabled = false,
   classNames,
-  hideWhenImmediateTriage = false,
-  immediateTriage = false,
+  hidePriorityRouting = false,
 }) {
   const ui = classNames || lookup;
   const destinations = useMemo(
@@ -29,11 +29,15 @@ export default function QueueRoutingForm({
       dateOfBirth: patientDateOfBirth,
       facilityDestinations,
       isHospital,
+      hasPendingMedication,
     }),
-    [patientSex, patientDateOfBirth, facilityDestinations, isHospital]
+    [patientSex, patientDateOfBirth, facilityDestinations, isHospital, hasPendingMedication]
   );
 
   const destinationHelpText = useMemo(() => {
+    if (hidePriorityRouting || destination === 'pharmacy') {
+      return 'Send the patient to the pharmacy queue to collect pending medication.';
+    }
     if (!isHospital) {
       return 'Select the clinic sector, then route the patient to that queue.';
     }
@@ -45,7 +49,7 @@ export default function QueueRoutingForm({
     }
     const list = formatRoutingDestinationList(destinations);
     return `Select where to send the patient — ${list}.`;
-  }, [isHospital, destinationsLoading, destinations]);
+  }, [isHospital, destinationsLoading, destinations, hidePriorityRouting, destination]);
 
   const singleNurseRoute = destinations.length === 1 && destinations[0]?.value === 'nurse';
 
@@ -60,15 +64,6 @@ export default function QueueRoutingForm({
       onDestinationChange('');
     }
   }, [destination, destinations, onDestinationChange]);
-
-  if (hideWhenImmediateTriage && immediateTriage) {
-    return (
-      <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-        Immediate triage selected — patient will be routed directly to the{' '}
-        <strong>Emergency Unit</strong> queue.
-      </p>
-    );
-  }
 
   const label = destination ? routingLabel(destination, destinations) : null;
 
@@ -89,7 +84,7 @@ export default function QueueRoutingForm({
   return (
     <section className={`${ui.intakeSection} mt-4`} aria-labelledby="fo-routing-heading">
       <h4 id="fo-routing-heading" className={ui.intakeTitle}>
-        Queue routing
+        {hidePriorityRouting ? 'Pharmacy collection' : 'Queue routing'}
       </h4>
       <p className="mt-1 text-xs text-slate-500">
         {destinationHelpText}
@@ -126,13 +121,11 @@ export default function QueueRoutingForm({
 
 export function routingButtonLabel({
   destination,
-  immediateTriage,
   loading,
   action = 'Route',
   destinations,
 } = {}) {
   if (loading) return `${action}…`;
-  if (immediateTriage) return `${action} to Emergency Unit`;
   if (destination) return `${action} to ${routingLabel(destination, destinations)}`;
   if (destinations?.length === 1 && destinations[0]?.value === 'nurse') {
     return `${action} to Nurse`;

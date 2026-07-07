@@ -111,4 +111,14 @@ export const lookup = {
   emergencyToggleSwitch:
     'relative h-6 w-11 shrink-0 rounded-full bg-slate-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition',
   emergencyToggleSwitchOn: 'bg-rose-600 after:translate-x-5',
+  emergencyCaseToggle:
+    'flex items-center gap-3 rounded-xl border border-red-500 bg-red-600 p-4 text-white shadow-sm transition hover:border-red-400',
+  emergencyCaseToggleOn: 'ring-2 ring-green-400/70',
+  emergencyCaseToggleIcon:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-800/60 text-lg font-bold text-white',
+  emergencyCaseToggleTitle: 'block text-sm font-bold text-white',
+  emergencyCaseToggleHint: 'block text-xs text-red-100',
+  emergencyCaseToggleSwitch:
+    'relative h-6 w-11 shrink-0 rounded-full bg-white/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition',
+  emergencyCaseToggleSwitchOn: 'bg-green-500 after:translate-x-5',
 };

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../../utils/confirmAction';
+import { allPrescriptionLinesOutOfStock, formatSkippedPharmacyPatientToast } from '../../../utils/pharmacyStockDisplay';
 import { getMedicationCatalog, checkMedicationStock } from '../../../api/inventory';
 import {
   emergencyDoctorTransferBookingRoom,
@@ -11,8 +12,7 @@ import HospitalReferralFields from '../../../components/hospital/HospitalReferra
 import { submitButtonClass } from '../../nurse/utils/submitButtonClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
 import NurseReadOnlyIntakeCards from '../../doctor/components/NurseReadOnlyIntakeCards';
-import { emptyMedLine, vitalsToIntakeForm } from '../../doctor/doctorConsultForm';
-import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
+import { emptyMedLine, vitalsToIntakeForm, commitMedLineToList, buildPrescriptionItemPayload } from '../../doctor/doctorConsultForm';
 import ClinicalTimelinePanel from '../../clinic_doctor/components/ClinicalTimelinePanel';
 import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
 import DischargePatientSection from '../../../components/consultation/DischargePatientSection';
@@ -101,17 +101,12 @@ export default function EmergencyUnitDoctorWorkspace({
 
   const diagnosisUnlocked = isDiagnosisComplete(form);
   const hasPrescription = prescriptionLines.length > 0;
+  const allOutOfStock = allPrescriptionLinesOutOfStock(prescriptionLines);
   const showPrescription = dispositionShowsPrescription(form.disposition);
   const prescriptionRequired = dispositionRequiresPrescription(form.disposition);
 
   function buildItems() {
-    return prescriptionLines.map((item) => ({
-      medication_name: item.medication_name,
-      dosage: item.dosage,
-      frequency: item.frequency || null,
-      quantity: item.quantity || 1,
-      instructions: item.instructions || null,
-    }));
+    return prescriptionLines.map((item) => buildPrescriptionItemPayload(item));
   }
 
   function handleIcd10Select({ code, description }) {
@@ -186,10 +181,14 @@ export default function EmergencyUnitDoctorWorkspace({
     }
 
     const confirmText = form.disposition === 'pharmacy'
-      ? `Prescribe medications and route ${patient.name} to Pharmacy?`
+      ? allOutOfStock
+        ? `All medications are out of stock. Save the prescription for ${patient.name} without sending them to pharmacy?`
+        : `Prescribe medications and route ${patient.name} to Pharmacy?`
       : `Transfer ${patient.name} to the Booking Room?`;
     if (!(await confirmAction({
-      title: form.disposition === 'pharmacy' ? 'Route to Pharmacy?' : 'Transfer to Booking Room?',
+      title: form.disposition === 'pharmacy'
+        ? (allOutOfStock ? 'Save prescription?' : 'Route to Pharmacy?')
+        : 'Transfer to Booking Room?',
       text: confirmText,
       icon: 'question',
       confirmButtonText: 'Yes, proceed',
@@ -213,15 +212,20 @@ export default function EmergencyUnitDoctorWorkspace({
 
     try {
       if (form.disposition === 'pharmacy') {
-        await emergencyDoctorPrescribePharmacy({ ...payload, items: buildItems() });
-        onToast(`${patient.name} prescribed and routed to Pharmacy`);
+        const result = await emergencyDoctorPrescribePharmacy({ ...payload, items: buildItems() });
+        onToast(
+          formatSkippedPharmacyPatientToast(patient.name, result)
+            || `${patient.name} prescribed and routed to Pharmacy`
+        );
       } else {
         const items = hasPrescription ? buildItems() : undefined;
-        await emergencyDoctorTransferBookingRoom({ ...payload, items });
+        const result = await emergencyDoctorTransferBookingRoom({ ...payload, items });
         onToast(
-          items?.length
-            ? `${patient.name} — Rx to pharmacy & transferred to Booking Room`
-            : `${patient.name} transferred to Booking Room`
+          items?.length && result?.skippedPharmacy
+            ? `${patient.name} — prescription recorded (pharmacy skipped), transferred to Booking Room`
+            : items?.length
+              ? `${patient.name} — Rx to pharmacy & transferred to Booking Room`
+              : `${patient.name} transferred to Booking Room`
         );
       }
       onDone();
@@ -327,16 +331,14 @@ export default function EmergencyUnitDoctorWorkspace({
                 stockChecking={stockChecking}
                 prescriptionLines={prescriptionLines}
                 onAddMedToList={() => {
-                  if (!medLine.medication_name?.trim()) {
-                    setMedFieldErrors({ medication_name: 'Required' });
-                    return;
-                  }
-                  setPrescriptionLines((lines) => [
-                    ...lines,
-                    buildDoctorPrescriptionLine(medLine, liveStock),
-                  ]);
-                  setMedLine(emptyMedLine());
-                  setLiveStock(null);
+                  commitMedLineToList({
+                    medLine,
+                    liveStock,
+                    setPrescriptionLines,
+                    setMedFieldErrors,
+                    setMedLine,
+                    setLiveStock,
+                  });
                 }}
                 onRemoveMedLine={(i) => setPrescriptionLines((lines) => lines.filter((_, idx) => idx !== i))}
                 actionLoading={actionLoading}
@@ -357,7 +359,7 @@ export default function EmergencyUnitDoctorWorkspace({
               disabled={!diagnosisUnlocked || actionLoading || !canSubmit}
               onClick={handleSubmitDisposition}
             >
-              {dispositionButtonLabel(form, actionLoading, hasPrescription)}
+              {dispositionButtonLabel(form, actionLoading, hasPrescription, allOutOfStock)}
             </button>
           ) : (
             <p className={c.hint}>Choose a disposition action above to continue.</p>

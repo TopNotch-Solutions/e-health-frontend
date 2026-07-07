@@ -1,4 +1,8 @@
 import { emptyIntakeForm } from '../nurse/nurseIntakeForm';
+import { defaultScheduleFields, buildPrescriptionItemPayload, validatePrescriptionSchedule } from '../../utils/prescriptionSchedule';
+import { buildDoctorPrescriptionLine } from '../../utils/pharmacyStockDisplay';
+
+export { buildPrescriptionItemPayload, validatePrescriptionSchedule };
 
 /** Map API vitals record into nurse intake form shape (read-only on doctor view). */
 function hasText(value) {
@@ -80,4 +84,48 @@ export const emptyMedLine = () => ({
   frequency: '',
   quantity: '1',
   instructions: '',
+  ...defaultScheduleFields(),
 });
+
+/**
+ * Validate and append the current med line to the prescription list.
+ */
+export function commitMedLineToList({
+  medLine,
+  liveStock,
+  setPrescriptionLines,
+  setMedFieldErrors,
+  setMedLine,
+  setLiveStock,
+  emptyMedLineFn = emptyMedLine,
+}) {
+  const name = medLine.medication_name?.trim();
+  const dose = medLine.dosage?.trim();
+  const errs = {};
+  if (!name) errs.medication_name = 'Enter medication name';
+  if (!dose) errs.dosage = 'Enter dosage';
+  Object.assign(errs, validatePrescriptionSchedule(medLine));
+  if (Object.keys(errs).length) {
+    setMedFieldErrors(errs);
+    return false;
+  }
+
+  const qty = Number(medLine.quantity) || 1;
+  setPrescriptionLines((lines) => [
+    ...lines,
+    buildDoctorPrescriptionLine(
+      {
+        ...medLine,
+        medication_name: name,
+        generic_name: medLine.generic_name?.trim() || '',
+        dosage: dose,
+        quantity: qty,
+      },
+      liveStock
+    ),
+  ]);
+  setMedLine(emptyMedLineFn());
+  setLiveStock?.(null);
+  setMedFieldErrors({});
+  return true;
+}

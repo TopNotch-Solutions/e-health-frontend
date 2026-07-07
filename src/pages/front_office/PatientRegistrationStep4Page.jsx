@@ -6,7 +6,6 @@ import RegistrationGuard from './RegistrationGuard';
 import { useRegistration } from './RegistrationContext';
 import RegistrationStepper from './RegistrationStepper';
 import EmergencyPatientToggle from './components/EmergencyPatientToggle';
-import ImmediateTriageToggle from './components/ImmediateTriageToggle';
 import QueueRoutingForm, { routingButtonLabel } from './components/QueueRoutingForm';
 import RegistrationSummaryCard from './components/RegistrationSummaryCard';
 import { routingLabel } from './constants/routingOptions';
@@ -17,30 +16,19 @@ function Step4Form() {
   const { options: routingOptions, loading: routingLoading } = useClinicRoutingOptions();
   const isHospital = Boolean(routingOptions?.is_hospital);
   const frontOfficeDestinations = routingOptions?.front_office;
-  const emergencyUnitAvailable = !isHospital && routingOptions?.emergency_unit_available !== false;
-
-  function handleImmediateTriageChange(checked) {
-    updateField('immediate_triage', checked);
-    if (checked) updateField('routing_destination', '');
-  }
 
   async function onFinish(e) {
     e.preventDefault();
     const finishLabel = routingButtonLabel({
       destination: draft.routing_destination,
-      immediateTriage: draft.immediate_triage,
       loading: submitting,
       action: 'Finish & route',
       destinations: frontOfficeDestinations,
     });
-    const routeLabel = draft.immediate_triage
-      ? 'Emergency Unit'
-      : (routingLabel(draft.routing_destination, frontOfficeDestinations) || 'the selected queue');
+    const routeLabel = routingLabel(draft.routing_destination, frontOfficeDestinations) || 'the selected queue';
     if (!(await confirmAction({
       title: 'Finish registration?',
-      text: draft.immediate_triage
-        ? `Register ${draft.first_name} ${draft.last_name} and route to Emergency Unit?`
-        : `Register ${draft.first_name} ${draft.last_name} and route to ${routeLabel}?`,
+      text: `Register ${draft.first_name} ${draft.last_name} and route to ${routeLabel}?`,
       icon: 'question',
       confirmButtonText: finishLabel,
     }))) return;
@@ -49,14 +37,12 @@ function Step4Form() {
 
   const finishLabel = routingButtonLabel({
     destination: draft.routing_destination,
-    immediateTriage: draft.immediate_triage,
     loading: submitting,
     action: 'Finish & route',
     destinations: frontOfficeDestinations,
   });
 
-  const canFinishRoute = Boolean(draft.routing_destination)
-    || Boolean(draft.immediate_triage);
+  const canFinishRoute = Boolean(draft.routing_destination);
 
   const regionLabel =
     getRegionById(normalizeRegionId(draft.region))?.name || draft.region || '—';
@@ -90,13 +76,7 @@ function Step4Form() {
           id="fo-reg-step4-emergency"
           checked={Boolean(draft.is_emergency)}
           onChange={(v) => updateField('is_emergency', v)}
-          disabled={submitting || draft.immediate_triage}
-        />
-        <ImmediateTriageToggle
-          id="fo-reg-step4-triage"
-          checked={Boolean(draft.immediate_triage)}
-          onChange={handleImmediateTriageChange}
-          disabled={submitting || !emergencyUnitAvailable}
+          disabled={submitting}
         />
         <QueueRoutingForm
           destination={draft.routing_destination}
@@ -105,10 +85,9 @@ function Step4Form() {
           patientDateOfBirth={draft.date_of_birth}
           facilityDestinations={frontOfficeDestinations}
           isHospital={isHospital}
+          hasPendingMedication={false}
           destinationsLoading={routingLoading}
-          disabled={submitting || draft.immediate_triage}
-          immediateTriage={draft.immediate_triage}
-          hideWhenImmediateTriage
+          disabled={submitting}
         />
       </article>
 

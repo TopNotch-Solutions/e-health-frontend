@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useClinicRoutingOptions } from '../../../../hooks/useClinicRoutingOptions';
 import IntakeDetailsForm from '../IntakeDetailsForm';
 import EmergencyPatientToggle from '../EmergencyPatientToggle';
-import ImmediateTriageToggle from '../ImmediateTriageToggle';
 import QueueRoutingForm, { routingButtonLabel } from '../QueueRoutingForm';
 import ReturningPatientCardShell from '../../../../components/patient/ReturningPatientCardShell';
 import { useToast } from '../../context/ToastContext';
 import { activeVisitLocation } from '../../patientUtils';
+import { getRoutingDestinationsForPatient, isPharmacyRouting } from '../../constants/routingOptions';
 import { lookup } from '../../styles/lookupClasses';
 
 export default function ReturningPatientCard({
@@ -20,20 +20,46 @@ export default function ReturningPatientCard({
   const { options: routingOptions, loading: routingLoading } = useClinicRoutingOptions();
   const isHospital = Boolean(routingOptions?.is_hospital);
   const frontOfficeDestinations = routingOptions?.front_office;
-  const emergencyUnitAvailable = !isHospital && routingOptions?.emergency_unit_available !== false;
   const [modeOfArrival, setModeOfArrival] = useState('');
   const [accompaniedBy, setAccompaniedBy] = useState('');
   const [isEmergency, setIsEmergency] = useState(Boolean(patient.is_emergency));
-  const [immediateTriage, setImmediateTriage] = useState(false);
   const [routingDestination, setRoutingDestination] = useState('');
   const busy = checkInLoading && checkInPatientId === patient.id;
   const hasActiveVisit = Boolean(patient.has_active_visit || patient.active_visit);
   const activeLocation = activeVisitLocation(patient);
   const checkInBlocked = hasActiveVisit;
 
-  function handleImmediateTriageChange(checked) {
-    setImmediateTriage(checked);
-    if (checked) setRoutingDestination('');
+  const destinations = useMemo(
+    () => getRoutingDestinationsForPatient({
+      sex: patient.sex,
+      dateOfBirth: patient.date_of_birth,
+      facilityDestinations: frontOfficeDestinations,
+      isHospital,
+      hasPendingMedication: Boolean(patient.has_pending_medication),
+    }),
+    [patient.sex, patient.date_of_birth, patient.has_pending_medication, frontOfficeDestinations, isHospital]
+  );
+
+  const pharmacyOnlyRoute = destinations.length === 1 && destinations[0]?.value === 'pharmacy';
+  const hidePriorityRouting = pharmacyOnlyRoute || isPharmacyRouting(routingDestination);
+
+  useEffect(() => {
+    if (pharmacyOnlyRoute && routingDestination !== 'pharmacy') {
+      setRoutingDestination('pharmacy');
+    }
+  }, [pharmacyOnlyRoute, routingDestination]);
+
+  useEffect(() => {
+    if (hidePriorityRouting) {
+      setIsEmergency(false);
+    }
+  }, [hidePriorityRouting]);
+
+  function handleRoutingDestinationChange(value) {
+    setRoutingDestination(value);
+    if (isPharmacyRouting(value)) {
+      setIsEmergency(false);
+    }
   }
 
   async function handleCheckIn() {
@@ -45,32 +71,28 @@ export default function ReturningPatientCard({
       );
       return;
     }
-    if (!immediateTriage && !routingDestination) {
+    if (!routingDestination) {
       showToast('Select a routing destination before sending the patient to queue.', 'error');
       return;
     }
-    if (!immediateTriage) {
-      if (!modeOfArrival) {
-        showToast('Select mode of arrival before check-in.', 'error');
-        return;
-      }
-      if (!accompaniedBy) {
-        showToast('Select who accompanied the patient before check-in.', 'error');
-        return;
-      }
+    if (!modeOfArrival) {
+      showToast('Select mode of arrival before check-in.', 'error');
+      return;
+    }
+    if (!accompaniedBy) {
+      showToast('Select who accompanied the patient before check-in.', 'error');
+      return;
     }
     await onCheckIn(patient, {
       mode_of_arrival: modeOfArrival,
       accompanied_by: accompaniedBy,
       is_emergency: isEmergency,
-      immediate_triage: immediateTriage,
       routing_destination: routingDestination,
     });
   }
 
   const routeLabel = routingButtonLabel({
     destination: routingDestination,
-    immediateTriage,
     loading: busy,
     action: 'Route',
     destinations: frontOfficeDestinations,
@@ -101,52 +123,62 @@ export default function ReturningPatientCard({
         </>
       )}
     >
-      {!immediateTriage ? (
-        <section className={lookup.returningSection}>
-          <h4 className={lookup.returningSectionTitle}>Arrival details</h4>
-          <IntakeDetailsForm
-            modeOfArrival={modeOfArrival}
-            accompaniedBy={accompaniedBy}
-            onModeChange={setModeOfArrival}
-            onAccompaniedChange={setAccompaniedBy}
-            disabled={checkInLoading || checkInBlocked}
-            classNames={lookup}
-            embedded
-          />
-        </section>
-      ) : null}
+      <section className={lookup.returningSection}>
+        <h4 className={lookup.returningSectionTitle}>Arrival details</h4>
+        <IntakeDetailsForm
+          modeOfArrival={modeOfArrival}
+          accompaniedBy={accompaniedBy}
+          onModeChange={setModeOfArrival}
+          onAccompaniedChange={setAccompaniedBy}
+          disabled={checkInLoading || checkInBlocked}
+          classNames={lookup}
+          embedded
+        />
+      </section>
 
       <section className={lookup.returningSection}>
-        <h4 className={lookup.returningSectionTitle}>Priority &amp; routing</h4>
-        <div className="space-y-3">
-          <EmergencyPatientToggle
-            id={`fo-returning-emergency-${patient.id}`}
-            checked={isEmergency}
-            onChange={setIsEmergency}
-            disabled={checkInLoading || immediateTriage || checkInBlocked}
-          />
-          <ImmediateTriageToggle
-            id={`fo-returning-triage-${patient.id}`}
-            checked={immediateTriage}
-            onChange={handleImmediateTriageChange}
-            disabled={checkInLoading || checkInBlocked || !emergencyUnitAvailable}
-          />
-        </div>
-        <div className="mt-4">
+        {!hidePriorityRouting ? (
+          <>
+            <h4 className={lookup.returningSectionTitle}>Priority &amp; routing</h4>
+            <div className="space-y-3">
+              <EmergencyPatientToggle
+                id={`fo-returning-emergency-${patient.id}`}
+                checked={isEmergency}
+                onChange={setIsEmergency}
+                disabled={checkInLoading || checkInBlocked}
+              />
+            </div>
+            <div className="mt-4">
+              <QueueRoutingForm
+                destination={routingDestination}
+                onDestinationChange={handleRoutingDestinationChange}
+                patientSex={patient.sex}
+                patientDateOfBirth={patient.date_of_birth}
+                facilityDestinations={frontOfficeDestinations}
+                isHospital={isHospital}
+                hasPendingMedication={Boolean(patient.has_pending_medication)}
+                destinationsLoading={routingLoading}
+                disabled={checkInLoading || checkInBlocked}
+                hidePriorityRouting={false}
+                classNames={lookup}
+              />
+            </div>
+          </>
+        ) : (
           <QueueRoutingForm
             destination={routingDestination}
-            onDestinationChange={setRoutingDestination}
+            onDestinationChange={handleRoutingDestinationChange}
             patientSex={patient.sex}
             patientDateOfBirth={patient.date_of_birth}
             facilityDestinations={frontOfficeDestinations}
             isHospital={isHospital}
+            hasPendingMedication={Boolean(patient.has_pending_medication)}
             destinationsLoading={routingLoading}
-            disabled={checkInLoading || immediateTriage || checkInBlocked}
-            immediateTriage={immediateTriage}
-            hideWhenImmediateTriage
+            disabled={checkInLoading || checkInBlocked}
+            hidePriorityRouting
             classNames={lookup}
           />
-        </div>
+        )}
       </section>
     </ReturningPatientCardShell>
   );

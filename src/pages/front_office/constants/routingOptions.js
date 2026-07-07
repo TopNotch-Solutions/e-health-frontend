@@ -20,7 +20,12 @@ export const HOSPITAL_ROUTING_DESTINATIONS = [
 
 const PAP_SMEAR_DESTINATION = 'pap_smear';
 const PEDIATRIC_DESTINATION = 'pediatric';
+const PHARMACY_DESTINATION = 'pharmacy';
 export const MAX_PEDIATRIC_AGE = 12;
+
+export function isPharmacyRouting(destination) {
+  return destination === PHARMACY_DESTINATION;
+}
 
 /** True when sex is male (API or registration form values). */
 export function isMalePatient(sex) {
@@ -64,6 +69,7 @@ export function getRoutingDestinationsForPatient({
   dateOfBirth,
   facilityDestinations,
   isHospital = false,
+  hasPendingMedication = false,
 } = {}) {
   let base;
   if (facilityDestinations != null) {
@@ -74,6 +80,9 @@ export function getRoutingDestinationsForPatient({
     base = ROUTING_DESTINATIONS;
   }
   return base.filter((destination) => {
+    if (destination.value === PHARMACY_DESTINATION && !hasPendingMedication) {
+      return false;
+    }
     if (destination.value === PAP_SMEAR_DESTINATION && isMalePatient(sex)) {
       return false;
     }

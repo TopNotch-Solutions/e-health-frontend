@@ -35,7 +35,7 @@ export default function BillingPricesView({
       <NationalBillingPricesPanel
         scope="hospital"
         title="National hospital prices"
-        description="Default admission fee and department visit charges for all hospitals unless a hospital sets its own override."
+        description="Default admission fee, department visit charges, maternity ward daily rates, and ultrasound pricing (rate + billing interval in minutes) for all hospitals unless a hospital sets its own override."
         onBack={() => onViewChange('home')}
       />
     );
@@ -89,7 +89,7 @@ export default function BillingPricesView({
     return (
       <FacilityOverrideList
         title="Hospital price overrides"
-        description="Set custom admission and department visit fees for individual hospitals. Hospitals without overrides use national defaults."
+        description="Set custom admission, department visit, and maternity ward daily fees (ANW, PNW, ICU) for individual hospitals. Hospitals without overrides use national defaults."
         facilities={hospitals}
         loading={loading}
         onBack={() => onViewChange('home')}
@@ -117,7 +117,7 @@ export default function BillingPricesView({
         />
         <PricingCard
           title="National hospital prices"
-          description="Admission fee and department visit charges for every hospital."
+          description="Default admission fee, department visit charges, maternity ward rates, and ultrasound pricing for every hospital."
           actionLabel="Manage national hospital prices"
           onClick={() => onViewChange('national-hospital')}
         />
@@ -129,7 +129,7 @@ export default function BillingPricesView({
         />
         <PricingCard
           title="Hospital overrides"
-          description="Optional admission and department fees for a specific hospital."
+          description="Optional admission, department, and maternity ward fees for a specific hospital."
           actionLabel="Choose a hospital"
           onClick={() => onViewChange('hospital-overrides')}
         />

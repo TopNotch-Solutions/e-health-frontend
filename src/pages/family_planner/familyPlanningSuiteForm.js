@@ -159,8 +159,9 @@ export function submitButtonClass(hasPrescription) {
   return baseSubmitButtonClass(hasPrescription ? 'lab' : 'primary');
 }
 
-export function submitButtonLabel(loading, hasPrescription) {
+export function submitButtonLabel(loading, hasPrescription, allOutOfStock = false) {
   if (loading) return 'Saving…';
+  if (hasPrescription && allOutOfStock) return 'Save prescription (pharmacy skipped)';
   if (hasPrescription) return 'Save & send to Pharmacy';
   return 'Save & complete session';
 }

@@ -12,7 +12,7 @@ import { completeQueueEntry } from '../../../api/queue';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import { IntakeSelect, IntakeTextarea } from '../../nurse/components/IntakeField';
-import { vitalsToIntakeForm, emptyMedLine } from '../doctorConsultForm';
+import { vitalsToIntakeForm, emptyMedLine, commitMedLineToList, buildPrescriptionItemPayload } from '../doctorConsultForm';
 import DoctorConsultationForm, { ICD_PRESETS } from './DoctorConsultationForm';
 import {
   ADMIT_TRANSPORT_CHECKLIST_OPTIONS,
@@ -20,7 +20,7 @@ import {
 } from '../../../constants/admitTransportChecklist';
 import { DIET_TYPES } from '../../../constants/dietTypes';
 import { confirmAction } from '../../../utils/confirmAction';
-import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
+import { allPrescriptionLinesOutOfStock, formatSkippedPharmacyPatientToast } from '../../../utils/pharmacyStockDisplay';
 import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
 
 function parseStoredDiagnoses(diagnosisText) {
@@ -158,14 +158,20 @@ export default function DoctorWorkspace({
     [patient?.vitals, patient?.entryId]
   );
 
+  const hasPharmacyRouting =
+    prescriptionLines.length > 0 && !allPrescriptionLinesOutOfStock(prescriptionLines);
+
   const hasRoutingSelection =
     prescriptionLines.length > 0 || selectedLabTests.length > 0 || Boolean(selectedScan);
 
   function buildRoutingSummary() {
     const parts = [];
-    if (prescriptionLines.length > 0) parts.push('pharmacy');
+    if (hasPharmacyRouting) parts.push('pharmacy');
     if (selectedLabTests.length > 0) parts.push('laboratory');
     if (selectedScan) parts.push('ultrasound');
+    if (prescriptionLines.length > 0 && !hasPharmacyRouting) {
+      parts.push('pharmacy skipped (out of stock)');
+    }
     return parts.join(', ');
   }
 
@@ -334,34 +340,14 @@ export default function DoctorWorkspace({
   }
 
   function addMedToList() {
-    const name = medLine.medication_name.trim();
-    const dose = medLine.dosage.trim();
-    if (!name && !dose) return;
-
-    const errs = {};
-    if (!name) errs.medication_name = 'Enter medication name';
-    if (!dose) errs.dosage = 'Enter dosage';
-    if (Object.keys(errs).length) {
-      setMedFieldErrors(errs);
-      return;
-    }
-    const qty = Number(medLine.quantity) || 1;
-
-    setPrescriptionLines((lines) => [
-      ...lines,
-      buildDoctorPrescriptionLine(
-        {
-          ...medLine,
-          medication_name: name,
-          generic_name: medLine.generic_name?.trim() || '',
-          dosage: dose,
-          quantity: qty,
-        },
-        liveStock
-      ),
-    ]);
-    setMedLine(emptyMedLine());
-    setLiveStock(null);
+    commitMedLineToList({
+      medLine,
+      liveStock,
+      setPrescriptionLines,
+      setMedFieldErrors,
+      setMedLine,
+      setLiveStock,
+    });
   }
 
   function removeMedLine(index) {
@@ -407,13 +393,7 @@ export default function DoctorWorkspace({
       };
 
       if (prescriptionLines.length > 0) {
-        payload.items = prescriptionLines.map((item) => ({
-          medication_name: item.medication_name,
-          dosage: item.dosage,
-          frequency: item.frequency || null,
-          quantity: item.quantity || 1,
-          instructions: item.instructions || null,
-        }));
+        payload.items = prescriptionLines.map((item) => buildPrescriptionItemPayload(item));
       }
 
       if (selectedLabTests.length > 0) {
@@ -443,6 +423,16 @@ export default function DoctorWorkspace({
       setSonarSymptoms('');
       setSonarDiagnosticQuestions('');
       setSonarPrepInstructions('');
+
+      if (result?.skippedPharmacy) {
+        const billingNote = result?.routedToBilling ? ' Patient sent to billing.' : '';
+        onToast(
+          formatSkippedPharmacyPatientToast(patient.name, result)
+            || `Prescription recorded — pharmacy skipped (all medications out of stock)${billingNote}`
+        );
+        onDone();
+        return;
+      }
 
       const alerts = result?.lowStockAlerts || [];
       const outCount = alerts.filter((a) => a.stock_status === 'out_of_stock').length;

@@ -42,6 +42,7 @@ export default function ClinicDispositionSection({
   actionLoading,
   canSubmitDisposition,
   hasPrescription,
+  allOutOfStock = false,
   catalog,
   catalogLoading,
   catalogError,
@@ -57,7 +58,7 @@ export default function ClinicDispositionSection({
   patient,
   onFormPatch,
 }) {
-  const submitLabel = dispositionButtonLabel(form, actionLoading, hasPrescription);
+  const submitLabel = dispositionButtonLabel(form, actionLoading, hasPrescription, allOutOfStock);
   const showPrescription = dispositionShowsPrescription(form.disposition);
   const prescriptionRequired = dispositionRequiresPrescription(form.disposition);
 

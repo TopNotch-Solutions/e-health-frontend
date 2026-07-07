@@ -37,7 +37,7 @@ export function validateDiagnosisField(form) {
 export function validatePharmacyDisposition(form, prescriptionLines) {
   const errors = { ...validateDiagnosisField(form) };
   if (!prescriptionLines.length) {
-    errors.prescription = 'Add at least one medication to route to pharmacy.';
+    errors.prescription = 'Add at least one medication to save the prescription.';
   }
   return errors;
 }
@@ -46,9 +46,13 @@ export function validateDischargeDisposition(form) {
   return validateRefusalDischargeReason(form.discharge_reason);
 }
 
-export function dispositionButtonLabel(form, loading, hasPrescription = false) {
+export function dispositionButtonLabel(form, loading, hasPrescription = false, allOutOfStock = false) {
   if (loading) return 'Submitting…';
-  if (form.disposition === 'pharmacy') return 'Submit & route to Pharmacy';
+  if (form.disposition === 'pharmacy') {
+    return allOutOfStock
+      ? 'Save prescription (pharmacy skipped)'
+      : 'Submit & route to Pharmacy';
+  }
   if (form.disposition === 'booking_room') {
     return hasPrescription
       ? 'Prescribe & transfer to Booking Room'

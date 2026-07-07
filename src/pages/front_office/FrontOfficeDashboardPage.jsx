@@ -83,12 +83,10 @@ export default function FrontOfficeDashboardPage() {
   }
 
   async function handleCheckIn(patient, intake) {
-    const destLabel = intake.immediate_triage
-      ? 'Emergency Unit'
-      : routingLabel(intake.routing_destination) || intake.routing_destination;
+    const destLabel = routingLabel(intake.routing_destination) || intake.routing_destination;
     if (!(await confirmAction({
       title: 'Check in patient?',
-      text: intake.immediate_triage || intake.is_emergency
+      text: intake.is_emergency
         ? `Route ${patientName(patient)} to ${destLabel} with emergency priority?`
         : `Check in ${patientName(patient)} and route to ${destLabel}?`,
       icon: 'question',
@@ -99,10 +97,8 @@ export default function FrontOfficeDashboardPage() {
     try {
       const result = await createPatientVisit(patient.id, intake);
       const dept = result.queueEntry?.department || intake.routing_destination;
-      const destLabel = intake.immediate_triage
-        ? 'Emergency Unit'
-        : routingLabel(dept) || dept;
-      const msg = intake.immediate_triage || intake.is_emergency
+      const destLabel = routingLabel(dept) || dept;
+      const msg = intake.is_emergency
         ? `${patientName(patient)} routed to ${destLabel} (emergency priority).`
         : `${patientName(patient)} routed to ${destLabel}.`;
       showToast(msg, 'success');

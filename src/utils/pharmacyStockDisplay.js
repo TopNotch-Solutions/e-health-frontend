@@ -21,9 +21,27 @@ export function formatDoctorStockDetail(stock) {
 
 export function formatAvailabilityElsewhere(locations) {
   if (!Array.isArray(locations) || !locations.length) return null;
-  return locations.map((row) => (
-    row.location ? `${row.facility_name} (${row.location})` : row.facility_name
-  ));
+  return locations.map((row) => formatAvailabilityElsewhereLine(row));
+}
+
+function facilityTypeLabel(type) {
+  if (type === 'hospital') return 'Hospital';
+  if (type === 'clinic') return 'Clinic';
+  if (type === 'health_center') return 'Health center';
+  return 'Facility';
+}
+
+export function formatAvailabilityElsewhereLine(row) {
+  if (!row) return '';
+  const typeLabel = facilityTypeLabel(row.facility_type);
+  const place = row.location ? ` (${row.location})` : '';
+  const qty = row.quantity_in_stock != null ? ` — ${row.quantity_in_stock} on hand` : '';
+  return `${typeLabel}: ${row.facility_name}${place}${qty}`;
+}
+
+export function formatAvailabilityElsewhereDetailed(locations) {
+  if (!Array.isArray(locations) || !locations.length) return [];
+  return locations.map((row) => formatAvailabilityElsewhereLine(row));
 }
 
 export function buildDoctorPrescriptionLine(medLine, liveStock) {
@@ -119,6 +137,31 @@ export function prescriptionListSummary(lines) {
     inStock: normalized.filter((l) => l.stock_status === 'in_stock').length,
     total: normalized.length,
   };
+}
+
+export function allPrescriptionLinesOutOfStock(lines) {
+  const normalized = (lines || []).map((l) => ({
+    ...l,
+    stock_status: doctorStockDisplayStatus(l),
+  }));
+  return normalized.length > 0 && normalized.every((l) => l.stock_status === 'out_of_stock');
+}
+
+export function prescriptionHasDispensableStock(lines) {
+  return (lines || []).some((l) => doctorStockDisplayStatus(l) !== 'out_of_stock');
+}
+
+/** Toast after API returns skippedPharmacy — visit end / billing when no more stops. */
+export function formatSkippedPharmacyPatientToast(patientName, result) {
+  if (!result?.skippedPharmacy) return null;
+  const who = patientName ? `${patientName} — ` : '';
+  if (result?.routedToBilling) {
+    return `${who}prescription recorded, pharmacy skipped; sent to billing`;
+  }
+  if (result?.visitCompleted) {
+    return `${who}prescription recorded, consultation completed`;
+  }
+  return `${who}prescription recorded, pharmacy skipped (all medications out of stock)`;
 }
 
 export function doctorLineStockStatus(item) {

@@ -137,8 +137,8 @@ export default function PharmacistConsultationPage() {
     refresh();
   }
 
-  async function handleDispensingDone() {
-    if (!(await confirmAction({
+  async function handleDispensingDone({ skipConfirm = false } = {}) {
+    if (!skipConfirm && !(await confirmAction({
       title: 'Finish dispensing?',
       text: 'Close this prescription session and return to the queue?',
       icon: 'question',
@@ -147,7 +147,7 @@ export default function PharmacistConsultationPage() {
     setActivePrescriptionId(null);
     setPrescriptionDetail(null);
     setWorkspaceError('');
-    refresh();
+    await refresh();
   }
 
   function renderRxBadge(rx) {
@@ -177,6 +177,11 @@ export default function PharmacistConsultationPage() {
         {stock.lowStock > 0 ? (
           <span className="inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[0.58rem] font-bold text-amber-900">
             {stock.lowStock} low
+          </span>
+        ) : null}
+        {rx.is_cross_facility && rx.prescribed_at_facility ? (
+          <span className="inline-flex rounded-full bg-indigo-100 px-1.5 py-0.5 text-[0.58rem] font-bold text-indigo-900">
+            From {rx.prescribed_at_facility}
           </span>
         ) : null}
       </div>

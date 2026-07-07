@@ -20,3 +20,17 @@ export function dispensePrescription(id, dispensed_items) {
     body: JSON.stringify({ dispensed_items }),
   });
 }
+
+/** Remove patient from pharmacy queue when all pending lines are out of stock. */
+export function releaseOutOfStockPrescription(id) {
+  return apiRequest(`/api/v1/prescriptions/release-out-of-stock/${id}`, {
+    method: 'PUT',
+  });
+}
+
+/** Stop a recurring medication schedule when the patient no longer needs it. */
+export function stopRecurringSchedule(itemId) {
+  return apiRequest(`/api/v1/prescriptions/items/${itemId}/stop-schedule`, {
+    method: 'PUT',
+  });
+}

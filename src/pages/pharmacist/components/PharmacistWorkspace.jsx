@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { confirmAction } from '../../../utils/confirmAction';
-import { dispensePrescription } from '../../../api/pharmacy';
+import { dispensePrescription, releaseOutOfStockPrescription, stopRecurringSchedule } from '../../../api/pharmacy';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import {
   isOutOfStock,
@@ -8,7 +8,52 @@ import {
   pendingItems,
   statusBadgeClass,
   stockSummary,
+  formatAvailabilityElsewhereLine,
 } from '../pharmacyStockDisplay';
+import {
+  formatPrescriptionScheduleLabel,
+  isRecurringPrescriptionItem,
+} from '../../../utils/prescriptionSchedule';
+
+function OutOfStockAvailabilityPanel({ items }) {
+  const outOfStockItems = (items || []).filter(isOutOfStock);
+  if (!outOfStockItems.length) return null;
+
+  return (
+    <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/90 px-4 py-3 text-sm">
+      <p className="font-bold text-indigo-950">Stock at other clinics &amp; hospitals</p>
+      <p className="mt-0.5 text-xs text-indigo-900">
+        Facilities on the network with enough stock to fill this order.
+      </p>
+      <ul className="mt-3 space-y-3">
+        {outOfStockItems.map((item) => {
+          const elsewhereRows = item.availability_elsewhere || [];
+          return (
+            <li key={item.id} className="rounded-lg border border-indigo-100 bg-white/80 px-3 py-2">
+              <p className="font-semibold text-slate-900">{item.medication_name}</p>
+              {elsewhereRows.length > 0 ? (
+                <ul className="mt-1.5 space-y-1 text-xs text-indigo-900">
+                  {elsewhereRows.map((row) => (
+                    <li key={`${item.id}-${row.facility_id}`} className="flex gap-2">
+                      <span className="text-indigo-400" aria-hidden>
+                        •
+                      </span>
+                      <span>{formatAvailabilityElsewhereLine(row)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-xs text-slate-600">
+                  Not available at any other clinic or hospital on the network.
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 function patientFromPrescription(rx) {
   const p = rx?.visit?.patient;
@@ -34,6 +79,11 @@ export default function PharmacistWorkspace({
     [prescription?.items]
   );
 
+  const dispensablePending = useMemo(
+    () => pending.filter((i) => !isOutOfStock(i)),
+    [pending]
+  );
+
   const summary = useMemo(
     () => stockSummary(prescription?.items),
     [prescription?.items]
@@ -55,14 +105,76 @@ export default function PharmacistWorkspace({
     });
   }
 
+  async function handleStopSchedule(item) {
+    if (!(await confirmAction({
+      title: 'Stop recurring medication?',
+      text: `Mark ${item.medication_name} as no longer needed (patient is better)?`,
+      icon: 'warning',
+      confirmButtonText: 'Stop schedule',
+    }))) return;
+
+    setActionLoading(true);
+    onActionError('');
+    try {
+      await stopRecurringSchedule(item.id);
+      await onRefreshDetail();
+      onToast(`Recurring schedule stopped for ${item.medication_name}`);
+    } catch (err) {
+      onActionError(err.message || 'Failed to stop recurring schedule');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleReleaseOutOfStock() {
+    if (!prescription?.id || !allPendingOutOfStock) return;
+
+    const { name: patientName } = patientFromPrescription(prescription);
+    if (!(await confirmAction({
+      title: 'Release patient — out of stock?',
+      text: `${patientName} cannot receive medications today because stock is unavailable. Remove them from the pharmacy queue? If pharmacy was their last stop, the consultation will be ended.`,
+      icon: 'warning',
+      confirmButtonText: 'Release from queue',
+    }))) return;
+
+    setActionLoading(true);
+    onActionError('');
+    try {
+      const result = await releaseOutOfStockPrescription(prescription.id);
+      const message = result?.visit_completed
+        ? 'Patient removed from queue. Consultation completed.'
+        : result?.routed_to_billing
+          ? 'Patient removed from queue and sent to billing.'
+          : result?.hold_visit_open
+            ? 'Patient removed from pharmacy queue. Visit continues at other departments.'
+            : 'Patient removed from pharmacy queue.';
+      onToast(message);
+      await onDone?.({ skipConfirm: true });
+    } catch (err) {
+      onActionError(err.message || 'Failed to release patient from queue');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function handleConfirmDispensing() {
     if (!prescription?.id || pending.length === 0) return;
 
-    const { name: patientName } = patientFromPrescription(prescription);
+    if (dispensablePending.length === 0) {
+      onActionError('Cannot dispense — all medications are out of stock. Replenish stock before dispensing.');
+      return;
+    }
+
     const tickedCount = pending.filter((i) => availableIds.has(i.id)).length;
+    if (tickedCount === 0) {
+      onActionError('Select at least one in-stock medication to give before confirming.');
+      return;
+    }
+
+    const { name: patientName } = patientFromPrescription(prescription);
     if (!(await confirmAction({
       title: 'Confirm dispensing?',
-      text: `Update dispensing for ${patientName}? ${tickedCount} of ${pending.length} medication(s) marked to give.`,
+      text: `Update dispensing for ${patientName}? ${tickedCount} of ${dispensablePending.length} dispensable medication(s) marked to give.`,
       icon: 'question',
       confirmButtonText: 'Confirm dispensing',
     }))) return;
@@ -103,12 +215,20 @@ export default function PharmacistWorkspace({
 
   const { name: patientName, idLabel } = patientFromPrescription(prescription);
   const tickedCount = pending.filter((i) => availableIds.has(i.id)).length;
+  const allPendingOutOfStock = pending.length > 0 && dispensablePending.length === 0;
+  const canConfirmDispensing =
+    pending.length > 0 && dispensablePending.length > 0 && tickedCount > 0 && !actionLoading;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <div className={c.sectionPanel}>
         <h3 className={c.sectionTitle}>Prescription · {patientName}</h3>
         {idLabel ? <p className="mt-0.5 text-xs font-semibold text-slate-600">{idLabel}</p> : null}
+        {prescription?.is_cross_facility && prescription?.prescribed_at_facility ? (
+          <p className="mt-1 text-xs font-semibold text-indigo-800">
+            Prescribed at {prescription.prescribed_at_facility} — dispensing from your facility stock.
+          </p>
+        ) : null}
         <p className="mt-2 text-sm text-slate-600">
           Tick medications you are giving. Lines marked <strong className="text-rose-800">Out of stock</strong>{' '}
           cannot be dispensed. <strong className="text-amber-800">Low stock</strong> lines can still be given but
@@ -145,13 +265,14 @@ export default function PharmacistWorkspace({
                 <th className="px-3 py-2">Qty</th>
                 <th className="px-3 py-2">On hand</th>
                 <th className="px-3 py-2">Frequency</th>
+                <th className="px-3 py-2">Schedule</th>
                 <th className="px-3 py-2">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {(prescription?.items || []).length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-6 text-center text-sm text-slate-500">
+                  <td colSpan={8} className="px-3 py-6 text-center text-sm text-slate-500">
                     No line items on this prescription.
                   </td>
                 </tr>
@@ -219,6 +340,21 @@ export default function PharmacistWorkspace({
                         {item.quantity_in_stock != null ? item.quantity_in_stock : '—'}
                       </td>
                       <td className="px-3 py-2 text-slate-700">{item.frequency || '—'}</td>
+                      <td className="px-3 py-2 text-slate-700">
+                        <span className="block text-xs font-medium text-indigo-900">
+                          {item.schedule_label || formatPrescriptionScheduleLabel(item)}
+                        </span>
+                        {isRecurringPrescriptionItem(item) ? (
+                          <button
+                            type="button"
+                            className="mt-1 text-xs font-semibold text-rose-700 hover:underline"
+                            disabled={actionLoading}
+                            onClick={() => handleStopSchedule(item)}
+                          >
+                            Patient is better — stop
+                          </button>
+                        ) : null}
+                      </td>
                       <td className="px-3 py-2">
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${statusBadgeClass(status.tone)}`}
@@ -236,27 +372,54 @@ export default function PharmacistWorkspace({
 
         {pending.length > 0 ? (
           <p className="mt-3 text-sm text-slate-600">
-            <span className="font-semibold text-teal-800">{tickedCount}</span> of{' '}
-            <span className="font-semibold">{pending.filter((i) => !isOutOfStock(i)).length}</span> dispensable
-            medication{pending.length === 1 ? '' : 's'} marked to give.
-            {summary.outOfStock > 0 ? (
-              <span className="block text-xs text-rose-700">
-                {summary.outOfStock} line{summary.outOfStock === 1 ? ' is' : 's are'} out of stock and will be
-                recorded as not given.
-              </span>
-            ) : null}
+            {allPendingOutOfStock ? (
+              <>
+                <span className="block font-semibold text-rose-800">
+                  All pending medications are out of stock. Release the patient from the queue when they
+                  leave — if pharmacy was their last stop, the consultation will be ended.
+                </span>
+                <OutOfStockAvailabilityPanel items={pending} />
+              </>
+            ) : (
+              <>
+                <span className="font-semibold text-teal-800">{tickedCount}</span> of{' '}
+                <span className="font-semibold">{dispensablePending.length}</span> dispensable
+                medication{dispensablePending.length === 1 ? '' : 's'} marked to give.
+                {summary.outOfStock > 0 ? (
+                  <span className="block text-xs text-rose-700">
+                    {summary.outOfStock} line{summary.outOfStock === 1 ? ' is' : 's are'} out of stock and
+                    cannot be dispensed until stock is available.
+                  </span>
+                ) : null}
+              </>
+            )}
           </p>
         ) : null}
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap items-center gap-3">
           <button
             type="button"
             className={`${c.btnAction} ${c.btnPharmacy} w-full sm:w-auto sm:min-w-[240px]`}
-            disabled={actionLoading || pending.length === 0}
+            disabled={!canConfirmDispensing}
             onClick={handleConfirmDispensing}
           >
             Confirm dispensing
           </button>
+          {allPendingOutOfStock ? (
+            <button
+              type="button"
+              className={`${c.btnSecondary} w-full sm:w-auto`}
+              disabled={actionLoading}
+              onClick={handleReleaseOutOfStock}
+            >
+              Release patient — out of stock
+            </button>
+          ) : null}
+          {pending.length > 0 && !canConfirmDispensing && !actionLoading && !allPendingOutOfStock ? (
+            <p className="w-full text-xs text-slate-500">
+              Tick at least one in-stock medication to enable confirm.
+            </p>
+          ) : null}
         </div>
       </div>
     </div>

@@ -4,4 +4,6 @@ export {
   pendingItems,
   stockSummary,
   isOutOfStock,
+  formatAvailabilityElsewhereDetailed,
+  formatAvailabilityElsewhereLine,
 } from '../../utils/pharmacyStockDisplay';

@@ -34,15 +34,19 @@ export function validateDisposition(form, prescriptionLines) {
     return errors;
   }
   if (form.disposition === 'pharmacy' && !prescriptionLines.length) {
-    errors.prescription = 'Add at least one medication for pharmacy.';
+    errors.prescription = 'Add at least one medication to save the prescription.';
   }
   return errors;
 }
 
-export function dispositionButtonLabel(form, loading, hasPrescription) {
+export function dispositionButtonLabel(form, loading, hasPrescription, allOutOfStock = false) {
   if (loading) return 'Submitting…';
   if (form.disposition === 'complete_session') return 'Save & complete session';
-  if (form.disposition === 'pharmacy') return 'Prescribe & route to Pharmacy';
+  if (form.disposition === 'pharmacy') {
+    return allOutOfStock
+      ? 'Save prescription (pharmacy skipped)'
+      : 'Prescribe & route to Pharmacy';
+  }
   if (form.disposition === 'booking_room') {
     return hasPrescription
       ? 'Save & route to Booking Room (with prescription)'

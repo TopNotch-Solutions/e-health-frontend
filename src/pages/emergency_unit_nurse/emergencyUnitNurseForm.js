@@ -46,7 +46,7 @@ function validateScreening(form) {
   return errors;
 }
 
-export function validateEmergencyNurseForm(form, hasPrescription) {
+export function validateEmergencyNurseForm(form, hasPrescription, prescriptionLines = []) {
   const errors = {
     ...validateVitals(form),
     ...validateScreening(form),
@@ -56,7 +56,7 @@ export function validateEmergencyNurseForm(form, hasPrescription) {
   if (!form.routing_destination) {
     errors.routing_destination = 'Select a routing destination.';
   } else if (form.routing_destination === 'pharmacy' && !hasPrescription) {
-    errors.prescription = 'Add at least one medication to route to the pharmacist.';
+    errors.prescription = 'Add at least one medication to save the prescription.';
   }
 
   return errors;
@@ -89,10 +89,13 @@ export function routeButtonClass(form) {
   return submitButtonClass(variant === 'lab' ? 'lab' : 'primary');
 }
 
-export function routeButtonLabel(form, loading, hasPrescription) {
+export function routeButtonLabel(form, loading, hasPrescription, allOutOfStock = false) {
   if (loading) return 'Submitting…';
   if (form.routing_destination === 'pharmacy') {
-    return hasPrescription ? 'Prescribe & route to Pharmacist' : 'Add medications to route to Pharmacist';
+    if (!hasPrescription) return 'Add medications to save prescription';
+    return allOutOfStock
+      ? 'Save prescription (pharmacy skipped)'
+      : 'Prescribe & route to Pharmacist';
   }
   if (form.routing_destination === 'emergency_unit_doctor') {
     return 'Transfer to Emergency Unit Doctor';

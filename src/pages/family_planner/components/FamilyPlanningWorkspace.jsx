@@ -3,9 +3,9 @@ import { IntakeInput, IntakeSelect, IntakeTextarea } from '../../nurse/component
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
 import { confirmAction } from '../../../utils/confirmAction';
+import { allPrescriptionLinesOutOfStock, formatSkippedPharmacyPatientToast } from '../../../utils/pharmacyStockDisplay';
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
-import { emptyMedLine } from '../../doctor/doctorConsultForm';
-import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
+import { emptyMedLine, commitMedLineToList, buildPrescriptionItemPayload } from '../../doctor/doctorConsultForm';
 import {
   routeFamilyPlanningToPharmacy,
   completeFamilyPlanningSession,
@@ -52,6 +52,8 @@ export default function FamilyPlanningWorkspace({
 
   const isFinalized = !!record?.is_finalized;
   const hasPrescription = prescriptionLines.length > 0;
+  const allOutOfStock = allPrescriptionLinesOutOfStock(prescriptionLines);
+  const routesToPharmacy = hasPrescription && !allOutOfStock;
   const selectedType = form.intervention_type;
   const disabled = isFinalized;
   const canSubmit = Boolean(selectedType) && !isFinalized;
@@ -114,35 +116,18 @@ export default function FamilyPlanningWorkspace({
   }
 
   function addMedToList() {
-    const name = medLine.medication_name.trim();
-    const dose = medLine.dosage.trim();
-    const errs = {};
-    if (!name) errs.medication_name = 'Enter medication name';
-    if (!dose) errs.dosage = 'Enter dosage';
-    if (Object.keys(errs).length) {
-      setMedFieldErrors(errs);
-      return;
-    }
-    const qty = Number(medLine.quantity) || 1;
-    setPrescriptionLines((lines) => [
-      ...lines,
-      buildDoctorPrescriptionLine(
-        { ...medLine, medication_name: name, dosage: dose, quantity: qty },
-        liveStock
-      ),
-    ]);
-    setMedLine(emptyMedLine());
-    setLiveStock(null);
+    commitMedLineToList({
+      medLine,
+      liveStock,
+      setPrescriptionLines,
+      setMedFieldErrors,
+      setMedLine,
+      setLiveStock,
+    });
   }
 
   function buildPrescriptionItems() {
-    return prescriptionLines.map((item) => ({
-      medication_name: item.medication_name,
-      dosage: item.dosage,
-      frequency: item.frequency || null,
-      quantity: item.quantity || 1,
-      instructions: item.instructions || null,
-    }));
+    return prescriptionLines.map((item) => buildPrescriptionItemPayload(item));
   }
 
   async function handleSubmit() {
@@ -153,13 +138,20 @@ export default function FamilyPlanningWorkspace({
       return;
     }
 
-    const confirmed = hasPrescription
+    const confirmed = routesToPharmacy
       ? await confirmAction({
         title: 'Send to Pharmacy?',
         text: `Save record and send ${patient.name} to the Pharmacy queue?`,
         icon: 'question',
         confirmButtonText: 'Save & send',
       })
+      : hasPrescription && allOutOfStock
+        ? await confirmAction({
+          title: 'Save prescription?',
+          text: `All medications are out of stock. Save the prescription for ${patient.name} without sending them to pharmacy?`,
+          icon: 'warning',
+          confirmButtonText: 'Save prescription',
+        })
       : await confirmAction({
         title: 'Complete session?',
         text: `Save and complete session for ${patient.name}?`,
@@ -173,11 +165,14 @@ export default function FamilyPlanningWorkspace({
     try {
       const payload = buildRecordPayload(form, patient.visitId, patient.entryId);
       if (hasPrescription) {
-        await routeFamilyPlanningToPharmacy({
+        const result = await routeFamilyPlanningToPharmacy({
           ...payload,
           items: buildPrescriptionItems(),
         });
-        onToast(`${patient.name} — sent to Pharmacy`);
+        onToast(
+          formatSkippedPharmacyPatientToast(patient.name, result)
+            || `${patient.name} — sent to Pharmacy`
+        );
       } else {
         await completeFamilyPlanningSession(payload);
         onToast(`${patient.name} — session saved`);
@@ -464,11 +459,11 @@ export default function FamilyPlanningWorkspace({
           <div className="mt-6">
             <button
               type="button"
-              className={submitButtonClass(hasPrescription)}
+              className={submitButtonClass(routesToPharmacy)}
               disabled={!canSubmit || actionLoading}
               onClick={handleSubmit}
             >
-              {submitButtonLabel(actionLoading, hasPrescription)}
+              {submitButtonLabel(actionLoading, hasPrescription, allOutOfStock)}
             </button>
           </div>
         </section>

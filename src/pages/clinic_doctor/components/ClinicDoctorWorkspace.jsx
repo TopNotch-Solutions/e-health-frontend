@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { confirmAction } from '../../../utils/confirmAction';
+import { allPrescriptionLinesOutOfStock, formatSkippedPharmacyPatientToast } from '../../../utils/pharmacyStockDisplay';
 import {
   createConsultation,
   updateConsultation,
@@ -13,8 +14,7 @@ import {
 import { checkMedicationStock, getMedicationCatalog } from '../../../api/inventory';
 import ConsultationMedicalHistoryPanel from '../../../components/patient/ConsultationMedicalHistoryPanel';
 import DischargePatientSection from '../../../components/consultation/DischargePatientSection';
-import { emptyMedLine } from '../../doctor/doctorConsultForm';
-import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
+import { emptyMedLine, commitMedLineToList, buildPrescriptionItemPayload } from '../../doctor/doctorConsultForm';
 import ClinicalTimelinePanel from './ClinicalTimelinePanel';
 import ClinicDiagnosisSection from './ClinicDiagnosisSection';
 import ClinicDispositionSection from './ClinicDispositionSection';
@@ -164,25 +164,15 @@ export default function ClinicDoctorWorkspace({
   }
 
   function addMedToList() {
-    const name = medLine.medication_name.trim();
-    const dose = medLine.dosage.trim();
-    const errs = {};
-    if (!name) errs.medication_name = 'Enter medication name';
-    if (!dose) errs.dosage = 'Enter dosage';
-    if (Object.keys(errs).length) {
-      setMedFieldErrors(errs);
-      return;
-    }
-    const qty = Number(medLine.quantity) || 1;
-    setPrescriptionLines((lines) => [
-      ...lines,
-      buildDoctorPrescriptionLine(
-        { ...medLine, medication_name: name, dosage: dose, quantity: qty },
-        liveStock
-      ),
-    ]);
-    setMedLine(emptyMedLine());
-    setLiveStock(null);
+    const ok = commitMedLineToList({
+      medLine,
+      liveStock,
+      setPrescriptionLines,
+      setMedFieldErrors,
+      setMedLine,
+      setLiveStock,
+    });
+    if (!ok) return;
     setFieldErrors((prev) => {
       if (!prev.prescription) return prev;
       const next = { ...prev };
@@ -228,13 +218,7 @@ export default function ClinicDoctorWorkspace({
   }
 
   function buildPrescriptionItems() {
-    return prescriptionLines.map((item) => ({
-      medication_name: item.medication_name,
-      dosage: item.dosage,
-      frequency: item.frequency || null,
-      quantity: item.quantity || 1,
-      instructions: item.instructions || null,
-    }));
+    return prescriptionLines.map((item) => buildPrescriptionItemPayload(item));
   }
 
   async function handleSubmitDisposition() {
@@ -256,14 +240,18 @@ export default function ClinicDoctorWorkspace({
       return;
     }
 
+    const allOutOfStock = allPrescriptionLinesOutOfStock(prescriptionLines);
+
     const confirmTexts = {
-      pharmacy: `Prescribe medications and route ${patient.name} to Pharmacy?`,
+      pharmacy: allOutOfStock
+        ? `All medications are out of stock. Save the prescription for ${patient.name} without sending them to pharmacy?`
+        : `Prescribe medications and route ${patient.name} to Pharmacy?`,
       follow_up: `Schedule follow-up for ${patient.name} on ${form.follow_up_date}?`,
       booking_room: `Transfer ${patient.name} to the Booking Room?`,
       emergency_unit: `Transfer ${patient.name} to the Emergency Unit?`,
     };
     const confirmTitles = {
-      pharmacy: 'Route to Pharmacy?',
+      pharmacy: allOutOfStock ? 'Save prescription?' : 'Route to Pharmacy?',
       follow_up: 'Schedule follow-up?',
       booking_room: 'Transfer to Booking Room?',
       emergency_unit: 'Transfer to Emergency Unit?',
@@ -286,13 +274,16 @@ export default function ClinicDoctorWorkspace({
     try {
       if (form.disposition === 'pharmacy') {
         const cid = await ensureConsultation();
-        await createPrescription({
+        const result = await createPrescription({
           visit_id: patient.visitId,
           consultation_id: cid,
           queue_entry_id: patient.entryId,
           items: buildPrescriptionItems(),
         });
-        onToast(`${patient.name} prescribed and routed to Pharmacy`);
+        onToast(
+          formatSkippedPharmacyPatientToast(patient.name, result)
+            || `${patient.name} prescribed and routed to Pharmacy`
+        );
         onDone();
         return;
       }
@@ -309,17 +300,20 @@ export default function ClinicDoctorWorkspace({
         const billingNote = result?.routedToBilling
           ? ' Patient sent to billing clerk for payment.'
           : '';
+        const rxNote = items?.length
+          ? result?.skippedPharmacy
+            ? ' Prescription recorded — pharmacy skipped (out of stock).'
+            : ' Prescription sent to pharmacy.'
+          : '';
         onToast(
-          items?.length
-            ? `${patient.name} — prescription sent to pharmacy, follow-up on ${form.follow_up_date}${billingNote}`
-            : `${patient.name} — follow-up scheduled for ${form.follow_up_date}${billingNote}`
+          `${patient.name} — follow-up scheduled for ${form.follow_up_date}${rxNote}${billingNote}`
         );
         onDone();
         return;
       }
 
       if (form.disposition === 'booking_room') {
-        await clinicTransferBookingRoom({
+        const result = await clinicTransferBookingRoom({
           visit_id: patient.visitId,
           queue_entry_id: patient.entryId,
           diagnosis: diagnosisText,
@@ -333,7 +327,9 @@ export default function ClinicDoctorWorkspace({
         });
         onToast(
           items?.length
-            ? `${patient.name} — prescription sent to pharmacy and transferred to Booking Room`
+            ? result?.skippedPharmacy
+              ? `${patient.name} — prescription recorded (pharmacy skipped), transferred to Booking Room`
+              : `${patient.name} — prescription sent to pharmacy and transferred to Booking Room`
             : `${patient.name} transferred to Booking Room`
         );
         onDone();
@@ -402,6 +398,7 @@ export default function ClinicDoctorWorkspace({
   }
 
   const hasPrescription = prescriptionLines.length > 0;
+  const allOutOfStock = allPrescriptionLinesOutOfStock(prescriptionLines);
 
   const canSubmitDisposition =
     form.disposition === 'pharmacy'
@@ -439,6 +436,7 @@ export default function ClinicDoctorWorkspace({
         actionLoading={actionLoading}
         canSubmitDisposition={canSubmitDisposition}
         hasPrescription={hasPrescription}
+        allOutOfStock={allOutOfStock}
         catalog={medCatalog}
         catalogLoading={catalogLoading}
         catalogError={catalogError}

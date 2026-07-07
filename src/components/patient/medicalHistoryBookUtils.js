@@ -10,6 +10,7 @@ import {
   parseJsonValue,
   pushDetail,
 } from './clinicalDetailFormatters';
+import { formatPrescriptionScheduleLabel } from '../../utils/prescriptionSchedule';
 
 const DEPARTMENT_LABELS = {
   nurse: 'Nurse',
@@ -279,8 +280,13 @@ function prescriptionDetailLines(prescriptions) {
   const lines = [];
   (prescriptions || []).forEach((rx) => {
     (rx.items || []).forEach((item) => {
-      const parts = [item.dosage, item.frequency, item.quantity != null ? `Qty ${item.quantity}` : null, item.instructions]
-        .filter(Boolean);
+      const parts = [
+        item.dosage,
+        item.frequency,
+        item.quantity != null ? `Qty ${item.quantity}` : null,
+        item.instructions,
+        formatPrescriptionScheduleLabel(item),
+      ].filter(Boolean);
       lines.push({
         label: item.medication_name || 'Medication',
         value: parts.length ? parts.join(' · ') : displayValue(rx.status),

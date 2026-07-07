@@ -197,7 +197,7 @@ export default function PatientRecordsView() {
       setResults(list);
       if (list.length === 0) {
         setSearchError('No patients matched your search.');
-      } else if (list.length === 1) {
+      } else if (list.length === 1 && list[0]?.id) {
         await loadPatientRecord(list[0].id);
       }
     } catch (err) {
@@ -332,7 +332,9 @@ export default function PatientRecordsView() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <MedicalCardDownloadActions patientId={patient.id} admin />
+              {patient?.id ? (
+                <MedicalCardDownloadActions patientId={patient.id} admin />
+              ) : null}
               <button
                 type="button"
                 className={c.btnPrimary}

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { confirmAction } from '../../../utils/confirmAction';
+import { allPrescriptionLinesOutOfStock, formatSkippedPharmacyPatientToast } from '../../../utils/pharmacyStockDisplay';
 import { getMedicationCatalog, checkMedicationStock } from '../../../api/inventory';
 import { submitEmergencyNurseRoute } from '../../../api/emergencyUnit';
 import { IntakeSelect, IntakeTextarea } from '../../nurse/components/IntakeField';
 import { nurse as c } from '../../nurse/styles/nurseClasses';
 import DoctorPrescriptionSection from '../../doctor/components/DoctorPrescriptionSection';
-import { emptyMedLine } from '../../doctor/doctorConsultForm';
-import { buildDoctorPrescriptionLine } from '../../../utils/pharmacyStockDisplay';
+import { emptyMedLine, commitMedLineToList, buildPrescriptionItemPayload } from '../../doctor/doctorConsultForm';
 import ClinicalTimelinePanel from '../../clinic_doctor/components/ClinicalTimelinePanel';
 import EmergencyUnitNurseIntakeForm from './EmergencyUnitNurseIntakeForm';
 import {
@@ -69,6 +69,7 @@ export default function EmergencyUnitNurseWorkspace({
   }, [medLine.medication_name, medLine.quantity]);
 
   const hasPrescription = prescriptionLines.length > 0;
+  const allOutOfStock = allPrescriptionLinesOutOfStock(prescriptionLines);
   const showRx = form.routing_destination === 'pharmacy';
 
   function onFieldChange(key, value) {
@@ -77,16 +78,22 @@ export default function EmergencyUnitNurseWorkspace({
 
   async function handleSubmit() {
     if (!patient || actionLoading) return;
-    const validation = validateEmergencyNurseForm(form, hasPrescription);
+    const validation = validateEmergencyNurseForm(form, hasPrescription, prescriptionLines);
     if (Object.keys(validation).length) {
       setFieldErrors(validation);
       return;
     }
 
     const dest = NURSE_ROUTING_DESTINATIONS.find((d) => d.value === form.routing_destination)?.label;
+    const confirmTitle = form.routing_destination === 'pharmacy' && allOutOfStock
+      ? 'Save prescription?'
+      : 'Route patient?';
+    const confirmText = form.routing_destination === 'pharmacy' && allOutOfStock
+      ? `All medications are out of stock. Save the prescription for ${patient.name} without sending them to pharmacy?`
+      : `Submit vitals, screening, and interventions — route ${patient.name} to ${dest || form.routing_destination}?`;
     if (!(await confirmAction({
-      title: 'Route patient?',
-      text: `Submit vitals, screening, and interventions — route ${patient.name} to ${dest || form.routing_destination}?`,
+      title: confirmTitle,
+      text: confirmText,
       icon: 'question',
       confirmButtonText: 'Submit & route',
     }))) return;
@@ -96,16 +103,10 @@ export default function EmergencyUnitNurseWorkspace({
     setFieldErrors({});
     try {
       const items = hasPrescription
-        ? prescriptionLines.map((item) => ({
-          medication_name: item.medication_name,
-          dosage: item.dosage,
-          frequency: item.frequency || null,
-          quantity: item.quantity || 1,
-          instructions: item.instructions || null,
-        }))
+        ? prescriptionLines.map((item) => buildPrescriptionItemPayload(item))
         : undefined;
 
-      await submitEmergencyNurseRoute(
+      const result = await submitEmergencyNurseRoute(
         buildEmergencyNursePayload(form, {
           visitId: patient.visitId,
           queueEntryId: patient.entryId,
@@ -113,7 +114,10 @@ export default function EmergencyUnitNurseWorkspace({
         })
       );
 
-      onToast(`${patient.name} routed to ${dest || form.routing_destination}`);
+      onToast(
+        formatSkippedPharmacyPatientToast(patient.name, result)
+          || `${patient.name} routed to ${dest || form.routing_destination}`
+      );
       onDone();
     } catch (err) {
       onActionError(err.message || 'Failed to submit');
@@ -197,16 +201,14 @@ export default function EmergencyUnitNurseWorkspace({
               stockChecking={stockChecking}
               prescriptionLines={prescriptionLines}
               onAddMedToList={() => {
-                if (!medLine.medication_name?.trim()) {
-                  setMedFieldErrors({ medication_name: 'Required' });
-                  return;
-                }
-                setPrescriptionLines((lines) => [
-                  ...lines,
-                  buildDoctorPrescriptionLine(medLine, liveStock),
-                ]);
-                setMedLine(emptyMedLine());
-                setLiveStock(null);
+                commitMedLineToList({
+                  medLine,
+                  liveStock,
+                  setPrescriptionLines,
+                  setMedFieldErrors,
+                  setMedLine,
+                  setLiveStock,
+                });
               }}
               onRemoveMedLine={(i) => setPrescriptionLines((lines) => lines.filter((_, idx) => idx !== i))}
               actionLoading={actionLoading}
@@ -229,7 +231,7 @@ export default function EmergencyUnitNurseWorkspace({
             }
             onClick={handleSubmit}
           >
-            {routeButtonLabel(form, actionLoading, hasPrescription)}
+            {routeButtonLabel(form, actionLoading, hasPrescription, allOutOfStock)}
           </button>
         ) : (
           <p className={`${c.hint} mt-4`}>Choose a destination to enable routing.</p>
